@@ -1,0 +1,4 @@
+/solvebio-*.gem
+/Gemfile.lock
+.rvmrc
+Gemfile.lock
