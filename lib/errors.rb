@@ -8,7 +8,7 @@ class SolveBio::Error < RuntimeError
         'If this problem persists, let us know at ' +
         'contact@solvebio.com.'
 
-    def new(message=nil, response=nil)
+    def initialize(message=nil, response=nil)
         @json_body = nil
         @status_code = nil
         @message = message or Default_message
@@ -46,8 +46,8 @@ class SolveBio::Error < RuntimeError
                     end
 
                     if @field_errors
-                        @message += (' The following fields were missing '
-                                         'or invalid: %s' %
+                        @message += (' The following fields were missing ' +
+                            'or invalid: %s' %
                                          @field_errors.join(', '))
                     end
                 end
@@ -63,6 +63,7 @@ end
 # Demo code
 if __FILE__ == $0
     puts SolveBio::Error.new()
-    puts SolveBio::Error.new("Hi there")
-    puts SolveBio::Error.new(['Hello, ', 'again.'])
+    puts SolveBio::Error.new("Hi there").inspect
+    puts SolveBio::Error.new("Hi there").str
+    puts SolveBio::Error.new(['Hello, ', 'again.']).inspect
 end

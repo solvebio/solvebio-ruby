@@ -1,55 +1,28 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 require 'uri'
-
+require 'net/http'
+require 'json'
 require_relative 'solvebio'
 require_relative 'credentials'
+require_relative 'errors'
 
-# import json
-# import requests
 # import textwrap
-# from requests.auth import AuthBase
-
-# Custom auth handler for SolveBio API token authentication
-class SolveBio::TokenAuth # < AuthBase
-
-    include SolveBio::Credentials
-
-    def new(token=nil)
-        @token = token or self._get_api_key()
-    end
-
-    def __call__(r)
-        if @token
-            r.headers['Authorization'] = 'Token %s' % self.token
-            return r
-        end
-    end
-
-    def inspect
-        return '<SolveTokenAuth %s>' % @token
-    end
-
-
-    # Helper function to get the current user's API key or nil.
-    def _get_api_key
-        return solvebio.api_key if solvebio.api_key
-        return get_credentials()[1] rescue nil
-    end
-end
-
 
 # A requests-based HTTP client for SolveBio API resources
 class SolveBio::Client
 
-    def new(api_key=nil, api_host=nil)
+    attr_reader :headers, :api_host
+    attr_accessor :api_key
+
+    def initialize(api_key=nil, api_host=nil)
         @api_key = api_key
-        @api_host = api_host || SolveBio::api_host
+        @api_host = api_host || SolveBio::API_HOST
         @headers = {
             'Content-Type'    => 'application/json',
             'Accept'          => 'application/json',
             'Accept-Encoding' => 'gzip,deflate',
-            'User-Agent'      => 'SolveBio Ruby Client %s [Ruby %s/%s]' % [
+            'User-Agent'      => 'SolveBio Ruby Client %s [%s/%s]' % [
                 SolveBio::VERSION,
                 SolveBio::RUBY_IMPLEMENTATION,
                 SolveBio::RUBY_VERSION
@@ -58,68 +31,95 @@ class SolveBio::Client
     end
 
     def request(method, url, params=nil, raw=false)
-        if ['POST', 'PUT', 'PATCH'].member?(method.upcase)
-            # use only the data payload for write requests
-            data = json.dumps(params)
-            params = nil
-        else
-            data = nil
-        end
 
         if not @api_host
-            raise SolveBio::Error.new(message='No SolveBio API host is set')
+            raise SolveBio::Error.new('No SolveBio API host is set')
         elsif not url.start_with?(@api_host)
-            url = URI.join(@api_host, url)
+            url = URI.join(@api_host, url).to_s
         end
 
-        logger.debug('API %s Request: %s' % [method.upcase, url])
+        uri  = URI.parse(url)
+        http = Net::HTTP.new(uri.host, uri.port)
 
-        begin
-            response = requests.request(method=method.upcase,
-                                        url=url,
-                                        params=params,
-                                        data=data,
-                                        auth=SolveTokenAuth(self._api_key),
-                                        verify=True,
-                                        timeout=80,
-                                        headers=self.headers)
-        rescue => e
-            _handle_request_error(e)
+        # Note: there's also read_timeout and ssl_timeout
+        http.open_timeout = 80 # in seconds
+
+        if uri.scheme == 'https'
+            http.use_ssl = true
+            # FIXME? Risky - see
+            # http://www.rubyinside.com/how-to-cure-nethttps-risky-default-https-behavior-4010.html
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         end
 
-        if not (200 <= response.status_code and response.status_code < 300)
-            _handle_api_error(response)
+        http.set_debug_output($stderr) if $DEBUG
+        SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
+
+        request = nil
+        if ['POST', 'PUT', 'PATCH'].member?(method.upcase)
+            # FIXME? do we need to do something different for
+            # PUT and PATCH?
+            request = Net::HTTP::Post.new(uri.request_uri)
+            request.body = params.to_json
+        else
+            request = Net::HTTP::Get.new(uri.request_uri)
+        end
+        @headers.each { |k, v| request.add_field(k, v) }
+        request.add_field('Authorization', "Token #{@api_key}") if @api_key
+        response = http.request(request)
+
+        status_code = response.code.to_i
+        if status_code < 200 or status_code >= 300
+            handle_api_error(response)
         end
 
-        if raw
-            return response
-        end
-
-        return response.json()
+        return raw ? response.body : JSON.parse(response.body)
     end
 
-    def _handle_request_error(e)
+    def handle_request_error(e)
+        # FIXME: go over this. It is still a rough translation
+        # from the python.
         err = e.inspect
         if e.kind_of?(requests.exceptions.RequestException)
             msg = SolveBio::Error::Default_message
         else
-            msg = ("Unexpected error communicating with SolveBio. "
-                   "It looks like there's probably a configuration "
-                   "issue locally. If this problem persists, let us "
-                   "know at contact@solvebio.com.")
+            msg = 'Unexpected error communicating with SolveBio. ' +
+                "It looks like there's probably a configuration " +
+                'issue locally. If this problem persists, let us ' +
+                'know at contact@solvebio.com.'
         end
         msg = msg + "\n\n(Network error: #{err}"
-        raise SolveBio::Error.new(message=msg)
+        raise SolveBio::Error.new(msg)
     end
 
-    def _handle_api_error(response)
-        if [400, 401, 403, 404].member?(response.status_code)
+    def handle_api_error(response)
+        if [400, 401, 403, 404].member?(response.code)
             raise SolveBio::Error.new(response=response)
         else
-            logger.info('API Error: %d' % response.status_code)
+            SolveBio::logger.info("API Error: #{response.msg}")
             raise SolveBio::Error.new(response=response)
         end
     end
+
+    def self.client
+        @@client ||= SolveBio::Client.new()
+    end
+
+    def self.request(*args)
+        client.request(*args)
+    end
+
 end
 
-client = SolveBio::Client.new()
+if __FILE__ == $0
+    puts SolveBio::Client.client.headers
+    puts SolveBio::Client.client.api_host
+    client = SolveBio::Client.new(nil, 'http://google.com')
+    response = client.request('http', 'http://google.com') rescue 'no good'
+    puts response.inspect
+    puts '-' * 30
+    response = client.request('http', 'http://www.google.com') rescue 'nope'
+    puts response.inspect
+    puts '-' * 30
+    response = client.request('http', 'https://www.google.com') rescue 'nope'
+    puts response.inspect
+end
