@@ -2,5 +2,5 @@
 .rvmrc
 /Gemfile.lock
 /solvebio-*.gem
-/tests/data/.netrc
+/test/data/.netrc
 Gemfile.lock
