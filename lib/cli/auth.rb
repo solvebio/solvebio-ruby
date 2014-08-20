@@ -63,15 +63,15 @@ module SolveBio::Auth
         # code.  Not sure if it's valid here, or what the equivalent
         # is.
         begin
-            response = SolveBio::Client.client.request('post',
-                                                       '/v1/auth/token',
-                                                       data)
+            SolveBio::Client.client.request('post',
+                                            '/v1/auth/token',
+                                            data)
         rescue SolveBio::Error => e
                 puts "Login failed: #{e}"
         else
             save_credentials(email.downcase, response['token'])
             # reset the default client's auth token
-            SolveBio::Client.client.api_key = response['token']
+            response = SolveBio::Client.client.api_key = response['token']
             send_install_report
             puts 'You are now logged-in.'
         end

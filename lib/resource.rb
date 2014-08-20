@@ -21,33 +21,6 @@ def camelcase_to_underscore(name)
     return s1.gsub(/([a-z0-9])([[:upper:]])/){"#{$1}_#{$2.downcase}"}
 end
 
-
-def convert_to_solve_object(resp)
-    types = {
-        'Depository' => Depository,
-        'DepositoryVersion' => DepositoryVersion,
-        'Dataset' => Dataset,
-        'DatasetField' => DatasetField,
-        'User' => User,
-        'list' => ListObject
-    }
-
-    if resp.kind_of?(Array)
-        return resp.map{|i| convert_to_solve_object(i)}
-    elsif not resp.kind_of? SolveBio::SolveObject and resp.kind_of?(Hash)
-        resp = resp.dup()
-        klass_name = resp.get('class_name')
-        if instance(klass_name, basestring)
-            klass = types.get(klass_name, SolveBio::SolveObject)
-        else
-            klass = SolveBio::SolveObject
-        end
-        return klass.construct_from(resp)
-    else
-        return resp
-    end
-end
-
 # Base class for all SolveBio API resource objects
 class SolveBio::SolveObject < Hash
     ALLOW_FULL_NAME_ID = false  # Treat full_name parameter as an ID?
@@ -56,6 +29,7 @@ class SolveBio::SolveObject < Hash
 
     def initialize(id=nil, params={})
 
+        super()
         # store manually updated values for partial updates
         @unsaved_values = Set.new
 
@@ -72,7 +46,7 @@ class SolveBio::SolveObject < Hash
     # @classmethod
     # Used to create a new object from an HTTP response
     def self.construct_from(cls, values)
-        instance = cls(values.get('id'))
+        instance = cls.new(values['id'])
         instance.refresh_from(values)
         return instance
     end
@@ -80,16 +54,12 @@ class SolveBio::SolveObject < Hash
     def refresh_from(values)
         self.clear()
         @unsaved_values = Set.new
-
-        values.each do |k, v|
-            super(SolveBio::SolveObject, self).__setitem__(
-                k, convert_to_solve_object(v))
-        end
+        values.each { |k, v| self[k] = to_solve_object(v) }
     end
 
     def request(method, url, params=nil)
-        response = client.request(method, url, params)
-        return convert_to_solve_object(response)
+        response = SolveBio::Client.client.request(method, url, params)
+        return to_solve_object(response)
     end
 
     def inspect
@@ -121,7 +91,7 @@ class SolveBio::SolveObject < Hash
 end
 
 
-class APIResource < SolveBio::SolveObject
+class SolveBio::APIResource < SolveBio::SolveObject
 
     # @classmethod
     def self.retrieve(cls, id, params={})
@@ -137,10 +107,10 @@ class APIResource < SolveBio::SolveObject
 
     # @classmethod
     def self.class_name(cls)
-        if cls == APIResource
+        if cls == SolveBio::APIResource
             raise NotImplementedError,
-            'APIResource is an abstract class.  You should perform ' +
-                'actions on its subclasses (e.g. Depository, Dataset)'
+            'SolveBio::APIResource is an abstract class.  You should perform ' +
+                'actions on its subclasses (e.g. SolveBio::Depository, Dataset)'
         end
         return urllib.quote_plus(cls.__name__).str
     end
@@ -159,20 +129,20 @@ class APIResource < SolveBio::SolveObject
 
     # Get instance URL by ID or full name (if available)
     def instance_url
-        id = get('id')
+        id = self['id']
         base = class_url()
 
         if id
-            return [base, unicode(id)].join('/')
+            return "#{base}/#{id}"
         else
-            raise Exception # ,
-               # ( 'Could not determine which URL to request: %s instance ' +
-               #  'has invalid ID: %r') % [type(self).__name__, id, 'id']
+            msg = 'Could not determine which URL to request: %s instance ' +
+                'has invalid ID: %s' % [self.class, id]
+            raise Exception, msg
         end
     end
 end
 
-class ListObject < SolveBio::SolveObject
+class SolveBio::ListObject < SolveBio::SolveObject
 
     def all(params={})
         return request('get', self['url'], params)
@@ -197,7 +167,7 @@ class ListObject < SolveBio::SolveObject
     end
 
     def objects
-        return convert_to_solve_object(self['data'])
+        return to_solve_object(self['data'])
     end
 
     def __iter__
@@ -220,14 +190,14 @@ class ListObject < SolveBio::SolveObject
             @i = 0
         end
 
-        obj = convert_to_solve_object(self['data'][@i])
+        obj = to_solve_object(self['data'][@i])
         @i += 1
         return obj
     end
 end
 
 
-class SingletonAPIResource < APIResource
+class SingletonAPIResource < SolveBio::APIResource
 
     # @classmethod
     def self.retrieve(cls)
@@ -247,40 +217,40 @@ class SingletonAPIResource < APIResource
 end
 
 
-class ListableAPIResource < APIResource
+class ListableAPIResource < SolveBio::APIResource
 
     # @classmethod
     def self.all(cls, params={})
         url = cls.class_url()
         response = client.request('get', url, params)
-        return convert_to_solve_object(response)
+        return to_solve_object(response)
     end
 end
 
 
-class SearchableAPIResource < APIResource
+class SearchableAPIResource < SolveBio::APIResource
 
     # @classmethod
     def self.search(cls, query='', params={})
-        params.update({'q' => query})
+        params['q'] = query
         url = cls.class_url()
         response = client.request('get', url, params)
-        return convert_to_solve_object(response)
+        return to_solve_object(response)
     end
 end
 
 
-class CreateableAPIResource < APIResource
+class CreateableAPIResource < SolveBio::APIResource
 
     # @classmethod
     def self.create(cls, params={})
         url = cls.class_url()
         response = client.request('post', url, params)
-        return convert_to_solve_object(response)
+        return to_solve_object(response)
     end
 end
 
-class UpdateableAPIResource < APIResource
+class UpdateableAPIResource < SolveBio::APIResource
 
     def save
         refresh_from(request('patch', instance_url(),
@@ -300,7 +270,7 @@ class UpdateableAPIResource < APIResource
     end
 end
 
-class DeletableAPIResource < APIResource
+class DeletableAPIResource < SolveBio::APIResource
 
     def delete(params={})
         refresh_from(request('delete', instance_url(), params))
@@ -311,11 +281,11 @@ end
 
 # API resources
 
-class User < SingletonAPIResource
+class SolveBio::User < SingletonAPIResource
 end
 
 
-class Depository
+class SolveBio::Depository < SolveBio::APIResource
 
     # include CreateableAPIResource
     # include ListableAPIResource
@@ -328,17 +298,17 @@ class Depository
     # @classmethod
     # Supports lookup by ID or full name
     def self.retrieve(cls, id, params={})
-        if isinstance(id, unicode) or isinstance(id, str)
-            _id = unicode(id).strip()
+        if str.kind_of?(String)
+            _id = id.strip
             id = nil
-            if re.match(cls.FULL_NAME_REGEX, _id)
-                params.update({'full_name' => _id})
+            if _id =~ FULL_NAME_REGEX
+                params['full_name'] = _id
             else
-                raise Exception('Unrecognized full name: "%s"' % _id)
+                raise Exception, 'Unrecognized full name: "%s"' % _id
             end
         end
 
-        return super(Depository, cls).retrieve(id, params={})
+        return super(SolveBio::Depository, cls).retrieve(id, params={})
     end
 
     def versions(name=nil, params={})
@@ -349,7 +319,7 @@ class Depository
         end
 
         response = client.request('get', self.versions_url, params)
-        return convert_to_solve_object(response)
+        return to_solve_object(response)
     end
 
     def help
@@ -358,7 +328,7 @@ class Depository
 
 end
 
-class DepositoryVersion
+class SolveBio::DepositoryVersion < SolveBio::APIResource
 
 
     # include CreateableAPIResource
@@ -371,13 +341,13 @@ class DepositoryVersion
     # @classmethod
     # Supports lookup by full name
     def self.retrieve(cls, id, params={})
-        if isinstance(id, unicode) or isinstance(id, str)
-            _id = unicode(id).strip()
+        if str.kind_of?(String)
+            _id = id.strip
             id = nil
-            if re.match(cls.FULL_NAME_REGEX, _id)
-                params.update({'full_name' => _id})
+            if _id =~ FULL_NAME_REGEX
+                parms['full_name'] = _id
             else
-                raise Exception('Unrecognized full name.')
+                raise Exception, 'Unrecognized full name.'
             end
         end
 
@@ -387,12 +357,11 @@ class DepositoryVersion
     def datasets(name=nil, params={})
         if name
             # construct the dataset full name
-            return Dataset.retrieve(
-                                    [self['full_name'], name].join '/')
+            return SolveBio::Dataset.retrieve("#{self['full_name']}/#{name}")
         end
 
-        response = client.request('get', self.datasets_url, params)
-        return convert_to_solve_object(response)
+        response = SolveBio::Client.client.request('get', self.datasets_url, params)
+        return to_solve_object(response)
     end
 
     def help
@@ -415,8 +384,9 @@ class DepositoryVersion
     end
 end
 
-class Dataset
+class SolveBio::Dataset < SolveBio::APIResource
 
+    ## FIXME: delegate methods from these.
     # include CreateableAPIResource
     # include ListableAPIResource
     # include UpdateableAPIResource
@@ -427,17 +397,17 @@ class Dataset
     # @classmethod
     # Supports lookup by full name
     def self.retrieve(cls, id, params={})
-        if isinstance(id, unicode) or isinstance(id, str)
-            _id = unicode(id).strip()
+        if id.kind_of?(String)
+            _id = id.strip()
             id = nil
-            if re.match(cls.FULL_NAME_REGEX, _id)
-                params.update({'full_name' => _id})
+            if _id =~ FULL_NAME_REGEX
+                params['full_name'] = _id
             else
-                raise Exception('Unrecognized full name.')
+                raise Exception, 'Unrecognized full name.'
             end
         end
 
-        return super(Dataset, cls).retrieve(id, params={})
+        return super(SolveBio::Dataset, cls).retrieve(id, params={})
     end
 
     def depository_version
@@ -445,7 +415,7 @@ class Dataset
     end
 
     def depository
-        return Depository.retrieve(self['depository'])
+        return SolveBio::Depository.retrieve(self['depository'])
     end
 
     def fields(name=nil, params={})
@@ -457,12 +427,11 @@ class Dataset
 
         if name
             # construct the field's full_name if a field name is provided
-            return DatasetField.retrieve(
-                                         '/'.join([self['full_name'], name]))
+            return DatasetField.retrieve("#{self['full_name']}/#{name}")
         end
 
         response = client.request('get', self.fields_url, params)
-        return convert_to_solve_object(response)
+        return to_solve_object(response)
     end
 
     def _data_url
@@ -492,7 +461,7 @@ class Dataset
     end
 end
 
-class DatasetField
+class SolveBio::DatasetField < SolveBio::APIResource
 
     # include CreateableAPIResource
     # include ListableAPIResource
@@ -504,11 +473,11 @@ class DatasetField
     # @classmethod
     # Supports lookup by ID or full name
     def self.retrieve(cls, id, params={})
-        if isinstance(id, unicode) or isinstance(id, str)
-            _id = unicode(id).strip()
+        if str.kind_of?(String)
+            _id = id.strip
             id = nil
-            if re.match(cls.FULL_NAME_REGEX, _id)
-                params.update({'full_name' => _id})
+            if FULL_NAME_REGEX =~ _id
+                params['full_name'] = _id
             else
                 raise Exception, 'Unrecognized full name.'
             end
@@ -519,11 +488,51 @@ class DatasetField
 
     def facets(params={})
         response = client.request('get', self.facets_url, params)
-        return convert_to_solve_object(response)
+        return to_solve_object(response)
     end
 
     def help
         return self.facets()
+    end
+end
+
+SolveBio::SolveObject::CONVERSION = {
+    'Depository'        => SolveBio::Depository,
+    'DepositoryVersion' => SolveBio::DepositoryVersion,
+    'Dataset'           => SolveBio::Dataset,
+    'DatasetField'      => SolveBio::DatasetField,
+    'User'              => SolveBio::User,
+    'list'              => SolveBio::ListObject
+}
+
+class Hash
+    def to_biosolve
+        resp = self.dup()
+        klass_name = resp['class_name']
+        if klass_name.kind_of?(String)
+            klass = SolveBio::SolveObject::CONVERSION[klass_name] ||
+                SolveBio::SolveObject
+        else
+            klass = SolveBio::SolveObject
+        end
+        SolveBio::SolveObject::construct_from(klass, resp)
+    end
+end
+
+class Array
+    def to_biosolve
+        return self.map{|i| to_solve_object(i)}
+    end
+end
+
+
+def to_solve_object(resp)
+    if resp.kind_of?(Array)
+        resp.to_biosolve
+    elsif not resp.kind_of? SolveBio::SolveObject and resp.kind_of?(Hash)
+        resp.to_biosolve
+    else
+        return resp
     end
 end
 
@@ -533,4 +542,27 @@ if __FILE__ == $0
     end
     puts SolveBio::SolveObject.new.inspect
     puts SolveBio::SolveObject.new(64).inspect
+
+    resp = {
+        'class_name' => 'Dataset',
+        'data_url'   => 'https://api.solvebio.com/v1/datasets/25/data',
+        'depository' => 'ClinVar',
+        'depository_id' => 223,
+        'depository_version' => 'ClinVar/2.0.0-1',
+        'depository_version_id' => 15,
+        'description' => '',
+        'fields_url' => 'https://api.solvebio.com/v1/datasets/25/fields',
+        'full_name' => 'ClinVar/2.0.0-1/Variants',
+        'id'  => 25,
+        'name' => 'Variants',
+        'title' => 'Variants',
+        'url' => 'https://api.solvebio.com/v1/datasets/25'
+    }
+    so = to_solve_object(resp)
+    puts so
+    puts so.inspect
+    puts '-' * 50
+    so = resp.to_biosolve
+    puts so
+    puts so.inspect
 end
