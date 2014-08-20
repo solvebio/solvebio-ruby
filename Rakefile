@@ -11,3 +11,4 @@ task :test => :lib
 
 desc "same as test"
 task :check => :test
+task :default => :test

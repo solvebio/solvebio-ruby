@@ -4,7 +4,6 @@ require 'json'
 require 'set'
 
 # import urllib
-# import re
 
 # from utils.tabulate import tabulate
 
