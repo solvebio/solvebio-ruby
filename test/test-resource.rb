@@ -49,7 +49,7 @@ class TestResource < Test::Unit::TestCase
             'title' => 'Variants',
             'url' => 'https://api.solvebio.com/v1/datasets/25'
         }
-        so = resp.to_biosolve
+        so = resp.to_solvebio
         assert_equal SolveBio::Dataset, so.class, 'Hash -> SolveObject'
         resp.keys.each {|k| assert_equal resp[k], so[k]}
     end

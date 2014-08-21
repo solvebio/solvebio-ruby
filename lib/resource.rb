@@ -79,7 +79,7 @@ class SolveBio::SolveObject < Hash
     end
 
     def str
-        # No equivalent of sort_keys?
+        # No equivalent of Python's json sort_keys?
         return JSON.pretty_generate(self, :indent => '  ')
         # return self.to_json json.dumps(self, sort_keys=true, indent=2)
     end
@@ -430,8 +430,7 @@ class SolveBio::Dataset < SolveBio::APIResource
             return DatasetField.retrieve("#{self['full_name']}/#{name}")
         end
 
-        response = client.request('get', self.fields_url, params)
-        return to_solve_object(response)
+        client.request('get', self.fields_url, params).to_solvebio
     end
 
     def _data_url
@@ -487,12 +486,11 @@ class SolveBio::DatasetField < SolveBio::APIResource
     end
 
     def facets(params={})
-        response = client.request('get', self.facets_url, params)
-        return to_solve_object(response)
+        client.request('get', @facets_url, params).to_solvebio
     end
 
     def help
-        return self.facets()
+        facets
     end
 end
 
@@ -506,7 +504,7 @@ SolveBio::SolveObject::CONVERSION = {
 }
 
 class Hash
-    def to_biosolve
+    def to_solvebio
         resp = self.dup()
         klass_name = resp['class_name']
         if klass_name.kind_of?(String)
@@ -520,7 +518,7 @@ class Hash
 end
 
 class Array
-    def to_biosolve
+    def to_solvebio
         return self.map{|i| to_solve_object(i)}
     end
 end
@@ -528,9 +526,9 @@ end
 
 def to_solve_object(resp)
     if resp.kind_of?(Array)
-        resp.to_biosolve
+        resp.to_solvebio
     elsif not resp.kind_of? SolveBio::SolveObject and resp.kind_of?(Hash)
-        resp.to_biosolve
+        resp.to_solvebio
     else
         return resp
     end
@@ -562,7 +560,7 @@ if __FILE__ == $0
     puts so
     puts so.inspect
     puts '-' * 50
-    so = resp.to_biosolve
+    so = resp.to_solvebio
     puts so
     puts so.inspect
 end
