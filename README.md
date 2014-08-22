@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/rocky/solvebio-ruby.svg?branch=master](https://travis-ci.org/rocky/solve-bio)
+[Build Status](https://travis-ci.org/rocky/solvebio-ruby.svg?branch=master](https://travis-ci.org/rocky/solve-bio)
 
 Placeholder for what will be the SolveBio Ruby bindings.
 
