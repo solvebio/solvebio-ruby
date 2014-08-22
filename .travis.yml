@@ -2,6 +2,7 @@ language: ruby
 before_script:
   - gem install netrc
   - touch ~/.netrc
+  - chmod 0600 ~/.netrc
 script: rake
 rvm:
   - 1.9.3
