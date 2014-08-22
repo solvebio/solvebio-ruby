@@ -15,6 +15,7 @@ class TestResource < Test::Unit::TestCase
              ['aBcDef',   'a_bc_def',   'multiple letter match'],
              ['a1B2C3',   'a1_b2_c3',   'multi letters and numbers'],
              ['?Foo',     '?_foo',      'weird symbols, part 1'],
+             ['Dataset',  'dataset',    'no camelcase with caps'],
             ]
         data.each do |triple|
             assert_equal(triple[1],

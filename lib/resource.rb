@@ -15,17 +15,24 @@ require_relative 'help'
 # from .query import Query
 # from .help import open_help
 
+# Add underscore before internal uppercase letters. Also, lowercase
+# all letters.
 def camelcase_to_underscore(name)
     # Using [[:upper:]] and [[:lower]] should help with Unicode.
-    s1 = name.gsub(/(.)([[:upper:]])([[:lower:]]+)/){"#{$1}_#{$2.downcase}#{$3}"}
-    return s1.gsub(/([a-z0-9])([[:upper:]])/){"#{$1}_#{$2.downcase}"}
+    s1 = name.gsub(/(.)([[:upper:]])([[:lower:]]+)/){"#{$1}_#{$2}#{$3}"}
+    return (s1.gsub(/([a-z0-9])([[:upper:]])/){"#{$1}_#{$2}"}).downcase
 end
 
 # Base class for all SolveBio API resource objects
 class SolveBio::SolveObject < Hash
+
     ALLOW_FULL_NAME_ID = false  # Treat full_name parameter as an ID?
 
     attr_reader :unsaved_values
+
+    def allow_full_name_id
+        self.class.const_get(:ALLOW_FULL_NAME_ID)
+    end
 
     def initialize(id=nil, params={})
 
@@ -34,12 +41,12 @@ class SolveBio::SolveObject < Hash
         @unsaved_values = Set.new
 
         if id
-            self[:id] = id
-        elsif ALLOW_FULL_NAME_ID and params[:full_name]
-            self[:full_name] = params[:full_name]
+            self['id'] = id
+        elsif allow_full_name_id and params['full_name']
+            self['full_name'] = params['full_name']
             # no ID was provided so temporarily set the id as full_name
             # this will get updated when the resource is refreshed
-            self[:id] = params[:full_name]
+            self['id'] = params['full_name']
         end
     end
 
@@ -65,12 +72,12 @@ class SolveBio::SolveObject < Hash
     def inspect
         ident_parts = [self.class]
 
-        if self[:id].kind_of?(Integer)
-            ident_parts << "id=#{self[:id]}"
+        if self['id'].kind_of?(Integer)
+            ident_parts << "id=#{self['id']}"
         end
 
-        if ALLOW_FULL_NAME_ID and self[:full_name]
-            ident_parts << "full_name=#{self[:full_name]}"
+        if allow_full_name_id and self['full_name']
+            ident_parts << "full_name=#{self['full_name']}"
         end
 
         return '<%s:%x> JSON: %s' % [ident_parts.join(' '),
@@ -86,7 +93,7 @@ class SolveBio::SolveObject < Hash
 
     # @property
     def solvebio_id
-        return self[:id]
+        return self['id']
     end
 end
 
@@ -95,7 +102,7 @@ class SolveBio::APIResource < SolveBio::SolveObject
 
     # @classmethod
     def self.retrieve(cls, id, params={})
-        instance = cls.new(id, params={})
+        instance = cls.new(id, params)
         instance.refresh()
         return instance
     end
@@ -106,18 +113,20 @@ class SolveBio::APIResource < SolveBio::SolveObject
     end
 
     # @classmethod
-    def self.class_name(cls)
-        if cls == SolveBio::APIResource
-            raise NotImplementedError,
-            'SolveBio::APIResource is an abstract class.  You should perform ' +
-                'actions on its subclasses (e.g. SolveBio::Depository, Dataset)'
-        end
-        return urllib.quote_plus(cls.__name__).str
-    end
+    # def self.class_name(cls)
+    #     if cls == SolveBio::APIResource
+    #         raise NotImplementedError,
+    #         'SolveBio::APIResource is an abstract class.  You should perform ' +
+    #             'actions on its subclasses (e.g. SolveBio::Depository, Dataset)'
+    #     end
+    #     return urllib.quote_plus(cls.__name__).str
+    # end
 
     # @classmethod
     def self.class_url(cls)
-        cls_name = cls.class_name()
+        # require 'trepanning'; debugger # Get me into the debugger!
+        # cls_name = cls.class_name()
+        cls_name = cls.to_s.sub('SolveBio::', '')
         # pluralize
         if cls_name.end_with?('y')
             cls_name = cls_name[0..-1] + 'ie'
@@ -130,7 +139,7 @@ class SolveBio::APIResource < SolveBio::SolveObject
     # Get instance URL by ID or full name (if available)
     def instance_url
         id = self['id']
-        base = class_url()
+        base = SolveBio::APIResource.class_url(self.class)
 
         if id
             return "#{base}/#{id}"
@@ -206,7 +215,8 @@ class SingletonAPIResource < SolveBio::APIResource
 
     # @classmethod
     def self.class_url(cls)
-        cls_name = cls.class_name()
+        # cls_name = cls.class_name()
+        cls_name = cls.to_s.sub('SolveBio::', '')
         cls_name = camelcase_to_underscore(cls_name)
         return "/v1/%s #{cls_name}"
     end
@@ -392,13 +402,13 @@ class SolveBio::Dataset < SolveBio::APIResource
     # include UpdateableAPIResource
 
     ALLOW_FULL_NAME_ID = true
-    FULL_NAME_REGEX = %r{/^([\w\-\.]+/){2}[\w\-\.]+$}
+    FULL_NAME_REGEX = %r{^([\w\-\.]+/){2}[\w\-\.]+$}
 
     # @classmethod
-    # Supports lookup by full name
-    def self.retrieve(cls, id, params={})
+    # Dataset lookup by full string name
+    def self.retrieve(id, params={})
         if id.kind_of?(String)
-            _id = id.strip()
+            _id = id.strip
             id = nil
             if _id =~ FULL_NAME_REGEX
                 params['full_name'] = _id
@@ -407,7 +417,7 @@ class SolveBio::Dataset < SolveBio::APIResource
             end
         end
 
-        return super(SolveBio::Dataset, cls).retrieve(id, params={})
+        return SolveBio::APIResource.retrieve(SolveBio::Dataset, id, params)
     end
 
     def depository_version
@@ -563,4 +573,6 @@ if __FILE__ == $0
     so = resp.to_solvebio
     puts so
     puts so.inspect
+    # require 'trepanning'; debugger
+    puts SolveBio::Dataset.retrieve('Clinvar/2.0.0-1/Variants')
 end

@@ -93,10 +93,10 @@ class SolveBio::Client
 
     def handle_api_error(response)
         if [400, 401, 403, 404].member?(response.code.to_i)
-            raise SolveBio::Error.new(response=response)
+            raise SolveBio::Error.new(nil, response)
         else
             SolveBio::logger.info("API Error: #{response.msg}")
-            raise SolveBio::Error.new(response=response)
+            raise SolveBio::Error.new(nil, response)
         end
     end
 

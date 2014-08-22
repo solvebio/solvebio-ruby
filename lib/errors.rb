@@ -15,16 +15,17 @@ class SolveBio::Error < RuntimeError
         @field_errors = []
 
         if response
-            @status_code = response.status_code
+            @status_code = response.code.to_i
+            @message     = response.message
             begin
-                @json_body = response.json()
+                @json_body = JSON.parse(response.body)
             rescue
-                @message = '404 Not Found.'  if response.status_code == 404
+                @message = '404 Not Found.' if @status_code == 404
                 SolveBio.logger.debug(
-                    'API Response (%d): No content.' % @status_code)
+                    "API Response (%d): No content." % @status_code)
             else
-                @@logger.debug(
-                    'API Response (#{@status_code}): #{@json_body}')
+                SolveBio.logger.debug(
+                    "API Response (#{@status_code}): #{@json_body}")
 
                 if [400, 401, 403, 404].member?(@status_code)
                     @message = 'Bad request.'
@@ -38,10 +39,10 @@ class SolveBio::Error < RuntimeError
                             @json_body['non_field_errors'].join(', ')
                     end
 
-                    @json_body.items().each_with_index do |k, v|
+                    @json_body.each do |k, v|
                         if ['detail', 'non_field_errors'].member?(k)
                             v = v.join(', ') if v.kind_of?(Array)
-                            @field_errors.append('%s (%s)' % [k, v])
+                            @field_errors << ('%s (%s)' % [k, v])
                         end
                     end
 
@@ -66,4 +67,9 @@ if __FILE__ == $0
     puts SolveBio::Error.new("Hi there").inspect
     puts SolveBio::Error.new("Hi there").str
     puts SolveBio::Error.new(['Hello, ', 'again.']).inspect
+
+    require 'net/http'
+    response = Net::HTTPUnauthorized.new('HTTP 1.1', '404', 'No creds')
+    puts SolveBio::Error.new(nil, response).str
+
 end
