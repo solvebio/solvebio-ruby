@@ -122,9 +122,7 @@ class SolveBio::APIResource < SolveBio::SolveObject
     #     return urllib.quote_plus(cls.__name__).str
     # end
 
-    # @classmethod
     def self.class_url(cls)
-        # require 'trepanning'; debugger # Get me into the debugger!
         # cls_name = cls.class_name()
         cls_name = cls.to_s.sub('SolveBio::', '')
         # pluralize
@@ -305,7 +303,6 @@ class SolveBio::Depository < SolveBio::APIResource
     ALLOW_FULL_NAME_ID = true
     FULL_NAME_REGEX = %r{^[\w\-\.]+$}
 
-    # @classmethod
     # Supports lookup by ID or full name
     def self.retrieve(cls, id, params={})
         if str.kind_of?(String)
@@ -318,7 +315,8 @@ class SolveBio::Depository < SolveBio::APIResource
             end
         end
 
-        return super(SolveBio::Depository, cls).retrieve(id, params={})
+        return SolveBio::APIResource.retrieve(SolveBio::Depository, id,
+                                              params)
     end
 
     def versions(name=nil, params={})
@@ -348,7 +346,6 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
     ALLOW_FULL_NAME_ID = true
     FULL_NAME_REGEX = %r{^[\w\.]+/[\w\-\.]+$}
 
-    # @classmethod
     # Supports lookup by full name
     def self.retrieve(cls, id, params={})
         if str.kind_of?(String)
@@ -361,7 +358,8 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
             end
         end
 
-        return super(DepositoryVersion, cls).retrieve(id, params={})
+        return SolveBio::APIResource.retrieve(SolveBio::DepositoryVersion,
+                                              id, params)
     end
 
     def datasets(name=nil, params={})
@@ -370,8 +368,9 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
             return SolveBio::Dataset.retrieve("#{self['full_name']}/#{name}")
         end
 
-        response = SolveBio::Client.client.request('get', self.datasets_url, params)
-        return to_solve_object(response)
+        response = SolveBio::Client.client.request('get', self.datasets_url,
+                                                   params)
+        return response.to_solvebio
     end
 
     def help
@@ -402,9 +401,11 @@ class SolveBio::Dataset < SolveBio::APIResource
     # include UpdateableAPIResource
 
     ALLOW_FULL_NAME_ID = true
+
+    # Sample matches:
+    #  'Clinvar/2.0.0-1/Variants'
     FULL_NAME_REGEX = %r{^([\w\-\.]+/){2}[\w\-\.]+$}
 
-    # @classmethod
     # Dataset lookup by full string name
     def self.retrieve(id, params={})
         if id.kind_of?(String)
@@ -479,7 +480,6 @@ class SolveBio::DatasetField < SolveBio::APIResource
     ALLOW_FULL_NAME_ID = true
     FULL_NAME_REGEX = %r{^([\w\-\.]+/){3}[\w\-\.]+$}
 
-    # @classmethod
     # Supports lookup by ID or full name
     def self.retrieve(cls, id, params={})
         if str.kind_of?(String)
@@ -545,7 +545,7 @@ def to_solve_object(resp)
 end
 
 if __FILE__ == $0
-    %w(abc abcDef abc01Def aBcDef a1B2C3 ?Foo).each do |word|
+    %w(abc abcDef abc01Def aBcDef a1B2C3 ?Foo Dataset).each do |word|
         puts word + " -> " + camelcase_to_underscore(word)
     end
     puts SolveBio::SolveObject.new.inspect

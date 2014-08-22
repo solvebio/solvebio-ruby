@@ -65,6 +65,7 @@ Gem::Specification.new do |s|
     Rakefile
     bin/solvebio.rb
     lib/credentials.rb
+    lib/resource.rb
     lib/version.rb
     lib/cli/auth.rb
     solvebio.gemspec

@@ -4,8 +4,7 @@ require 'test/unit'
 require 'fileutils'
 require_relative '../lib/credentials'
 
-# require 'trepanning'
-
+# Does .netrc reading and manipulation work?
 class TestNetrc < Test::Unit::TestCase
 
     def setup

@@ -7,6 +7,7 @@ require 'rbconfig'
 
 class TestAuth < Test::Unit::TestCase
 
+    # Integration test of logout
     def test_logout
 
         auth_prog = File.join(File.dirname(__FILE__),

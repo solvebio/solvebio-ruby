@@ -14,8 +14,6 @@ class FakeLogger
     end
 end
 
-
-
 class TestError < Test::Unit::TestCase
 
     def test_error
@@ -26,7 +24,7 @@ class TestError < Test::Unit::TestCase
         old_logger = SolveBio.instance_variable_get('@logger')
         logger = FakeLogger.new
         SolveBio.instance_variable_set('@logger', logger)
-        err = SolveBio::Error.new(nil, response)
+        SolveBio::Error.new(nil, response)
         assert_equal ["API Response (404): No content."], $errors
     ensure
         SolveBio.instance_variable_set('@logger', old_logger) if old_logger

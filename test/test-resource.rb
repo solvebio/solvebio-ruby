@@ -5,6 +5,7 @@ require_relative '../lib/resource'
 
 class TestResource < Test::Unit::TestCase
 
+    # Does our kind of camelCasing works?
     def test_camelcase
 
         data =
@@ -22,6 +23,15 @@ class TestResource < Test::Unit::TestCase
                          camelcase_to_underscore(triple[0]),
                          triple[2])
         end
+    end
+
+    # Do the class FULL_NAME_REGEX contants match what the think they
+    # should?
+    def test_full_name_regexp
+        assert('Clinvar/2.0.0-1/Variants' =~
+                SolveBio::Dataset::FULL_NAME_REGEX,
+                'Dataset regexp')
+
     end
 
     def test_SolveObject_inspect
