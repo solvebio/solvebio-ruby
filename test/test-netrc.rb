@@ -11,7 +11,7 @@ class TestNetrc < Test::Unit::TestCase
         @netrc_path_save = ENV["NETRC_PATH"]
         path = ENV["NETRC_PATH"] = File.join(File.dirname(__FILE__), 'data')
         FileUtils.cp(File.join(path, 'netrc-save'), File.join(path, '.netrc'))
-        Dir.glob('data/*.netrc').each{|f| File.chmod(0600, f)}
+        File.chmod(0600, "#{path}/.netrc")
     end
 
     def teardown
