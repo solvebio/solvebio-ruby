@@ -573,6 +573,10 @@ if __FILE__ == $0
     so = resp.to_solvebio
     puts so
     puts so.inspect
-    # require 'trepanning'; debugger
-    puts SolveBio::Dataset.retrieve('Clinvar/2.0.0-1/Variants')
+    if ARGV[0]
+        require_relative './cli/auth.rb'
+        include SolveBio::Auth
+        login
+        puts SolveBio::Dataset.retrieve('Clinvar/2.0.0-1/Variants')
+    end
 end

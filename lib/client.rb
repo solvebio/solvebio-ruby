@@ -21,7 +21,7 @@ class SolveBio::Client
         @headers = {
             'Content-Type'    => 'application/json',
             'Accept'          => 'application/json',
-            'Accept-Encoding' => 'gzip,deflate',
+            # 'Accept-Encoding' => 'gzip,deflate',
             'User-Agent'      => 'SolveBio Ruby Client %s [%s/%s]' % [
                 SolveBio::VERSION,
                 SolveBio::RUBY_IMPLEMENTATION,
@@ -72,7 +72,11 @@ class SolveBio::Client
             handle_api_error(response)
         end
 
-        return raw ? response.body : JSON.parse(response.body)
+        if raw
+            return response.body
+        else
+            return JSON.parse(response.body)
+        end
     end
 
     def handle_request_error(e)

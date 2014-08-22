@@ -63,9 +63,9 @@ module SolveBio::Auth
         # code.  Not sure if it's valid here, or what the equivalent
         # is.
         begin
-            SolveBio::Client.client.request('post',
-                                            '/v1/auth/token',
-                                            data)
+            response = SolveBio::Client.client.request('post',
+                                                       '/v1/auth/token',
+                                                       data)
         rescue SolveBio::Error => e
                 puts "Login failed: #{e}"
         else
