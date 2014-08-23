@@ -12,6 +12,8 @@ end
 
 module SolveBio::Credentials
 
+    module_function
+
     # SolveBio API host -- just the hostname
     def api_host
         URI(SolveBio::API_HOST).host

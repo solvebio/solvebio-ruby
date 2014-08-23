@@ -4,7 +4,6 @@ require_relative 'client'
 
 class SolveBio::APIResource < SolveBio::SolveObject
 
-    # @classmethod
     def self.retrieve(cls, id, params={})
         instance = cls.new(id, params)
         instance.refresh()
@@ -15,16 +14,6 @@ class SolveBio::APIResource < SolveBio::SolveObject
         refresh_from(request('get', instance_url()))
         return self
     end
-
-    # @classmethod
-    # def self.class_name(cls)
-    #     if cls == SolveBio::APIResource
-    #         raise NotImplementedError,
-    #         'SolveBio::APIResource is an abstract class.  You should perform ' +
-    #             'actions on its subclasses (e.g. SolveBio::Depository, Dataset)'
-    #     end
-    #     return urllib.quote_plus(cls.__name__).str
-    # end
 
     def self.class_url(cls)
         # cls_name = cls.class_name()

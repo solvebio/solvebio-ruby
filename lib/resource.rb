@@ -148,11 +148,11 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
 
     # Supports lookup by full name
     def self.retrieve(cls, id, params={})
-        if str.kind_of?(String)
+        if id.kind_of?(String)
             _id = id.strip
             id = nil
             if _id =~ FULL_NAME_REGEX
-                parms['full_name'] = _id
+                params['full_name'] = _id
             else
                 raise Exception, 'Unrecognized full name.'
             end
@@ -218,7 +218,8 @@ class SolveBio::Dataset < SolveBio::APIResource
     end
 
     def depository_version
-        return DepositoryVersion.retrieve(self['depository_version'])
+        return SolveBio::DepositoryVersion.
+            retrieve(SolveBio::Dataset, self['depository_version'])
     end
 
     def depository
@@ -226,7 +227,7 @@ class SolveBio::Dataset < SolveBio::APIResource
     end
 
     def fields(name=nil, params={})
-        if self.instance_variable.member?(:fields_url)
+        unless self['fields_url']
             raise Exception,
             'Please use Dataset.retrieve({ID}) before doing looking ' +
                 'up fields'
@@ -237,12 +238,22 @@ class SolveBio::Dataset < SolveBio::APIResource
             return DatasetField.retrieve("#{self['full_name']}/#{name}")
         end
 
-        client.request('get', self.fields_url, params).to_solvebio
+        SolveBio::Client.
+            client.request('get', self['fields_url']).to_solvebio
     end
 
-    def _data_url
-        if self.instance_variable.member(:data_url)
-            if self.instance_variables.member?('id') or not @id
+    # def query(self, params={})
+    #     q = Query(data_url(), *params={})
+    #     if params.get('filters')
+    #         return q.filter(params.get('filters'))
+    #     end
+    #     return q
+    # end
+
+    private
+    def data_url
+        unless self['data_url']
+            unless self['id']
                 raise Exception,
                 'No Dataset ID was provided. ' +
                     'Please instantiate the Dataset ' +
@@ -254,13 +265,6 @@ class SolveBio::Dataset < SolveBio::APIResource
         return self['data_url']
     end
 
-    # def query(self, params={})
-    #     q = Query(data_url(), *params={})
-    #     if params.get('filters')
-    #         return q.filter(params.get('filters'))
-    #     end
-    #     return q
-    # end
 end
 
 class SolveBio::DatasetField < SolveBio::APIResource
