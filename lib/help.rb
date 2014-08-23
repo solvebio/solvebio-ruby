@@ -8,7 +8,17 @@ require_relative 'solvebio'
 # except ImportError:
 #     webbrowser = None
 
-module SolveBio::Help
+module SolveBio::HelpableAPIResource
+
+    def self.included base
+        base.send :include, InstanceMethods
+    end
+
+    module InstanceMethods
+        def help
+            open_help(self['full_name'])
+        end
+    end
 
     def open_help(path)
         url = URI::join('https://www.solvebio.com/', path)
@@ -22,7 +32,7 @@ end
 
 # Demo code
 if __FILE__ == $0
-    include SolveBio::Help
+    include SolveBio::HelpableAPIResource
     open_help('')
     open_help('docs')
 end
