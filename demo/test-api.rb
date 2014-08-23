@@ -1,6 +1,7 @@
 # Test SolveBio API
 require_relative  '../lib/solvebio-api'
-DATASET = 'ClinVar/2.0.0-1/Variants'
+DEPOSITORY = 'ClinVar'
+DATASET    = "#{DEPOSITORY}/2.0.0-1/Variants"
 
 # Custom Exception class for running basic tests
 class TestFail < RuntimeError
@@ -31,6 +32,15 @@ end
 SolveBio::Client.client.api_key = creds[1]
 
 begin
+    # depository things
+    load_depo = proc { SolveBio::Depository.retrieve(DEPOSITORY) }
+    begin
+        dataset = run_and_verify(load_depo, 'load a depository',
+                                 [:str, :versions, :versions_url])
+    rescue SolveBio::Error => exc
+        raise TestFail, "Loading #{DEPOSITORY} failed! (#{exc})"
+    end
+
     # try loading a dataset
     load_dataset = proc { SolveBio::Dataset.retrieve(DATASET) }
     begin
