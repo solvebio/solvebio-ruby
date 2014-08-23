@@ -6,3 +6,4 @@ before_script:
 script: rake
 rvm:
   - 1.9.3
+  - 2.0.0

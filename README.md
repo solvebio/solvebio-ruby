@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/rocky/solvebio-ruby.svg)](https://travis-ci.org/rocky/solve-bio)
+[![Build Status](https://travis-ci.org/rocky/solvebio-ruby.svg)](https://travis-ci.org/rocky/solvebio-ruby)
 
 SolveBio Ruby bindings
 ======================
