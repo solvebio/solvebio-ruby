@@ -331,9 +331,8 @@ end
 
 
 def to_solve_object(resp)
-    if resp.kind_of?(Array)
-        resp.to_solvebio
-    elsif not resp.kind_of? SolveBio::SolveObject and resp.kind_of?(Hash)
+    if resp.kind_of?(Array) or
+            (not resp.kind_of? SolveBio::SolveObject and resp.kind_of?(Hash))
         resp.to_solvebio
     else
         return resp

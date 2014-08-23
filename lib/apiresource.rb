@@ -82,7 +82,7 @@ module SolveBio::CreateableAPIResource
 
     module ClassMethods
         def create(params={})
-           url = SolveBio::APIResource.class_url(self)
+            url = SolveBio::APIResource.class_url(self)
             response = SolveBio::Client.client.request('post', url, params)
             return to_solve_object(response)
         end
