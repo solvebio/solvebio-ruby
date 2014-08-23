@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 require 'uri'
+require 'openssl'
 require 'net/http'
 require 'json'
 require_relative 'solvebio'
