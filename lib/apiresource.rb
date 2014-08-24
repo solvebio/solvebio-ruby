@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require_relative 'solvebio'
+require_relative 'solveobject'
 require_relative 'client'
 
 class SolveBio::APIResource < SolveBio::SolveObject

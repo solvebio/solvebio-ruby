@@ -79,7 +79,7 @@ class SolveBio::SolveObject < Hash
     end
 
     # @property
-    def solvebio_id
+    def id
         return self['id']
     end
 end

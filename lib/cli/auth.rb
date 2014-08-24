@@ -11,9 +11,9 @@ require_relative  '../client'
 
 module SolveBio::Auth
 
-    def ask_for_credentials
+    def ask_for_credentials(email=nil)
         while true
-            email = Readline.readline('Email address: ', true)
+            email ||= Readline.readline('Email address: ', true)
             print 'Password (typing will be hidden): '
             password = STDIN.noecho(&:gets).chomp
             puts
@@ -50,10 +50,10 @@ module SolveBio::Auth
     # Prompt user for login information (email/password).
     # Email and password are used to get the user's auth_token key.
     #
-    def login
+    def login(email=nil)
         delete_credentials()
 
-        email, password = ask_for_credentials
+        email, password = ask_for_credentials email
         data = {
             :email    => email,
             :password => password
@@ -63,17 +63,18 @@ module SolveBio::Auth
         # code.  Not sure if it's valid here, or what the equivalent
         # is.
         begin
-            response = SolveBio::Client.client.request('post',
-                                                       '/v1/auth/token',
-                                                       data)
+            response = SolveBio::Client.
+                client.request('post', '/v1/auth/token', data)
         rescue SolveBio::Error => e
-                puts "Login failed: #{e}"
+            puts "Login failed: #{e}"
+            return false
         else
             save_credentials(email.downcase, response['token'])
             # reset the default client's auth token
             response = SolveBio::Client.client.api_key = response['token']
             send_install_report
             puts 'You are now logged-in.'
+            return true
         end
     end
 
@@ -82,8 +83,10 @@ module SolveBio::Auth
             delete_credentials()
             SolveBio::Client.client.api_key = nil
             puts 'You have been logged out.'
+            return true
         else
             puts 'You are not logged-in.'
+            return false
         end
     end
 
@@ -91,8 +94,10 @@ module SolveBio::Auth
         creds = get_credentials()
         if creds
             puts creds[0]
+            return creds[0]
         else
             puts 'You are not logged-in.'
+            return nil
         end
     end
 

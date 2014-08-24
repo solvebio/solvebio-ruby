@@ -11,6 +11,8 @@ require_relative 'help'
 
 class SolveBio::ListObject < SolveBio::SolveObject
 
+    include Enumerable
+
     def all(params={})
         return request('get', self['url'], params)
     end
@@ -33,36 +35,39 @@ class SolveBio::ListObject < SolveBio::SolveObject
         return nil
     end
 
-    def objects
+    def at(i)
+        self.to_a[i]
+    end
+
+    def to_a
         return to_solve_object(self['data'])
     end
 
-    # FIXME: this is still how it's done in Python
-    def __iter__
-        @i = 0
+    def each(*pass)
+        return self unless block_given?
+        i = 0
+        ary = self.dup
+        done = false
+        until done
+            if i >= ary['data'].size
+                ary = next_page
+                break unless ary
+                i = 0
+            end
+            yield(ary.at(i))
+            i += 1
+        end
         return self
     end
 
-    # FIXME: this is still how it's done in Python
-    def next
-        if not getattr(self, '_i', nil)
-            @i = 0
-        end
-
-        if @i >= len(self['data'])
-            # get the next page of results
-            next_page = self.next_page()
-            if ! next_page
-                raise StopIteration
-            end
-            refresh_from(next_page)
-            @i = 0
-        end
-
-        obj = to_solve_object(self['data'][@i])
-        @i += 1
-        return obj
+    def first
+        self['data'][0]
     end
+
+    # def max
+    #     self['data'][self['total']]
+    # end
+
 end
 
 
@@ -144,10 +149,14 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
     include SolveBio::HelpableAPIResource
 
     ALLOW_FULL_NAME_ID = true
+
+    # FIXME: base off of Depository::FULL_NAME_REGEX
+    # Sample matches:
+    #  'Clinvar/2.0.0-1'
     FULL_NAME_REGEX = %r{^[\w\.]+/[\w\-\.]+$}
 
     # Supports lookup by full name
-    def self.retrieve(cls, id, params={})
+    def self.retrieve(id, params={})
         if id.kind_of?(String)
             _id = id.strip
             id = nil
@@ -158,18 +167,23 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
             end
         end
 
-        return SolveBio::APIResource.retrieve(SolveBio::DepositoryVersion,
-                                              id, params)
+        return SolveBio::APIResource.
+            retrieve(SolveBio::DepositoryVersion, id, params)
+    end
+
+    def datasets_url(name=nil)
+        name ||= self['name']
+        "#{self['full_name']}/#{name}"
     end
 
     def datasets(name=nil, params={})
         if name
             # construct the dataset full name
-            return SolveBio::Dataset.retrieve("#{self['full_name']}/#{name}")
+            return SolveBio::Dataset.retrieve(datasets_url(name))
         end
 
-        response = SolveBio::Client.client.request('get', self.datasets_url,
-                                                   params)
+        response = SolveBio::Client.
+            client.request('get', datasets_url, params)
         return response.to_solvebio
     end
 
@@ -187,6 +201,12 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
         @released = false
         save()
     end
+
+    # FIXME: is there a better field to sort on?
+    def <=>(other)
+        self.id <=> other.id
+    end
+
 end
 
 class SolveBio::Dataset < SolveBio::APIResource
@@ -198,6 +218,7 @@ class SolveBio::Dataset < SolveBio::APIResource
 
     ALLOW_FULL_NAME_ID = true
 
+    # FIXME: base off of DepositoryVersion::FULL_NAME_REGEX
     # Sample matches:
     #  'Clinvar/2.0.0-1/Variants'
     FULL_NAME_REGEX = %r{^([\w\-\.]+/){2}[\w\-\.]+$}
@@ -219,7 +240,7 @@ class SolveBio::Dataset < SolveBio::APIResource
 
     def depository_version
         return SolveBio::DepositoryVersion.
-            retrieve(SolveBio::Dataset, self['depository_version'])
+            retrieve(self['depository_version'])
     end
 
     def depository

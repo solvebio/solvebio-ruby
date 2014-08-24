@@ -1,7 +1,10 @@
+#!/usr/bin/env ruby
 # Test SolveBio API
 require_relative  '../lib/solvebio-api'
-DEPOSITORY = 'ClinVar'
-DATASET    = "#{DEPOSITORY}/2.0.0-1/Variants"
+
+DEPOSITORY         = 'ClinVar'
+DEPOSITORY_VERSION = "#{DEPOSITORY}/2.0.0-1"
+DATASET            = "#{DEPOSITORY_VERSION}/Variants"
 
 # Custom Exception class for running basic tests
 class TestFail < RuntimeError
@@ -33,10 +36,21 @@ SolveBio::Client.client.api_key = creds[1]
 
 begin
     # depository things
+    load_depo = proc { SolveBio::DepositoryVersion.
+        retrieve(DEPOSITORY_VERSION) }
+    begin
+        dataset = run_and_verify(load_depo, 'load a depository version',
+                                 [:id, :str, :inspect, :instance_url])
+    rescue SolveBio::Error => exc
+        raise TestFail, "Loading #{DEPOSITORY_VERSION} failed! (#{exc})"
+    end
+
+    # depository things
     load_depo = proc { SolveBio::Depository.retrieve(DEPOSITORY) }
     begin
         dataset = run_and_verify(load_depo, 'load a depository',
-                                 [:str, :versions, :versions_url])
+                                 [:str, :versions, :versions_url,
+                                 :first, :max, :min])
     rescue SolveBio::Error => exc
         raise TestFail, "Loading #{DEPOSITORY} failed! (#{exc})"
     end
