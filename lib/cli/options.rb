@@ -10,6 +10,7 @@ module SolveBio::CLIOptions
 
     PROGRAM = 'solvebio.rb'
 
+    # FIXME: remove after we add to help.
     HELP = {
         'login'    => 'Login and save credentials',
         'logout'   => 'Logout and delete saved credentials',
@@ -72,31 +73,6 @@ module SolveBio::CLIOptions
 
 end
 
-# Try to parse the args first, and then add the subparsers. We want
-# to do this so that we can check to see if there are any unknown
-# args. We can assume that if, by this point, there are no unknown
-# args, we can append shell to the unknown args as a default.
-# However, to do this, we have to suppress stdout/stderr during the
-# initial parsing, in case the user calls the help method (in which
-# case we want to add the additional arguments and *then* call the
-# help method. This is a hack to get around the fact that argparse
-# doesn't allow default subcommands.
-def parse_args(args=nil, namespace=nil)
-    begin
-        sys.stdout = sys.stderr = open(os.devnull, 'w')
-        _, unknown_args = self.parse_known_args(args, namespace)
-        args.insert(0, 'shell') unless unknown_args
-    rescue SystemExit
-        pass
-    ensure
-        sys.stdout.flush()
-        sys.stderr.flush()
-        sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
-    end
-    _add_subcommands()
-    return super(SolveArgumentParser, self).parse_args(args, namespace)
-end
-
 def process_options(argv)
     options = {}
     args  = setup_options(options)
@@ -106,11 +82,11 @@ def process_options(argv)
         options[:api_host]
     SolveBio::Client.client.api_key =  options[:api_key] if
         options[:api_key]
-    return options, rest
+    return options, rest, args
 end
 
 if __FILE__ == $0
     include SolveBio::CLIOptions
-    options, rest = process_options(ARGV)
-    p options, rest
+    options, rest, parser  = process_options(ARGV)
+    p options, rest, parser
 end

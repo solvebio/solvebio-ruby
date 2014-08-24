@@ -1,3 +1,4 @@
+## -*- Ruby -*-
 ## This is the rakegem gemspec template. Make sure you read and understand
 ## all of the comments. Some sections require modification, and others can
 ## be deleted if you don't need them. Once you understand the contents of
@@ -6,8 +7,8 @@
 ## http://docs.rubygems.org/read/chapter/20
 Gem::Specification.new do |s|
   s.specification_version = 2 if s.respond_to? :specification_version=
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.rubygems_version = '1.3.5'
+  # s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  # s.rubygems_version = '1.3.5'
 
   ## Leave these as is they will be modified for you by the rake gemspec task.
   ## If your rubyforge_project name is different, then edit it and comment out
@@ -43,11 +44,12 @@ Gem::Specification.new do |s|
   ## Specify any RDoc options here. You'll want to add your README and
   ## LICENSE files to the extra_rdoc_files list.
   s.rdoc_options = ["--charset=UTF-8"]
-  s.extra_rdoc_files = %w[README.rdoc]
+  # s.extra_rdoc_files = %w[README.rdoc]
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
-  s.add_dependency('netrc', '>=0.7.7')
+  s.add_dependency('netrc',   '>=0.7.7')
+  # s.add_dependency('openssl', '>=1.1.0')
 
   ## List your development dependencies here. Development dependencies are
   ## those that are only needed during development
@@ -60,16 +62,22 @@ Gem::Specification.new do |s|
   ## THE MANIFEST COMMENTS, they are used as delimiters by the task.
   # = MANIFEST =
   s.files = %w[
-    Gemfile
-    README.rdoc
+    README.md
     Rakefile
     bin/solvebio.rb
     lib/apiresource.rb
-    lib/credentials.rb
-    lib/resource.rb
-    lib/solveobject.rb
-    lib/version.rb
     lib/cli/auth.rb
+    lib/cli/irbrc.rb
+    lib/cli/options.rb
+    lib/cli/shell.rb
+    lib/client.rb
+    lib/credentials.rb
+    lib/errors.rb
+    lib/help.rb
+    lib/resource.rb
+    lib/solvebio.rb
+    lib/solvebio-api.rb
+    lib/solveobject.rb
     solvebio.gemspec
   ]
   # = MANIFEST =
