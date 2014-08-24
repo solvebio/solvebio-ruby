@@ -38,3 +38,7 @@ becomes Ruby's:
     BioSolve::Depository.retrieve("ClinVar").versions()
 
 As with any other Ruby method call, you can drop the final parenthesis if you like.
+
+# To Do
+
+The query module, which includes filters hasn't been done yet. Lots of more tests and demo programs should be written.
