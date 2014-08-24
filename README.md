@@ -3,7 +3,7 @@
 # SolveBio Ruby Client
 
 
-The solve Python package and command-line interface (CLI) are used to work in our bioinformatics environment.
+This packages provides a command-line interface (CLI) and Ruby API interface to SolveBio.
 
 For more information about SolveBio see http://www.solvebio.com
 
@@ -16,24 +16,24 @@ Right now we only support installing from git:
 	rake test          # or make test
     sudo rake install  # or make install
 
-In the process this builds a *solvebio* gem which you can use elsewhere.
+This also builds a *solvebio* gem which you can use elsewhere.
 
-But note, you can also run right inside the git repository without installing anything. For example:
+But note, you can also run right inside the git repository without installing anything. For example, running:
 
     git clone https://github.com/rocky/solvebio-ruby.git
 	solvebio-ruby/bin/solvebio.rb
 
-will get you into a solvebio irb shell. Just about any file in the project can be run standalone demos that Ruby file.
+will get you into a solvebio irb shell. Just about any Ruby file in the project can be run standalone, and when done so, it demos that Ruby code.
 
 # Demo code and Documentation
 
-See the folder demo for ready-to-run examples.
+See the [folder demo](https://github.com/rocky/solvebio-ruby/tree/master/demo) for ready-to-run examples.
 
-The [biosolve Python API documentation](https://www.solvebio.com/docs/api/?python) has examples. Change Python's `import solvebio`, to Ruby's `require 'solvebio'`.  And anywhere you see `biosolve.`, change that to `BioSolve::`. For example:
+The [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?python) has examples. Change Python's `import solvebio`, to Ruby's `require 'solvebio'`.  And anywhere you see `biosolve.`, change that to `BioSolve::`. For example, Python's:
 
     solvebio.Depository.retrieve("ClinVar").versions()
 
-becomes:
+becomes Ruby's:
 
     BioSolve::Depository.retrieve("ClinVar").versions()
 
