@@ -27,9 +27,9 @@ will get you into a solvebio irb shell. Just about any Ruby file in the project 
 
 # Demo code and Documentation
 
-See the [folder demo](https://github.com/rocky/solvebio-ruby/tree/master/demo) for ready-to-run examples.
+See the [demo folder](https://github.com/rocky/solvebio-ruby/tree/master/demo) for ready-to-run examples.
 
-The [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?python) has examples. Change Python's `import solvebio`, to Ruby's `require 'solvebio'`.  And anywhere you see `biosolve.`, change that to `BioSolve::`. For example, Python's:
+The [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?python) has examples. Change Python's `import solvebio`, to Ruby's `require 'solvebio'`.  And anywhere you see `solvebio.`, change that to `SolveBio::`. For example, Python's:
 
     solvebio.Depository.retrieve("ClinVar").versions()
 
