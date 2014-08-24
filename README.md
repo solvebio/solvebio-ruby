@@ -35,7 +35,7 @@ The [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?pytho
 
 becomes Ruby's:
 
-    BioSolve::Depository.retrieve("ClinVar").versions()
+    SolveBio::Depository.retrieve("ClinVar").versions()
 
 As with any other Ruby method call, you can drop the final parenthesis if you like.
 

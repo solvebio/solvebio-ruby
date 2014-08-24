@@ -24,5 +24,5 @@ creds = get_credentials()
 if creds
     puts "You may be logged in as #{creds[0]}"
 else
-    puts "You are not logged in yet"
+    puts 'You are not logged in yet.'
 end

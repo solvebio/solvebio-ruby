@@ -8,7 +8,12 @@ class SolveBio::Error < RuntimeError
         'If this problem persists, let us know at ' +
         'contact@solvebio.com.'
 
-    def initialize(message=nil, response=nil)
+    attr_reader :json_body
+    attr_reader :status_code
+    attr_reader :message
+    attr_reader :field_errors
+
+    def initialize( response=nil, message=nil)
         @json_body = nil
         @status_code = nil
         @message = message or Default_message
@@ -40,13 +45,13 @@ class SolveBio::Error < RuntimeError
                     end
 
                     @json_body.each do |k, v|
-                        if ['detail', 'non_field_errors'].member?(k)
+                        unless ['detail', 'non_field_errors'].member?(k)
                             v = v.join(', ') if v.kind_of?(Array)
                             @field_errors << ('%s (%s)' % [k, v])
                         end
                     end
 
-                    if @field_errors
+                    unless @field_errors.empty?
                         @message += (' The following fields were missing ' +
                             'or invalid: %s' %
                                          @field_errors.join(', '))
@@ -63,13 +68,13 @@ end
 
 # Demo code
 if __FILE__ == $0
-    puts SolveBio::Error.new()
-    puts SolveBio::Error.new("Hi there").inspect
-    puts SolveBio::Error.new("Hi there").str
-    puts SolveBio::Error.new(['Hello, ', 'again.']).inspect
+    puts SolveBio::Error.new
+    puts SolveBio::Error.new(nil, 'Hi there').inspect
+    puts SolveBio::Error.new(nil, 'Hi there').str
+    puts SolveBio::Error.new(nil, ['Hello, ', 'again.']).inspect
 
     require 'net/http'
     response = Net::HTTPUnauthorized.new('HTTP 1.1', '404', 'No creds')
-    puts SolveBio::Error.new(nil, response).str
+    puts SolveBio::Error.new(response).str
 
 end

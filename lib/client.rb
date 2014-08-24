@@ -35,7 +35,7 @@ class SolveBio::Client
     def request(method, url, params=nil, raw=false)
 
         if not @api_host
-            raise SolveBio::Error.new('No SolveBio API host is set')
+            raise SolveBio::Error.new(nil, 'No SolveBio API host is set')
         elsif not url.start_with?(@api_host)
             url = URI.join(@api_host, url).to_s
         end
@@ -94,15 +94,15 @@ class SolveBio::Client
                 'know at contact@solvebio.com.'
         end
         msg = msg + "\n\n(Network error: #{err}"
-        raise SolveBio::Error.new(msg)
+        raise SolveBio::Error.new(nil, msg)
     end
 
     def handle_api_error(response)
         if [400, 401, 403, 404].member?(response.code.to_i)
-            raise SolveBio::Error.new(nil, response)
+            raise SolveBio::Error.new(response)
         else
             SolveBio::logger.info("API Error: #{response.msg}")
-            raise SolveBio::Error.new(nil, response)
+            raise SolveBio::Error.new(response)
         end
     end
 

@@ -67,7 +67,7 @@ module SolveBio::Auth
             response = SolveBio::Client.
                 client.request('post', '/v1/auth/token', data)
         rescue SolveBio::Error => e
-            puts "Login failed: #{e}"
+            puts "Login failed: #{e.str}"
             return false
         else
             save_credentials(email.downcase, response['token'])

@@ -10,15 +10,6 @@ module SolveBio::CLIOptions
 
     PROGRAM = 'solvebio.rb'
 
-    # FIXME: remove after we add to help.
-    HELP = {
-        'login'    => 'Login and save credentials',
-        'logout'   => 'Logout and delete saved credentials',
-        'whoami'   => 'Show your SolveBio email address',
-        'shell'    => 'Open the SolveBio Python shell',
-        'test'     => 'Make sure the SolveBio API is working correctly',
-    }
-
     def show_version
         "#{PROGRAM}, version #{SolveBio::VERSION}"
     end
