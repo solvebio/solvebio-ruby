@@ -1,33 +1,14 @@
 # -*- coding: utf-8 -*-
-# SolveBio Ruby Client
-# ~~~~~~~~~~~~~~~~~~~
-#
-# This is the Ruby client & library for the SolveBio API.
-#
-# Have questions or comments? email us at: contact@solvebio.com
+# Something to pull in the entire SolveBio API.
 
-require 'logger'
+require_relative 'resource'
+#require_relative 'query'
 
-module SolveBio
+# cli/auth is a little nicer than credentials
+# FIXME: consider moving cli/auth moving out of cli?
+require_relative 'cli/auth'
 
-    VERSION      = '1.4.0'
-    @api_key     = ENV['SOLVEBIO_API_KEY']
-    @logger      = Logger.new('/tmp/solvebio.log')
-    API_HOST     = ENV['SOLVEBIO_API_HOST'] || 'https://api.solvebio.com'
-
-    # Config info in reports and requests. Encapsulate more?
-    RUBY_VERSION         = RbConfig::CONFIG['RUBY_PROGRAM_VERSION']
-    RUBY_IMPLEMENTATION  = RbConfig::CONFIG['RUBY_SO_NAME']
-    #PLATFORM            = ???
-    #PROCESSOR           = ???
-    ARCHITECTURE         = RbConfig::CONFIG['arch']
-
-    def logger
-        @logger
-    end
-    def api_key
-        @api_key
-    end
-    module_function :logger, :api_key
-
-end
+# Set authentication if possible
+include SolveBio::Credentials
+creds = get_credentials()
+SolveBio.api_key = SolveBio::Client.client.api_key = creds[1] if creds

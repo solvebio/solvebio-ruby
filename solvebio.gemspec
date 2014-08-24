@@ -67,16 +67,16 @@ Gem::Specification.new do |s|
     bin/solvebio.rb
     lib/apiresource.rb
     lib/cli/auth.rb
+    lib/cli/irb.rb
     lib/cli/irbrc.rb
     lib/cli/options.rb
-    lib/cli/shell.rb
     lib/client.rb
     lib/credentials.rb
     lib/errors.rb
     lib/help.rb
+    lib/main.rb
     lib/resource.rb
     lib/solvebio.rb
-    lib/solvebio-api.rb
     lib/solveobject.rb
     solvebio.gemspec
   ]

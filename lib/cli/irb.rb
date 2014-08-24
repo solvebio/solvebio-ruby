@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # Open the SolveBio shell, an IRB wrapper
 require 'irb'
-require_relative '../solvebio'
 
 module IRB
 

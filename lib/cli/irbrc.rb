@@ -9,8 +9,7 @@ IRB.conf[:PROMPT][:SIMPLE] = {
   :RETURN   => "[SolveBio] Out : %s\n"
  }
 
-require_relative '../solvebio-api'
-require_relative 'auth'
+require_relative '../solvebio'
 include SolveBio::Auth
 
 SAMPLE_DEPO         = 'ClinVar'
@@ -18,3 +17,12 @@ SAMPLE_DEPO_VERSION = "#{SAMPLE_DEPO}/2.0.0-1"
 SAMPLE_DATASET      = "#{SAMPLE_DEPO_VERSION}/Variants"
 
 puts 'You are in a SolveBio Interactive Ruby (irb) session...'
+
+# Report whether we are logged in.
+include SolveBio::Credentials
+creds = get_credentials()
+if creds
+    puts "You may be logged in as #{creds[0]}"
+else
+    puts "You are not logged in yet"
+end

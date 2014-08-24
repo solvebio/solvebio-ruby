@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # Test SolveBio API
-require_relative  '../lib/solvebio-api'
+require_relative  '../lib/solvebio'
 
 DEPOSITORY         = 'ClinVar'
 DEPOSITORY_VERSION = "#{DEPOSITORY}/2.0.0-1"

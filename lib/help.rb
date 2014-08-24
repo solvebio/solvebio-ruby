@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 require 'uri'
-require_relative 'solvebio'
+require_relative 'main'
 
 # try:
 #     import webbrowser

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-require_relative 'solvebio'
+require_relative 'main'
 
 class SolveBio::Error < RuntimeError
     Default_message =

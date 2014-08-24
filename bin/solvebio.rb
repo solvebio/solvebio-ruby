@@ -3,9 +3,9 @@
 
 # SolveBio Ruby command-line program
 
-require_relative '../lib/cli/shell'
+require_relative '../lib/solvebio'
 require_relative '../lib/cli/options'
-require_relative '../lib/cli/auth'
+require_relative '../lib/cli/irb'
 
 DIR = File.dirname(__FILE__)
 TEST_PROGRAM = File.join(DIR, %w(.. demo test-api.rb))

@@ -3,8 +3,6 @@ $VERBOSE = true
 require 'test/unit'
 require 'rbconfig'
 
-# require 'trepanning'
-
 class TestAuth < Test::Unit::TestCase
 
     # Integration test of logout

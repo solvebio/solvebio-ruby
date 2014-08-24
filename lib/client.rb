@@ -4,7 +4,6 @@ require 'uri'
 require 'openssl'
 require 'net/http'
 require 'json'
-require_relative 'solvebio'
 require_relative 'credentials'
 require_relative 'errors'
 
@@ -17,11 +16,13 @@ class SolveBio::Client
     attr_accessor :api_key
 
     def initialize(api_key=nil, api_host=nil)
-        @api_key = api_key
+        @api_key = api_key || SolveBio::api_key
+        SolveBio::api_key  ||= api_key
         @api_host = api_host || SolveBio::API_HOST
-        @headers = {
+        @headers  = {
             'Content-Type'    => 'application/json',
             'Accept'          => 'application/json',
+            # FIXME:
             # 'Accept-Encoding' => 'gzip,deflate',
             'User-Agent'      => 'SolveBio Ruby Client %s [%s/%s]' % [
                 SolveBio::VERSION,

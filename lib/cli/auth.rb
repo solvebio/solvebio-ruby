@@ -4,7 +4,6 @@
 require 'readline'
 require 'io/console'
 
-require_relative  '../solvebio'
 require_relative  '../errors'
 require_relative  '../credentials'
 require_relative  '../client'
@@ -46,12 +45,14 @@ module SolveBio::Auth
 
     include SolveBio::Credentials
 
+    module_function
+
     #
     # Prompt user for login information (email/password).
     # Email and password are used to get the user's auth_token key.
     #
     def login(email=nil)
-        delete_credentials()
+        delete_credentials
 
         email, password = ask_for_credentials email
         data = {
@@ -71,7 +72,7 @@ module SolveBio::Auth
         else
             save_credentials(email.downcase, response['token'])
             # reset the default client's auth token
-            response = SolveBio::Client.client.api_key = response['token']
+            SolveBio::Client.client.api_key = response['token']
             send_install_report
             puts 'You are now logged-in.'
             return true

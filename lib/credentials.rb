@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-require_relative 'solvebio'
+require_relative 'main'
 require 'netrc'
 require 'uri'
 
@@ -42,6 +42,7 @@ module SolveBio::Credentials
     rescue Netrc::Error => e
         raise CredentialsError, "Could not read .netrc file: #{e}"
     end
+    module_function :get_credentials
 
     def delete_credentials
         n = Netrc.read(netrc_path)
