@@ -235,7 +235,8 @@ class SolveBio::Dataset < SolveBio::APIResource
             end
         end
 
-        return SolveBio::APIResource.retrieve(SolveBio::Dataset, id, params)
+        return SolveBio::APIResource.
+            retrieve(SolveBio::Dataset, id, params)
     end
 
     def depository_version
@@ -298,8 +299,8 @@ class SolveBio::DatasetField < SolveBio::APIResource
     FULL_NAME_REGEX = %r{^([\w\-\.]+/){3}[\w\-\.]+$}
 
     # Supports lookup by ID or full name
-    def self.retrieve(cls, id, params={})
-        if str.kind_of?(String)
+    def self.retrieve(id, params={})
+        if id.kind_of?(String)
             _id = id.strip
             id = nil
             if FULL_NAME_REGEX =~ _id
@@ -309,11 +310,18 @@ class SolveBio::DatasetField < SolveBio::APIResource
             end
         end
 
-        return super(DatasetField, cls).retrieve(id, params={})
+        return SolveBio::APIResource.
+            retrieve(SolveBio::DatasetField, id, params)
+    end
+
+    def facets_url
+        return "/v1/dataset_fields/#{self.id}/facets"
     end
 
     def facets(params={})
-        client.request('get', @facets_url, params).to_solvebio
+        response = SolveBio::Client.
+            client.request('get', facets_url, params)
+        return response.to_solvebio
     end
 
     def help

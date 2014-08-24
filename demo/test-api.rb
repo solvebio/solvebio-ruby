@@ -55,13 +55,22 @@ begin
         raise TestFail, "Loading #{DEPOSITORY} failed! (#{exc})"
     end
 
-    # try loading a dataset
+    # try loading a Dataset
     load_dataset = proc { SolveBio::Dataset.retrieve(DATASET) }
     begin
         dataset = run_and_verify(load_dataset, 'load a dataset',
                                  [:depository, :depository_version, :fields])
     rescue SolveBio::Error => exc
         raise TestFail, "Loading #{DATASET} failed! (#{exc})"
+    end
+
+    # try loading a DatasetField
+    load_dataset = proc { SolveBio::DatasetField.retrieve(1) }
+    begin
+        dataset = run_and_verify(load_dataset, 'load a dataset field',
+                                 [:facets, :instance_url])
+    rescue SolveBio::Error => exc
+        raise TestFail, "Loading DataSetField 1 failed! (#{exc})"
     end
 
     # # run a basic query

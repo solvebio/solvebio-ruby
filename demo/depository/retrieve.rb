@@ -8,5 +8,5 @@ if SolveBio::Client.client.api_key
     depo = SolveBio::Depository.retrieve('ClinVar')
     puts depo.str
 else
-    puts 'Please set SolveBio::Client.client.api_key'
+    puts 'Please set SolveBio::Client.client.api_key. Hint: solvebio.rb login'
 end
