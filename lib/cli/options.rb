@@ -27,6 +27,7 @@ module SolveBio::CLIOptions
     def setup_options(options, stdout=$stdout, stderr=$stderr)
 
         OptionParser.new do |opts|
+            opts.banner = "Usage: solvebio.rb [options] <command> [<args>]"
             opts.on_tail('-v', '--version',
                          'print the version') do
                 options[:version] = true
@@ -46,28 +47,19 @@ module SolveBio::CLIOptions
                 options[:api_key] = api_key
             end
 
-            # #
-            # # The _add_subcommands method must be separate from the __init__
-            # #        method, as infinite recursion will occur otherwise, due to the fact
-            # #        that the __init__ method itself will be called when instantiating
-            # #        a subparser, as we do below
-            # def _add_subcommands
-            #     subcmd_params = {
-            #         'title' => 'SolveBio Commands',
-            #         'dest' => 'subcommands'
-            #     }
-            #     subcmd = self.add_subparsers(*subcmd_params)
-            #     login_parser = subcmd.add_parser('login', help=self.HELP['login'])
-            #     login_parser.set_defaults(func=auth.login)
-            #     logout_parser = subcmd.add_parser('logout', help=self.HELP['logout'])
-            #     logout_parser.set_defaults(func=auth.logout)
-            #     whoami_parser = subcmd.add_parser('whoami', help=self.HELP['whoami'])
-            #     whoami_parser.set_defaults(func=auth.whoami)
-            #     shell_parser = subcmd.add_parser('shell', help=self.HELP['shell'])
-            #     shell_parser.set_defaults(func=launch_ipython_shell)
-            #     shell_parser = subcmd.add_parser('test', help=self.HELP['test'])
-            #     shell_parser.set_defaults(func=test_solve_api)
-            # end
+            opts.on('-h', '--help', 'Display this screen') do
+                puts opts
+                puts <<-EOH
+
+SolveBio Commands:
+    login [email]       Login and save credentials. Use email if provided.
+    logout              Logout and delete saved credentials
+    whoami              Show your SolveBio email address
+    shell               Open the SolveBio Python shell
+    test                Make sure the SolveBio API is working correctly
+EOH
+                exit
+            end
         end
     end
 

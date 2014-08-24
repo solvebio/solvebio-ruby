@@ -17,21 +17,20 @@ rest = ['shell'] if rest.empty?
 
 include SolveBio::Auth
 
-rest.each do |cmd|
-    case cmd
-    when 'shell'
-        IRB::shell
-    when 'login'
-        login
-    when 'logout'
-        logout
-    when 'whoami'
-        whoami
-    when 'test'
-        system(TEST_PROGRAM)
-    else
-        $stderr.puts "Unknown solvbio.rb command: #{cmd}"
-        $stderr.puts parser
-        exit 1
-    end
+cmd = rest.shift
+case cmd
+when 'shell'
+    IRB::shell
+when 'login'
+    login *rest
+when 'logout'
+    logout
+when 'whoami'
+    whoami
+when 'test'
+    system(TEST_PROGRAM)
+else
+    $stderr.puts "Unknown solvbio.rb command: #{cmd}"
+    $stderr.puts parser
+    exit 1
 end
