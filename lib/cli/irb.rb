@@ -17,12 +17,15 @@ module IRB
         irbrc = File.
             expand_path(File.join(File.dirname(__FILE__), 'irbrc.rb'))
 
+        # Start out with our custom profile
+        old_irbrc = ENV['IRBRC']
         ENV['IRBRC'] = irbrc
         IRB.setup(nil)
 
-        # If the user has a IRB profile, run that now.
-        if ENV['SOLVEBIO_IRB']
-            ENV['IRBRC'] = ENV['SOLVEBIO_IRB']
+        # If the user has an IRB profile or SolveBio IRB profile, run
+        # that now.
+        ENV['IRBRC'] = ENV['SOLVEBIO_IRBRC'] || old_irbrc
+        if ENV['IRBRC']
             @CONF[:RC_NAME_GENERATOR]=nil
             IRB.run_config
         end
