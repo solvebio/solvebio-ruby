@@ -2,7 +2,7 @@
 # Something to pull in the entire SolveBio API.
 
 require_relative 'resource'
-#require_relative 'query'
+require_relative 'query'
 
 # cli/auth is a little nicer than credentials
 # FIXME: consider moving cli/auth moving out of cli?

@@ -11,7 +11,7 @@ class SolveBio::APIResource < SolveBio::SolveObject
     end
 
     def refresh
-        refresh_from(request('get', instance_url()))
+        refresh_from request('get', instance_url)
         return self
     end
 

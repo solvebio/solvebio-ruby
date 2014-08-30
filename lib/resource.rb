@@ -4,10 +4,8 @@
 require_relative 'solveobject'
 require_relative 'apiresource'
 require_relative 'client'
-## require_relative 'query'
+require_relative 'query'
 require_relative 'help'
-
-# from .query import Query
 
 class SolveBio::ListObject < SolveBio::SolveObject
 
@@ -221,6 +219,7 @@ class SolveBio::Dataset < SolveBio::APIResource
     # FIXME: base off of DepositoryVersion::FULL_NAME_REGEX
     # Sample matches:
     #  'Clinvar/2.0.0-1/Variants'
+    #  'omim/0.0.1-1/omim'
     FULL_NAME_REGEX = %r{^([\w\-\.]+/){2}[\w\-\.]+$}
 
     # Dataset lookup by full string name
@@ -264,13 +263,15 @@ class SolveBio::Dataset < SolveBio::APIResource
             client.request('get', self['fields_url']).to_solvebio
     end
 
-    # def query(self, params={})
-    #     q = Query(data_url(), *params={})
-    #     if params.get('filters')
-    #         return q.filter(params.get('filters'))
-    #     end
-    #     return q
-    # end
+    def query(params={}, paging=false)
+        q = paging ? SolveBio::PagingQuery.new(data_url, params) :
+            SolveBio::Query.new(data_url, params)
+
+        if params[:filters]
+            return q.filter(params[:filters])
+        end
+        return q
+    end
 
     private
     def data_url
