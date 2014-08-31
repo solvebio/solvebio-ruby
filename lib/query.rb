@@ -35,6 +35,7 @@ class SolveBio::PagingQuery
         if @limit < 0
             raise Exception, "'limit' parameter must be >= 0"
         end
+        self
     end
 
     def clone(filters=nil)
@@ -115,7 +116,7 @@ class SolveBio::PagingQuery
     end
 
     def size
-        warmup('total')
+        warmup('PagingQuery size')
         return @total
     end
 
@@ -171,43 +172,46 @@ class SolveBio::PagingQuery
         warmup("[#{key}]")
 
         unless [Range, Fixnum].member?(key.class)
-            raise TypeError
+            raise TypeError, "Expecting index value to be a Range or Fixnum; is #{key.class}"
         end
         if @limit < 0
-            raise RuntimeError, 'Indexing not supporting when limit == 0.'
+            raise IndexError, 'Indexing not supporting when limit < 0.'
         end
         if key.kind_of?(Range)
-            if key.begin < 0 or key.end < 0 or key.begin > key.end
-                raise RuntimeError, 'Negative indexing is not supported'
+            if key.begin < 0 or key.end < 0
+                raise IndexError, 'Negative indexing is not supported'
+            end
+            if key.begin > key.end
+                raise IndexError, 'Backwards indexing is not supported'
             end
         elsif key < 0
-            raise RuntimeError, 'Negative indexing is not supported'
+            raise IndexError, 'Negative indexing is not supported'
         end
 
-        results = self.to_a
+        # FIXME: is it right that we can assume that the results are in
+        # @results. Do I need another index check?
+
+        result =
+            if key.kind_of?(Range)
+                @results[(0..key.end - key.begin)]
+            else
+                @results[0]
+            end
         # reset request range
         @request_range = (0..Float::INFINITY)
-        if key.kind_of?(Range)
-            return results((0..key.end - key.begin))
-        else
-            return results[0]
-        end
+        return result
     end
 
     # "each" must be defined in an Enumerator. Allows the Query object to be
-    # an iterable.  Iterates through the internal cache using a
-    # cursor.
+    # an iterable.
     def each(*pass)
         return self unless block_given?
         i = 0
-        done = false
-        until done
-            delta = @request_range.end - @request_range.begin
-            break if i == @total or i == delta
+        while i < @total and i < @delta
             i_offset = i + @request_range.begin
             if @window_range.include?(i_offset)
                 result_start = i_offset - @window_range.begin
-                SolveBio::logger.debug('  window range: [%s, %s]' %
+                SolveBio::logger.debug('  PagingQuery window range: [%s...%s]' %
                                        [result_start, result_start + 1])
             else
                 SolveBio::logger.debug('executing query. offset/limit: %6d/%d' %
@@ -216,6 +220,7 @@ class SolveBio::PagingQuery
                 result_start = i % @limit
             end
             yield @results[result_start]
+            @delta = @request_range.end - @request_range.begin
             i += 1
         end
         return self
@@ -287,21 +292,38 @@ class SolveBio::Query < SolveBio::PagingQuery
         return self
     end
 
-    def len
+    def size
+        warmup('Query size')
         [@total, @results.size].min
     end
 
-    # ## FIXME: see PagingQuery#each
-    # def _next
-    #     if @i == self.size or @i == @limit
-    #         raise StopIteration
-    #     end
-    #     SolveBio::PagingQuery._next(self)
-    # end
+    # "each" must be defined in an Enumerator. Allows the Query object to be
+    # an iterable.
+    def each(*pass)
+        return self unless block_given?
+        i = 0
+        while i < @total and i < @limit
+            i_offset = i + @request_range.begin
+            if @window_range.include?(i_offset)
+                result_start = i_offset - @window_range.begin
+                SolveBio::logger.debug('  Query window range: [%s...%s]' %
+                                       [result_start, result_start + 1])
+            else
+                SolveBio::logger.debug('executing query. offset/limit: %6d/%d' %
+                                       [i_offset, @limit])
+                execute({:offset => i_offset, :limit => @limit})
+                result_start = i % @limit
+            end
+            yield @results[result_start]
+            i += 1
+        end
+        return self
+    end
 
     def [](key)
-        if [Range, Fixnum].member?(key.class) and key >= @window_range.end
-            raise RuntimeError
+        # Note: super does other parameter checks.
+        if key.kind_of?(Fixnum) and key >= @window_range.end
+            raise IndexError, "Invalid index #{key} >= #{@window_range.end}"
         end
         super[key]
         # FIXME: Dunno why above isn't enough.
@@ -347,10 +369,18 @@ end
 if __FILE__ == $0
     if SolveBio::api_key
         test_dataset_name = 'omim/0.0.1-1/omim'
-        require_relative 'resource'
+        require_relative 'solvebio'
+        require_relative 'errors'
         dataset = SolveBio::Dataset.retrieve(test_dataset_name)
-        results = dataset.query({:paging=>true, :limit => 10})
-        # require 'trepanning'; debugger
+        limit = 5
+        results = dataset.query({:limit => limit, :paging =>false})
+        puts results.size
+        results.each_with_index { |val, i|
+            puts val.size
+            # require 'trepanning'; debugger if i == 0
+        }
+        puts results[limit-1]
+        results = dataset.query({:limit => limit, :paging=>true})
         puts results.size
     else
         puts 'Set SolveBio::api_key to run demo'
