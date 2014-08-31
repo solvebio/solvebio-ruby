@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'pp'
 require_relative 'client'
 require_relative 'filter'
 
@@ -13,20 +14,22 @@ class SolveBio::PagingQuery
 
     MAXIMUM_LIMIT ||= 100
 
+    attr_reader :total
+    attr_accessor :filters
+
     def initialize(dataset_id, params={})
         @dataset_id = dataset_id
         @data_url = "/v1/datasets/#{dataset_id}/data"
+
+        @total = @results = @response = nil
+        reset_range_window
+
         # results per request
         @limit = Integer(params[:limit]) rescue MAXIMUM_LIMIT
         @result_class = params[:result_class] || Hash
         @debug = params[:debug] || false
         @fields = params[:fields]
         @filters = []
-
-        # init
-        @response = nil
-        reset_iter
-        reset_range_window
 
         # parameter error checking
         if @limit < 0
@@ -35,13 +38,14 @@ class SolveBio::PagingQuery
     end
 
     def clone(filters=nil)
-        result = self
-            .new(@dataset_id,
-                 {
-                     :limit => @limit,
-                     :result_class => @result_class,
-                     :debug => @debug
-                 }, @fields)
+        result =
+            initialize(@dataset_id,
+                       {
+                           :limit => @limit,
+                           :result_class => @result_class,
+                           :debug => @debug,
+                           :fields => @fields
+                       })
 
         result.filters << @filters
 
@@ -111,10 +115,12 @@ class SolveBio::PagingQuery
     end
 
     def size
+        warmup('total')
         return @total
     end
 
     def empty?
+        warmup('empty?')
         return @total == 0
     end
 
@@ -128,13 +134,18 @@ class SolveBio::PagingQuery
         #                                                  ['Fields', 'Data'],
         #                                                  ['right', 'left']),
         #                                         pretty_int(@total - 1)]
-        msg = "\n%s\n\n... %d more results." % [self[0].to_s, @total - 1]
+        msg = "\n#{self[0].pretty_inspect}\n\n... #{@total-1} more results."
         return msg
     end
 
-    def reset_iter
-        @i = 0
+    # warmup result set...
+    def warmup(what)
+        unless @response
+            SolveBio::logger.debug("warmup #{what}")
+            execute
+        end
     end
+
 
     # # One hacky way to define attributes (methods) on an object.
     # # Replaces Python's __getattr__
@@ -157,12 +168,9 @@ class SolveBio::PagingQuery
         @request_range = self.to_range(key)
 
         # warmup result set...
-        if @response.nil?
-            SolveBio::logger.debug('warmup ([]): %s' % key)
-            execute
-        end
+        warmup("[#{key}]")
 
-        unless key.class.member?(Range, Integer)
+        unless [Range, Fixnum].member?(key.class)
             raise TypeError
         end
         if @limit < 0
@@ -176,17 +184,17 @@ class SolveBio::PagingQuery
             raise RuntimeError, 'Negative indexing is not supported'
         end
 
-        _results = self.to_a
+        results = self.to_a
         # reset request range
         @request_range = (0..Float::INFINITY)
         if key.kind_of?(Range)
-            return _results((0..key.end - key.begin))
+            return results((0..key.end - key.begin))
         else
-            return _results[0]
+            return results[0]
         end
     end
 
-    # Must be defined in an Enumerator. Allows the Query object to be
+    # "each" must be defined in an Enumerator. Allows the Query object to be
     # an iterable.  Iterates through the internal cache using a
     # cursor.
     def each(*pass)
@@ -195,18 +203,19 @@ class SolveBio::PagingQuery
         done = false
         until done
             delta = @request_range.end - @request_range.begin
-            break if i == self.size or i == delta
-            if self.range?(self.as_range(i_offset))
-                _result_start = i_offset - @window_range.begin
-                SolveBio::logger.debug('  window slice: [%s, %s)' %
-                                       [_result_start, _result_start + 1])
+            break if i == @total or i == delta
+            i_offset = i + @request_range.begin
+            if @window_range.include?(i_offset)
+                result_start = i_offset - @window_range.begin
+                SolveBio::logger.debug('  window range: [%s, %s]' %
+                                       [result_start, result_start + 1])
             else
                 SolveBio::logger.debug('executing query. offset/limit: %6d/%d' %
                                        [i_offset, @limit])
-                    .execute({:offset => i_offset, :limit => @limit})
-                _result_start = @i % @limit
+                execute({:offset => i_offset, :limit => @limit})
+                result_start = i % @limit
             end
-            yield @results[_result_start]
+            yield @results[result_start]
             i += 1
         end
         return self
@@ -216,11 +225,6 @@ class SolveBio::PagingQuery
     def to_range(range_or_idx)
         return range_or_idx.kind_of?(Range) ? range_or_idx :
             (range_or_idx..range_or_idx + 1)
-    end
-
-    def range?(range_or_idx)
-        range_or_idx.begin >= @window_range.begin and \
-        range_or_idx.end <= @window_range.end
     end
 
     def reset_request_range
@@ -261,43 +265,47 @@ class SolveBio::PagingQuery
         _params.merge(params)
         SolveBio::logger.debug("querying dataset: #{_params}")
 
-        response = SolveBio::Client.client.request('post', @data_url, _params)
+        @response = SolveBio::Client.client.request('post', @data_url, _params)
+        @total    = @response['total']
         SolveBio::logger.
-            debug("query response took: #{response['took']} ms, " +
-                  "total: #{response['total']}")
-        @response = response
+            debug("query response took: #{@response['took']} ms, " +
+                  "total: #{@total}")
 
         # update window
         offset = _params[:offset] || 0
-        len = @response['results'].size
+        @results = @response['results']
         @window = @results
-        @window_range = (offset .. offset + len)
+        @window_range = (offset .. offset + @results.size)
 
-        return _params, response
+        return _params, @response
     end
 end
 
 class SolveBio::Query < SolveBio::PagingQuery
     def initialize(dataset_id, params={})
-        SolveBio::PagingQuery.new(dataset_id, params)
+        super
+        return self
     end
 
     def len
         [@total, @results.size].min
     end
 
-    def _next
-        if @i == self.size or @i == @limit
-            raise StopIteration
-        end
-        SolveBio::PagingQuery._next(self)
-    end
+    # ## FIXME: see PagingQuery#each
+    # def _next
+    #     if @i == self.size or @i == @limit
+    #         raise StopIteration
+    #     end
+    #     SolveBio::PagingQuery._next(self)
+    # end
 
-    def __getitem__(key)
-        if key.class.member?(Integer, Range) and key >= @window_range.end
-            raise IndexError
+    def [](key)
+        if [Range, Fixnum].member?(key.class) and key >= @window_range.end
+            raise RuntimeError
         end
-        SolveBio::PagingQuery.__getitem__(self, key)
+        super[key]
+        # FIXME: Dunno why above isn't enough.
+        @results[key]
     end
 end
 
@@ -341,7 +349,9 @@ if __FILE__ == $0
         test_dataset_name = 'omim/0.0.1-1/omim'
         require_relative 'resource'
         dataset = SolveBio::Dataset.retrieve(test_dataset_name)
-        puts dataset.query({:paging=>true, :limit => 10}).inspect
+        results = dataset.query({:paging=>true, :limit => 10})
+        # require 'trepanning'; debugger
+        puts results.size
     else
         puts 'Set SolveBio::api_key to run demo'
     end

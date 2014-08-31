@@ -73,8 +73,13 @@ begin
         raise TestFail, "Loading DataSetField 1 failed! (#{exc})"
     end
 
-    # # run a basic query
-    # query = run_and_verify(dataset.query, 'run a basic query')
+    # run a basic query
+    query_dataset = proc {
+        dataset = SolveBio::Dataset.retrieve(DATASET)
+        dataset.query({:paging=>true, :limit => 10})
+    }
+    query = run_and_verify(query_dataset, 'run a basic query',
+                           [:size, :inspect, :clone])
 
     # # run a basic filter
     # basic_filter = proc { query.filter(clinical_significance='Pathogenic') }

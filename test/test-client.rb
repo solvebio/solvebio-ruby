@@ -19,6 +19,8 @@ class TestClient < Test::Unit::TestCase
                                   true), 'HTTP GET, google.com')
             assert(client.request('https', 'https://www.google.com', nil,
                                   true), 'HTTPS GET google.com')
+        else
+            skip('Are you connected to the Internet? www.google.com is unavailable')
         end
     end
 

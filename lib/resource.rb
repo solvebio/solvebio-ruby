@@ -265,7 +265,7 @@ class SolveBio::Dataset < SolveBio::APIResource
 
     def query(params={}, paging=false)
         q = paging ? SolveBio::PagingQuery.new(data_url, params) :
-            SolveBio::Query.new(data_url, params)
+            SolveBio::Query.new(self['id'], params)
 
         if params[:filters]
             return q.filter(params[:filters])
