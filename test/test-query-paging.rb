@@ -7,11 +7,12 @@ class TestQueryPaging < Test::Unit::TestCase
 
     TEST_DATASET_NAME = 'omim/0.0.1-1/omim'
 
-    def setup
-        @dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
-    end
-
     if SolveBio::api_key
+
+        def setup
+            @dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
+        end
+
         def test_query
             results = @dataset.query(:paging=>true, :limit => 10)
             # When paging is on, results.size should return the number
