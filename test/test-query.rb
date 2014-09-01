@@ -7,28 +7,15 @@ class TestQuery < Test::Unit::TestCase
 
     TEST_DATASET_NAME = 'omim/0.0.1-1/omim'
 
-    def test_query
-        if SolveBio::api_key
-            dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
-            results = dataset.query({:paging=>true, :limit => 10})
-            # When paging is on, results.size should return the number
-            # of total number of results.
-            assert_equal(results.size, results.total,
-                         'results.size == results.total, paging=true')
-        else
-            skip('Please set SolveBio::api_key')
-        end
-    end
-
-    # When paging is off, results.size should return the number of
-    # results retrieved.
-    def test_limit
-        if SolveBio::api_key
+    if SolveBio::api_key
+        # When paging is off, results.size should return the number of
+        # results retrieved.
+        def test_limit
             dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
             limit = 10
             results = dataset.query({:paging=>false, :limit => limit})
-            assert_equal(results.size, limit,
-                         'results.size == limit, paging = false')
+            assert_equal(limit, results.size,
+                         'limit == results.size, paging = false')
 
 
             results.each_with_index do |val, i|
@@ -38,9 +25,27 @@ class TestQuery < Test::Unit::TestCase
             assert_raise IndexError do
                 puts results[limit]
             end
+        end
 
-        else
-            skip('Please set SolveBio::api_key')
+        # test Query when limit is specified and is GREATER THAN total available
+        #  results
+        def test_limit_empty
+            limit = 100
+            dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
+            # bogus filter
+            results = dataset.query({:paging=>false, :limit => limit}).
+                filter({:omim_id => nil})
+            assert_equal(0, results.size)
+
+            assert_raise IndexError do
+                puts results[0]
+            end
+        end
+
+    else
+        def test_skip
+            skip 'Please set SolveBio::api_key'
         end
     end
+
 end

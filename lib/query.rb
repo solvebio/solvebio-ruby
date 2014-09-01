@@ -38,7 +38,7 @@ class SolveBio::PagingQuery
         self
     end
 
-    def clone(filters=nil)
+    def clone(filters=[])
         result =
             initialize(@dataset_id,
                        {
@@ -48,11 +48,8 @@ class SolveBio::PagingQuery
                            :fields => @fields
                        })
 
-        result.filters << @filters
-
-        if filters
-            result.filters << filters
-        end
+        result.filters += @filters unless @filters.empty?
+        result.filters += filters unless filters.empty?
 
         return result
     end
@@ -71,8 +68,8 @@ class SolveBio::PagingQuery
     # If you want something different, use the F class which supports
     # ``&`` (and), ``|`` (or) and ``~`` (not) operators. Then call
     # filter once with the resulting Filter instance.
-    def filter(filters, kwargs={})
-        return self.clone(filters + SolveBio::Filter.new(kwargs).filters)
+    def filter(params={})
+        return clone(SolveBio::Filter.new(params).filters)
     end
 
     # Shortcut to do range queries on supported datasets.
@@ -80,39 +77,6 @@ class SolveBio::PagingQuery
         # TODO: ensure dataset supports range queries?
         return self.
             clone([self.new(chromosome, start, last, strand, overlap)])
-    end
-
-    # Takes a list of filters and returns JSON
-    #
-    #    :arg filters: list of Filters, (key, val) tuples, or dicts
-    #
-    #    :returns: list of JSON API filters
-    def process_filters(filters)
-        rv = []
-        filters.each do |f|
-            if f.kind_of?(SolveBio::Filter)
-                if f.filters
-                    rv << process_filters(f.filters)
-                    next
-                end
-            elsif f.kind_of?(Hash)
-                key = f.keys()[0]
-                val = f[key]
-
-                if val.kind_of?(Hash)
-                    filter_filters = process_filters(val)
-                    if filter_filters.size == 1
-                        filter_filters = filter_filters[0]
-                    end
-                    rv << {key => filter_filters}
-                else
-                    rv << {key => process_filters(val)}
-                end
-            else
-                rv << [f]
-            end
-        end
-        return rv
     end
 
     def size
@@ -202,8 +166,9 @@ class SolveBio::PagingQuery
         return result
     end
 
-    # "each" must be defined in an Enumerator. Allows the Query object to be
-    # an iterable.
+    # "each" must be defined in an Enumerator. Allows the Query object
+    # to be an iterable. Iterates through the internal cache using a
+    # cursor.
     def each(*pass)
         return self unless block_given?
         i = 0
@@ -249,7 +214,7 @@ class SolveBio::PagingQuery
         }
 
         if @filters
-            filters = process_filters(@filters)
+            filters = SolveBio::Filter.process_filters(@filters)
             if filters.size > 1
                 q[:filters] = [{:and => filters}]
             else
@@ -297,8 +262,9 @@ class SolveBio::Query < SolveBio::PagingQuery
         [@total, @results.size].min
     end
 
-    # "each" must be defined in an Enumerator. Allows the Query object to be
-    # an iterable.
+    # "each" must be defined in an Enumerator. Allows the Query object
+    # to be an iterable. Iterates through the internal cache using a
+    # cursor.
     def each(*pass)
         return self unless block_given?
         i = 0
@@ -372,16 +338,22 @@ if __FILE__ == $0
         require_relative 'solvebio'
         require_relative 'errors'
         dataset = SolveBio::Dataset.retrieve(test_dataset_name)
+
+        # bogus filter
         limit = 5
-        results = dataset.query({:limit => limit, :paging =>false})
+        results = dataset.query({:paging=>false, :limit => limit}).
+                filter({:omim_id => nil})
         puts results.size
-        results.each_with_index { |val, i|
-            puts val.size
-            # require 'trepanning'; debugger if i == 0
-        }
-        puts results[limit-1]
-        results = dataset.query({:limit => limit, :paging=>true})
-        puts results.size
+
+        # limit = 5
+        # results = dataset.query({:limit => limit, :paging =>false})
+        # puts results.size
+        # results.each_with_index { |val, i|
+        #     puts val.size
+        # }
+        # puts results[limit-1]
+        # results = dataset.query({:limit => limit, :paging=>true})
+        # puts results.size
     else
         puts 'Set SolveBio::api_key to run demo'
     end

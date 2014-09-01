@@ -19,4 +19,13 @@ class TestFilter < Test::Unit::TestCase
                      (~~f2).inspect, '~~ has no effect')
 
     end
+
+    def test_process_filters
+        # FIXME: add more and put in a loop.
+        filters = [[:omid, nil]]
+        expect  = filters
+        assert_equal(expect.inspect,
+                     SolveBio::Filter.process_filters(filters).inspect)
+    end
+
 end
