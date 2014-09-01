@@ -18,7 +18,7 @@ class TestError < Test::Unit::TestCase
 
     def test_error
         msg = "hi"
-        assert_equal msg, SolveBio::Error.new(nil, msg).str, "Error.str fn"
+        assert_equal msg, SolveBio::Error.new(nil, msg).to_s, "Error.to_s fn"
         response = Net::HTTPUnauthorized.new('HTTP 1.1', '404', 'No creds')
         old_logger = SolveBio.instance_variable_get('@logger')
         logger = FakeLogger.new

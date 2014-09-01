@@ -394,7 +394,7 @@ if __FILE__ == $0
     so = to_solve_object(resp)
     so = resp.to_solvebio
     puts so.inspect
-    puts so.str
+    puts so.to_s
 
     if ARGV[0]
         require_relative './cli/auth.rb'
@@ -403,12 +403,12 @@ if __FILE__ == $0
         puts '-' * 30, ' HELP ', '-' * 30
         puts SolveBio::Depository.retrieve('ClinVar').help
         puts '-' * 30, ' Retrieve ClinVar ','-' * 30
-        puts SolveBio::Depository.retrieve('ClinVar').str
+        puts SolveBio::Depository.retrieve('ClinVar').to_s
         puts '-' * 30, ' Versions ClinVar ','-' * 30
-        puts SolveBio::Depository.retrieve('Clinvar').versions.str
+        puts SolveBio::Depository.retrieve('Clinvar').versions.to_s
         puts '-' * 30, ' Dataset  ','-' * 30
-        puts SolveBio::Dataset.retrieve('Clinvar/2.0.0-1/Variants').str
+        puts SolveBio::Dataset.retrieve('Clinvar/2.0.0-1/Variants').to_s
         puts '-' * 30, ' All Depository  ','-' * 30
-        puts SolveBio::Depository.all.str
+        puts SolveBio::Depository.all.to_s
     end
 end

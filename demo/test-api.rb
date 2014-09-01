@@ -40,7 +40,7 @@ begin
         retrieve(DEPOSITORY_VERSION) }
     begin
         dataset = run_and_verify(load_depo, 'load a depository version',
-                                 [:id, :str, :inspect, :instance_url])
+                                 [:id, :to_s, :inspect, :instance_url])
     rescue SolveBio::Error => exc
         raise TestFail, "Loading #{DEPOSITORY_VERSION} failed! (#{exc})"
     end
@@ -49,7 +49,7 @@ begin
     load_depo = proc { SolveBio::Depository.retrieve(DEPOSITORY) }
     begin
         dataset = run_and_verify(load_depo, 'load a depository',
-                                 [:str, :versions, :versions_url,
+                                 [:to_s, :versions, :versions_url,
                                  :first, :max, :min])
     rescue SolveBio::Error => exc
         raise TestFail, "Loading #{DEPOSITORY} failed! (#{exc})"

@@ -89,7 +89,7 @@ class SolveBio::PagingQuery
         return @total == 0
     end
 
-    def inspect
+    def to_s
         if @total == 0 or @limit == 0
             return 'query returned 0 results'
         end
@@ -101,6 +101,12 @@ class SolveBio::PagingQuery
         #                                         pretty_int(@total - 1)]
         msg = "\n#{self[0].pretty_inspect}\n\n... #{@total-1} more results."
         return msg
+    end
+
+    def inspect
+        return '<%s: @dataset_id=%s, @total=%s, @limit=%s, @debug=%s>' %
+            [self.class, @dataset_id, @total ? @total : '?',
+             @limit, @debug]
     end
 
     # warmup result set...

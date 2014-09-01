@@ -72,7 +72,7 @@ class SolveBio::SolveObject < Hash
 
     end
 
-    def str
+    def to_s
         # No equivalent of Python's json sort_keys?
         return JSON.pretty_generate(self, :indent => '  ')
         # return self.to_json json.dumps(self, sort_keys=true, indent=2)

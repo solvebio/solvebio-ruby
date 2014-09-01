@@ -61,7 +61,7 @@ class SolveBio::Error < RuntimeError
         end
     end
 
-    def str
+    def to_s
         @message
     end
 end
@@ -70,11 +70,11 @@ end
 if __FILE__ == $0
     puts SolveBio::Error.new
     puts SolveBio::Error.new(nil, 'Hi there').inspect
-    puts SolveBio::Error.new(nil, 'Hi there').str
+    puts SolveBio::Error.new(nil, 'Hi there').to_s
     puts SolveBio::Error.new(nil, ['Hello, ', 'again.']).inspect
 
     require 'net/http'
     response = Net::HTTPUnauthorized.new('HTTP 1.1', '404', 'No creds')
-    puts SolveBio::Error.new(response).str
+    puts SolveBio::Error.new(response).to_s
 
 end
