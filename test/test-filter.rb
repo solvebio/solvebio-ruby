@@ -18,6 +18,14 @@ class TestFilter < Test::Unit::TestCase
         assert_equal('<Filter [{:and=>[[:price, "Free"], [:style, "Mexican"]]}]>',
                      (~~f2).inspect, '~~ has no effect')
 
+        filters3 =
+            SolveBio::Filter.new(:omim_id => 144650) |
+            SolveBio::Filter.new(:omim_id => 144600) |
+            SolveBio::Filter.new(:omim_id => 145300)
+
+        assert_equal('<Filter [{:or=>[[:omim_id, 144650], [:omim_id, 144600], [:omim_id, 145300]]}]>',
+                     filters3.inspect,
+                     'combining more than one of a connector (|)')
     end
 
     def test_process_filters

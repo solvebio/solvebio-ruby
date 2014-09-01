@@ -47,6 +47,9 @@ class SolveBio::Filter
             @filters = filters.keys.sort.map{|key| [key,  filters[key]]}
         elsif filters.kind_of?(Array)
             @filters = filters
+        elsif filters.kind_of?(SolveBio::Filter)
+            @filters = Marshal.load(Marshal.dump(filters.filters))
+            return self
         else
             raise RuntimeError, "Invalid filter type #{filters.class}"
         end
@@ -78,10 +81,10 @@ class SolveBio::Filter
             return self.clone
         elsif self.filters[0].member?(conn)
             f = self.clone
-            f.filters[0][conn] << other.filters
+            f.filters[0][conn] += other.filters
         elsif other.filters[0].member?(conn)
             f = other.clone
-            f.filters[0][conn] << self.filters
+            f.filters[0][conn] += self.filters
         else
             f = initialize(self.clone.filters + other.filters, conn)
         end
@@ -213,6 +216,11 @@ end
 
 # Demo/test code
 if __FILE__ == $0
+    filters =
+        SolveBio::Filter.new(:omim_id => 144650) |
+        SolveBio::Filter.new(:omim_id => 144600) |
+        SolveBio::Filter.new(:omim_id => 145300)
+    puts filters.inspect
     puts SolveBio::Filter.process_filters([[:omim_id, nil]]).inspect
     f = SolveBio::Filter.new
     puts "%s, empty?: %s" % [f.inspect, f.empty?]

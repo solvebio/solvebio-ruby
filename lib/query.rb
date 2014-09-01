@@ -14,7 +14,6 @@ class SolveBio::PagingQuery
 
     MAXIMUM_LIMIT ||= 100
 
-    attr_reader :total
     attr_accessor :filters
 
     def initialize(dataset_id, params={})
@@ -69,7 +68,11 @@ class SolveBio::PagingQuery
     # ``&`` (and), ``|`` (or) and ``~`` (not) operators. Then call
     # filter once with the resulting Filter instance.
     def filter(params={})
-        return clone(SolveBio::Filter.new(params).filters)
+        if filters.kind_of?(SolveBio::Filter)
+            return Marshal.load(Marshal.dump(params.filters))
+        else
+            return clone(SolveBio::Filter.new(params).filters)
+        end
     end
 
     # Shortcut to do range queries on supported datasets.
@@ -77,6 +80,11 @@ class SolveBio::PagingQuery
         # TODO: ensure dataset supports range queries?
         return self.
             clone([self.new(chromosome, start, last, strand, overlap)])
+    end
+
+    def total
+        warmup('PagingQuery total')
+        return @total
     end
 
     def size

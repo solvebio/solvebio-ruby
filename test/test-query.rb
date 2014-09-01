@@ -42,6 +42,31 @@ class TestQuery < Test::Unit::TestCase
             end
         end
 
+        # test Filtered Query in which limit is specified but is GREATER THAN
+        #  the number of total available results
+        def test_limit_filter
+            limit = 10
+            num_filters = 3
+
+            filters3 =
+                SolveBio::Filter.new(:omim_id => 144650) |
+                SolveBio::Filter.new(:omim_id => 144600) |
+                SolveBio::Filter.new(:omim_id => 145300)
+
+            dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
+            results = dataset.query({:paging=>false, :limit => limit, :filters => filters3})
+
+            num_filters.times do |i|
+                assert results[i]
+            end
+
+            assert_equal(num_filters, results.size)
+
+            assert_raise IndexError do
+                puts results[num_filters]
+            end
+        end
+
     else
         def test_skip
             skip 'Please set SolveBio::api_key'
