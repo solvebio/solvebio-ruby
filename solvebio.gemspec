@@ -73,8 +73,10 @@ Gem::Specification.new do |s|
     lib/client.rb
     lib/credentials.rb
     lib/errors.rb
+    lib/filter.rb
     lib/help.rb
     lib/main.rb
+    lib/query.rb
     lib/resource.rb
     lib/solvebio.rb
     lib/solveobject.rb
