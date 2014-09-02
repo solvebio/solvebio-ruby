@@ -22,14 +22,15 @@ class TestQueryBatch < Test::Unit::TestCase
                          ]).execute
             end
 
-            assert_raise SolveBio::Error do
-                dataset2 = SolveBio::Dataset.retrieve('ClinVar/2.0.0-1/Variants')
-                SolveBio::BatchQuery
-                    .new([
-                          dataset2.query(:limit => 1),
-                          @dataset.query(:limit => 10).filter(:omim_id__gt => 100000)
-                         ]).execute
-            end
+            dataset2 = SolveBio::Dataset.retrieve('ClinVar/2.0.0-1/Variants')
+            results = SolveBio::BatchQuery
+                .new([
+                      dataset2.query(:limit => 1),
+                      @dataset.query(:limit => 10).filter(:omim_id__gt => 100000)
+                     ]).execute
+            assert_equal(2, results.size)
+
+
 
         end
 
@@ -39,9 +40,9 @@ class TestQueryBatch < Test::Unit::TestCase
                        @dataset.query(:limit => 10).filter(:omim_id__gt => 100000)
                       ]
             results = SolveBio::BatchQuery.new(queries).execute
-            assert_equal(results.size, 2)
-            assert_equal(results[0]['results'].size, 1)
-            assert_equal(results[1]['results'].size, 10)
+            assert_equal(2, results.size)
+            assert_equal(1, results[0]['results'].size)
+            assert_equal(10, results[1]['results'].size)
         end
 
 
