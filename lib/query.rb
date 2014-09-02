@@ -15,6 +15,7 @@ class SolveBio::PagingQuery
     MAXIMUM_LIMIT ||= 100
 
     attr_accessor :filters
+    attr_reader   :dataset_id
 
     def initialize(dataset_id, params={})
         @dataset_id = dataset_id
@@ -246,7 +247,7 @@ class SolveBio::PagingQuery
     # Executes a query and returns the request parameters and response.
     def execute(params={})
         _params = build_query()
-        _params.merge(params)
+        _params.merge!(params)
         SolveBio::logger.debug("querying dataset: #{_params}")
 
         @response = SolveBio::Client.client.request('post', @data_url, _params)
@@ -326,10 +327,17 @@ class SolveBio::BatchQuery
 
     def build_query
         query = {:queries => []}
+        dataset_id = nil
 
         @queries.each do |i|
             q = i.build_query
-            q.merge({:dataset => i._dataset_id})
+            if dataset_id and dataset_id != i.dataset_id
+                msg = "Conflicting dataset id's: #{q[:dataset]} vs. " +
+                    "#{i.dataset_id}"
+                raise SolveBio::Error.new(nil, msg)
+            else
+                dataset_id = q[:dataset] = i.dataset_id
+            end
             query[:queries] << q
         end
 
@@ -338,7 +346,7 @@ class SolveBio::BatchQuery
 
     def execute(params={})
         _params = build_query()
-        _params.merge(params)
+        _params.merge!(params)
         response = SolveBio::Client.
             client.request('post', '/v1/batch_query', _params)
         return response

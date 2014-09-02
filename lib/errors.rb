@@ -59,6 +59,7 @@ class SolveBio::Error < RuntimeError
                 end
             end
         end
+        self
     end
 
     def to_s
