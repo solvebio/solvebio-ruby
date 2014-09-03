@@ -190,7 +190,6 @@ class SolveBio::PagingQuery
 
         @delta = @request_range.end - @request_range.begin
         while i < total and i < @delta
-            puts i
             i_offset = i + @request_range.begin
             if @window_range.include?(i_offset)
                 result_start = i_offset - @window_range.begin
