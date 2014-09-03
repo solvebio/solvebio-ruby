@@ -32,9 +32,26 @@ class TestQueryPaging < Test::Unit::TestCase
         end
 
 
+        def test_paging
+            skip 'Fix up range (paging)'
+            limit = 100
+            total = 823
+            results = @dataset.query(:paging => true, :limit => limit).
+                    filter(:omim_id__in => [100000...120000].to_a)
+
+            assert_equal(results.size, total)
+
+            i = 0
+            results.each do
+                i += 1
+            end
+            assert_equal(i, total - 1)
+        end
+
+
         #### FIXME: figure out how to reinstate
         def test_slice
-            skip 'Fix up slicing'
+            skip 'Fix up range (slice)'
             limit = 100
             results = @dataset.query(:paging => true, :limit => limit).
                 filter(:omim_id__in => [100000...120000].to_a)[200...410]

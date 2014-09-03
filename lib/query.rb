@@ -88,11 +88,6 @@ class SolveBio::PagingQuery
             clone([self.new(chromosome, start, last, strand, overlap)])
     end
 
-    def total
-        warmup('PagingQuery total')
-        return @total
-    end
-
     def size
         warmup('PagingQuery size')
         return @total

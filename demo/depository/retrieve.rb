@@ -4,9 +4,9 @@
 require 'solvebio'
 
 # SolveBio::Client.client.api_key = 'set-me-correctly'
-if SolveBio::Client.client.api_key
+if SolveBio.api_key
     depo = SolveBio::Depository.retrieve('ClinVar')
-    puts depo.str
+    puts depo.to_s
 else
-    puts 'Please set SolveBio::Client.client.api_key. Hint: solvebio.rb login'
+    puts 'Please set SolveBio.api_key. Hint: solvebio.rb login'
 end

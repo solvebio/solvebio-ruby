@@ -39,6 +39,19 @@ Rake::TestTask.new(:test) do |t|
   t.test_files = FileList['test/test-*.rb']
   t.verbose = true
 end
+
+
+require 'rbconfig'
+RUBY_PATH = File.join(RbConfig::CONFIG['bindir'],
+                      RbConfig::CONFIG['RUBY_INSTALL_NAME'])
+desc "Run all of the demo files."
+task :'run-demo' do
+    FileList['demo/*.rb']+FileList['demo/*/*.rb'].each do |ruby_file|
+        puts(('-' * 20) + ' ' + ruby_file + ' ' + ('-' * 20))
+        system(RUBY_PATH, ruby_file)
+    end
+end
+
 task :test => :lib
 
 desc "same as test"
