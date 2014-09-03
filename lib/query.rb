@@ -38,6 +38,11 @@ class SolveBio::PagingQuery
         self
     end
 
+    def total
+        warmup('Query total')
+        @total = @response["total"]
+    end
+
     def clone(filters=[])
         result =
             initialize(@dataset_id,
@@ -187,7 +192,10 @@ class SolveBio::PagingQuery
     def each(*pass)
         return self unless block_given?
         i = 0
-        while i < @total and i < @delta
+
+        @delta = @request_range.end - @request_range.begin
+        while i < total and i < @delta
+            puts i
             i_offset = i + @request_range.begin
             if @window_range.include?(i_offset)
                 result_start = i_offset - @window_range.begin
@@ -272,6 +280,10 @@ class SolveBio::Query < SolveBio::PagingQuery
         return self
     end
 
+    def total
+        warmup('Query total')
+        @total
+    end
     def size
         warmup('Query size')
         [@total, @results.size].min
@@ -283,7 +295,7 @@ class SolveBio::Query < SolveBio::PagingQuery
     def each(*pass)
         return self unless block_given?
         i = 0
-        while i < @total and i < @limit
+        while i < size and i < @limit
             i_offset = i + @request_range.begin
             if @window_range.include?(i_offset)
                 result_start = i_offset - @window_range.begin
@@ -327,17 +339,10 @@ class SolveBio::BatchQuery
 
     def build_query
         query = {:queries => []}
-        dataset_id = nil
 
         @queries.each do |i|
             q = i.build_query
-            if dataset_id and dataset_id != i.dataset_id
-                msg = "Conflicting dataset id's: #{q[:dataset]} vs. " +
-                    "#{i.dataset_id}"
-                raise SolveBio::Error.new(nil, msg)
-            else
-                dataset_id = q[:dataset] = i.dataset_id
-            end
+            q.merge!(:dataset => i.dataset_id)
             query[:queries] << q
         end
 
