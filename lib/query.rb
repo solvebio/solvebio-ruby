@@ -145,8 +145,6 @@ class SolveBio::PagingQuery
 
     # Retrieve an item or range from the set of results
     def [](key)
-        @request_range = self.to_range(key)
-
         # warmup result set...
         warmup("[#{key}]")
 
@@ -170,10 +168,12 @@ class SolveBio::PagingQuery
         # FIXME: is it right that we can assume that the results are in
         # @results. Do I need another index check?
 
+
         result =
             if key.kind_of?(Range)
                 @results[(0..key.end - key.begin)]
             else
+                @request_range = self.to_range(key)
                 @results[0]
             end
         # reset request range
@@ -355,26 +355,26 @@ end
 # Demo/test code
 if __FILE__ == $0
     if SolveBio::api_key
-        test_dataset_name = 'omim/0.0.1-1/omim'
+        test_dataset_name = 'ClinVar/2.0.0-1/Variants'
         require_relative 'solvebio'
         require_relative 'errors'
         dataset = SolveBio::Dataset.retrieve(test_dataset_name)
 
-        # bogus filter
+        # A filter
         limit = 5
         results = dataset.query({:paging=>false, :limit => limit}).
-                filter({:omim_id => nil})
+                filter({:alternate_alleles => nil})
         puts results.size
 
-        # limit = 5
-        # results = dataset.query({:limit => limit, :paging =>false})
-        # puts results.size
-        # results.each_with_index { |val, i|
-        #     puts val.size
-        # }
-        # puts results[limit-1]
-        # results = dataset.query({:limit => limit, :paging=>true})
-        # puts results.size
+        limit = 2
+        results = dataset.query({:limit => limit, :paging =>false})
+        puts results.size
+        results.each_with_index { |val, i|
+            puts "#{i}: #{val}"
+        }
+        puts puts "#{limit-1}: #{results[limit-1]}"
+        results = dataset.query({:limit => limit, :paging=>true})
+        puts results.size
     else
         puts 'Set SolveBio::api_key to run demo'
     end
