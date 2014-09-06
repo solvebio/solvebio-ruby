@@ -27,8 +27,8 @@ class TestQueryPaging < Test::Unit::TestCase
         def test_limit
             limit = 10
             results = @dataset.query(:paging=>true, :limit => limit)
-            assert_equal(results.total, results.size,
-                         'results.total == results.size, paging = true')
+            assert_equal(results.total, results.length,
+                         'results.total == results.length, paging = true')
         end
 
 
@@ -64,6 +64,33 @@ class TestQueryPaging < Test::Unit::TestCase
             skip 'Reconcile with Python Client'
         end
 
+        def test_paging_and_slice_equivalence
+            skip "Fix up test_paging_and_slice_equivalence"
+            idx0 = 60
+            idx1 = 81
+
+            query = proc{
+                @dataset.query( :paging => true, :limit => 10).
+                filter(:hg19_start__range => [140000000, 150000000])
+            }
+
+            results_slice = query.call()[idx0..idx1]
+            results_paging = []
+            query.call.each_with_index do |r, i|
+                break if i == idx1
+                results_paging << r if i >= idx0
+            end
+
+            # assert_equal(results_slice.size, results_paging.size)
+
+            results_paging.size.times do |i|
+                id_a = results_paging[i][:hg19_start]
+                id_b = results_slice[i][:hg19_start]
+                assert_equal(id_a, id_b)
+            end
+        end
+
+
         def test_caching
             idx0 = 60
             idx1 = 81
@@ -81,6 +108,8 @@ class TestQueryPaging < Test::Unit::TestCase
                 assert_equal(id_b, id_a)
             end
         end
+
+
 
 
     else

@@ -28,7 +28,7 @@ class TestQueryBatch < Test::Unit::TestCase
                       dataset2.query(:limit => 1),
                       @dataset.query(:limit => 10).filter(:hg19_start => 100000)
                      ]).execute
-            assert_equal(2, results.size)
+            assert_equal(2, results.length)
 
 
 
@@ -41,7 +41,7 @@ class TestQueryBatch < Test::Unit::TestCase
                       ]
             results = SolveBio::BatchQuery.new(queries).execute
             assert_equal(2, results.size)
-            assert_equal(1, results[0]['results'].size)
+            assert_equal(1, results[0]['results'].length)
             assert_equal(10, results[1]['results'].size)
         end
 
