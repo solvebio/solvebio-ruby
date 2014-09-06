@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 require_relative 'main'
 
 # SolveBio::Filter objects.
@@ -7,18 +6,26 @@ require_relative 'main'
 # Makes it easier to create filters cumulatively using ``&`` (and),
 # ``|`` (or) and ``~`` (not) operations.
 #
-# For example::
+# == Example
 #
-#     f =  SolveBio::Filter.new
-#     f &= SolveBio::Filter.new :price => 'Free'
-#     f |= SolveBio::Filter.new :style => 'Mexican'
+#     require 'solvebio'
+
+#     f =  SolveBio::Filter.new                       #=> <Filter []>
+
+#     f &= SolveBio::Filter.new :price => 'Free'      #=> <Filter [[:price, "Free"]]>
+
+#     f |= SolveBio::Filter.new :style => 'Mexican'   #=> <Filter [{:or=>[[:price, "Free"], [:style, "Mexican"]]}]>
 #
-# creates a filter "price = 'Free' or style = 'Mexican'".
+# The final result is a filter that can be used in a query which match es
+# "price = 'Free' or style = 'Mexican'".
 #
-# Each set of kwargs in a `Filter` are ANDed together:
+# By default, each key/value pairs are AND'ed together. However, you can change that
+# to OR by passing in +:or+ as the last argument.
 #
-#     * `<field>=''` uses a term filter (exact term)
-#     * `<field>__in=[]` uses a terms filter (match any)
+#     * `<field>='value` matches if the field is term filter (exact term)
+#     * `<field>__in=[<item1>, ...]` matches any of the terms <item1> and so on
+#     * `<field>__range=[<start>, <end>]` matches anything from <start> to <end>
+#     * `<field>__between=[<start>, <end>]` matches anything between <start> to <end> not include either <start> or <end>
 #
 # String terms are not analyzed and are always assumed to be exact matches.
 #
@@ -31,17 +38,16 @@ require_relative 'main'
 #
 # Field action examples:
 #
-#     dataset.query(gene__in=['BRCA', 'GATA3'],
-#                   chr='3',
-#                   start__gt=10000,
-#                   end__lte=20000)
+#     dataset.query(:gene__in  => ['BRCA', 'GATA3'],
+#                   :chr       => '3',
+#                   :start__gt => 10000,
+#                   :end__lte  => 20000)
 
 class SolveBio::Filter
 
     attr_accessor :filters
 
     # Creates a new Filter, the first argument is expected to be Hash or an Array.
-    #
     def initialize(filters={}, conn=:and)
         if filters.kind_of?(Hash)
             @filters = filters.keys.sort.map{|key| [key,  filters[key]]}
@@ -163,9 +169,7 @@ class SolveBio::Filter
 
 end
 
-#
-#    Helper class that generates Range Filters from UCSC-style ranges.
-#
+# Helper class that generates Range Filters from UCSC-style ranges.
 class SolveBio::RangeFilter < SolveBio::Filter
     SUPPORTED_BUILDS = ['hg18', 'hg19', 'hg38']
 

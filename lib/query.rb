@@ -73,11 +73,11 @@ class SolveBio::PagingQuery
     # If you want something different, use the F class which supports
     # ``&`` (and), ``|`` (or) and ``~`` (not) operators. Then call
     # filter once with the resulting Filter instance.
-    def filter(params={})
+    def filter(params={}, conn=:and)
         if filters.kind_of?(SolveBio::Filter)
             return Marshal.load(Marshal.dump(params.filters))
         else
-            return clone(SolveBio::Filter.new(params).filters)
+            return clone(SolveBio::Filter.new(params, conn).filters)
         end
     end
 
@@ -100,7 +100,7 @@ class SolveBio::PagingQuery
     end
 
     def to_s
-        if @total == 0 or @limit == 0
+        if total == 0 or @limit == 0
             return 'query returned 0 results'
         end
 
@@ -318,7 +318,7 @@ class SolveBio::Query < SolveBio::PagingQuery
             raise IndexError, "Invalid index #{key} >= #{@window_range.end}"
         end
         super[key]
-        # FIXME: Dunno why above isn't enough.
+        # FIXME: Dunno why the above isn't enough.
         @results[key]
     end
 end
