@@ -92,6 +92,7 @@ class SolveBio::PagingQuery
         warmup('PagingQuery size')
         return @total
     end
+    alias_method :length, :size
 
     def empty?
         warmup('empty?')
@@ -127,6 +128,9 @@ class SolveBio::PagingQuery
     end
 
 
+    # FIXME: consider creating instance variables from
+    # a response object and then using attr_reader to make that
+    # visible. This is instead of:
     # # One hacky way to define attributes (methods) on an object.
     # # Replaces Python's __getattr__
     # def method_missing(meth, *args, &block)
@@ -167,7 +171,6 @@ class SolveBio::PagingQuery
 
         # FIXME: is it right that we can assume that the results are in
         # @results. Do I need another index check?
-
 
         result =
             if key.kind_of?(Range)
@@ -278,10 +281,12 @@ class SolveBio::Query < SolveBio::PagingQuery
         warmup('Query total')
         @total
     end
+
     def size
         warmup('Query size')
         [@total, @results.size].min
     end
+    alias_method :length, :size
 
     # "each" must be defined in an Enumerator. Allows the Query object
     # to be an iterable. Iterates through the internal cache using a
