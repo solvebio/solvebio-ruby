@@ -4,9 +4,10 @@
 require 'solvebio'
 
 # SolveBio::Client.client.api_key = 'set-me-correctly'
-if SolveBio.api_key
-    depo = SolveBio::Depository.all
-    puts depo.to_s
-else
-    puts 'Please set SolveBio::Client.client.api_key. Hint: solvebio.rb login'
+unless SolveBio.api_key
+    puts 'Please set SolveBio::api_key. Hint: solvebio.rb login'
+    exit 1
 end
+
+depo = SolveBio::Depository.all
+puts depo.to_s
