@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-require 'uri'
 require 'openssl'
 require 'net/http'
 require 'json'
@@ -19,6 +18,14 @@ class SolveBio::Client
         @api_key = api_key || SolveBio::api_key
         SolveBio::api_key  ||= api_key
         @api_host = api_host || SolveBio::API_HOST
+        # Note: in contrast to the Python client, we don't add
+        # Accept-Encoding. From
+        # http://ruby-doc.org/stdlib-2.1.2/libdoc/net/http/rdoc/Net/HTTP.html
+        # section get: If initheader doesn't have the key
+        # 'accept-encoding', then a value of
+        # "gzip;q=1.0,deflate;q=0.6,identity;q=0.3" is used, so that
+        # gzip compression is used in preference to deflate
+        # compression, which is used in preference to no compression.
         @headers  = {
             'Content-Type'    => 'application/json',
             'Accept'          => 'application/json',
