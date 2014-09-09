@@ -33,7 +33,7 @@ begin
 
 puts <<-INTRO
 You are in a SolveBio Interactive Ruby (irb) session...
-Type solvehelp for help on SolveBio.
+Type SolveBio::help for help on SolveBio.
 INTRO
 
 unless have_completion
@@ -46,7 +46,7 @@ end
 include SolveBio::Credentials
 creds = get_credentials()
 if creds
-    puts "You may be logged in as #{creds[0]}"
+    puts "You are logged in as #{creds[0]}"
 else
     puts 'You are not logged in yet. Login using "login [email [, password]]"'
 

@@ -2,28 +2,23 @@
 # -*- coding: utf-8 -*-
 # Open the SolveBio shell, an IRB wrapper
 require 'irb'
+require_relative 'help'
 
 module IRB
 
     # Stuff to add IRB commands goes here
-    module ExtendCommand
-        class SolveHelp
-            def self.execute(conf, *opts)
-                puts <<-HELP
-Constants SAMPLE_DEPO, SAMPLE_DEPO_VERSION, and SAMPLE_DATASET are
-available for and example depository, depository_versions or dataset.
+    # module ExtendCommand
+    #     class SolveHelp
+    #         def self.execute(conf, *opts)
+    #             SolveBio::help
+    #         end
+    #     end
 
-By setting environment variable SOLVEBIO_IRBRC, you can add your own
-custom irb profile.
-HELP
-            end
-        end
-
-    end
+    # end
 
     module_function
 
-    ExtendCommandBundle.def_extend_command 'solvehelp', :SolveHelp
+    # ExtendCommandBundle.def_extend_command 'solvehelp', :SolveHelp
 
     def shell
 
