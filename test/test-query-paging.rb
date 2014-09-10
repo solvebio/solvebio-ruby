@@ -34,54 +34,50 @@ class TestQueryPaging < Test::Unit::TestCase
 
         def test_paging
             limit = 100
-            total = 2012
+            total = 7
             results = @dataset.query(:paging => true, :limit => limit).
-                    filter(:hg19_start__range => [140000000, 150000000])
+                filter(:hg19_start__range => [140000000, 140050000])
 
-            ## FIXME: is this right?
             assert_equal(total, results.size)
 
+            # Make sure we can iterate over the entire result set
             i = 0
-            results.each do
-                i += 1
+            results.each_with_index do |val, j|
+                assert val, "Can retrieve filter item #{i}"
+                i = j
             end
-            ## FIXME: is this right?
-            assert_equal(i, total)
-            skip('Reconcile difference in total with Python client')
+            assert_equal(i, total-1)
         end
 
 
-        def test_slice
+        def test_range
             limit = 100
             results = @dataset.query(:paging => true, :limit => limit).
-                filter(:hg19_start__range => [140000000, 150000000])[10..20]
-            assert_equal(11, results.size)
+                filter(:hg19_start__range => [140000000, 140050000])[2..5]
+            assert_equal(3, results.size)
 
             results = @dataset.query(:paging => true, :limit => limit).
-                filter(:hg19_start__range => [140000000, 150000000])[0..3]
-            ## FIXME: is this right?
-            assert_equal(4, results.size)
-            skip 'Reconcile with Python Client'
+                filter(:hg19_start__range => [140000000, 140050000])[0..8]
+            assert_equal(7, results.size)
         end
 
         def test_paging_and_slice_equivalence
-            skip "Fix up test_paging_and_slice_equivalence"
-            idx0 = 60
-            idx1 = 81
+            idx0 = 3
+            idx1 = 5
 
             query = proc{
-                @dataset.query( :paging => true, :limit => 10).
-                filter(:hg19_start__range => [140000000, 150000000])
+                @dataset.query( :paging => true, :limit => 20).
+                filter(:hg19_start__range => [140000000, 140060000])[2..10]
             }
 
-            results_slice = query.call()[idx0..idx1]
+            results_slice = query.call()[idx0...idx1]
             results_paging = []
             query.call.each_with_index do |r, i|
                 break if i == idx1
                 results_paging << r if i >= idx0
             end
 
-            # assert_equal(results_slice.size, results_paging.size)
+            assert_equal(results_slice.size, results_paging.size)
 
             results_paging.size.times do |i|
                 id_a = results_paging[i][:hg19_start]
@@ -108,9 +104,6 @@ class TestQueryPaging < Test::Unit::TestCase
                 assert_equal(id_b, id_a)
             end
         end
-
-
-
 
     else
         def test_skip

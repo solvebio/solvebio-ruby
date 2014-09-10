@@ -48,6 +48,7 @@ class SolveBio::PagingQuery
             initialize(@dataset_id,
                        {
                            :limit => @limit,
+                           :total => total,  # This causes an HTTP request
                            :result_class => @result_class,
                            :debug => @debug,
                            :fields => @fields
@@ -174,7 +175,7 @@ class SolveBio::PagingQuery
 
         result =
             if key.kind_of?(Range)
-                @results[(0..key.end - key.begin)]
+                @results[(0...key.end - key.begin)]
             else
                 @request_range = self.to_range(key)
                 @results[0]
@@ -265,7 +266,7 @@ class SolveBio::PagingQuery
         offset = _params[:offset] || 0
         @results = @response['results']
         @window = @results
-        @window_range = (offset .. offset + @results.size)
+        @window_range = (offset ... offset + @results.size)
 
         return _params, @response
     end
