@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-require 'uri'
 require 'openssl'
 require 'net/http'
 require 'json'
@@ -19,11 +18,14 @@ class SolveBio::Client
         @api_key = api_key || SolveBio::api_key
         SolveBio::api_key  ||= api_key
         @api_host = api_host || SolveBio::API_HOST
+        # Mirroring comments from:
+        # http://ruby-doc.org/stdlib-2.1.2/libdoc/net/http/rdoc/Net/HTTP.html
+        # gzip compression is used in preference to deflate
+        # compression, which is used in preference to no compression.
         @headers  = {
             'Content-Type'    => 'application/json',
             'Accept'          => 'application/json',
-            # FIXME:
-            # 'Accept-Encoding' => 'gzip,deflate',
+            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
             'User-Agent'      => 'SolveBio Ruby Client %s [%s/%s]' % [
                 SolveBio::VERSION,
                 SolveBio::RUBY_IMPLEMENTATION,
@@ -68,6 +70,25 @@ class SolveBio::Client
         @headers.each { |k, v| request.add_field(k, v) }
         request.add_field('Authorization', "Token #{@api_key}") if @api_key
         response = http.request(request)
+
+        # FIXME: There's probably gzip decompression built in to
+        # net/http. Until I figure out how to get that to work, the
+        # below works.
+        case response
+        when Net::HTTPSuccess then
+            begin
+                if response['Content-Encoding'].eql?( 'gzip' ) then
+                    puts "Performing gzip decompression for response body." if $DEBUG
+                    sio = StringIO.new( response.body )
+                    gz = Zlib::GzipReader.new( sio )
+                    response.body = gz.read()
+                end
+            rescue Exception
+                puts "Error occurred (#{$!.message})" if $DEBUG
+                # handle errors
+                raise $!.message
+            end
+        end
 
         status_code = response.code.to_i
         if status_code < 200 or status_code >= 300

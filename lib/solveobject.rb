@@ -39,6 +39,13 @@ class SolveBio::SolveObject < Hash
         end
     end
 
+    # Element Reference — Retrieves the value object corresponding to the key object.
+    # Note: *key* is turned into a string before access, because the underlying key type
+    # is a string.
+    def [](key)
+        return super(key.to_s)
+    end
+
     def self.construct_from(cls, values)
         instance = cls.new(values['id'])
         instance.refresh_from(values)

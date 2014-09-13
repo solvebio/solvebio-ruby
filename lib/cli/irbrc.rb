@@ -12,17 +12,42 @@ IRB.conf[:PROMPT][:SIMPLE] = {
 require_relative '../solvebio'
 include SolveBio::Auth
 
+# Set some demo names that can be used.
 SAMPLE_DEPO         = 'ClinVar'
 SAMPLE_DEPO_VERSION = "#{SAMPLE_DEPO}/2.0.0-1"
 SAMPLE_DATASET      = "#{SAMPLE_DEPO_VERSION}/Variants"
 
-puts 'You are in a SolveBio Interactive Ruby (irb) session...'
+have_completion = nil
+begin
+    require 'bond' and require 'bond/completion'
+    have_completion = 'bond'
+    rescue LoadError
+      begin
+          have_completion = require 'irb/completion'
+      rescue LoadError
+          have_completion = false
+      end
+    end
+'irb/completion'
+'bond' 'bond/completion'
+
+puts <<-INTRO
+You are in a SolveBio Interactive Ruby (irb) session...
+Type SolveBio::help for help on SolveBio.
+INTRO
+
+unless have_completion
+    if have_completion != 'bond'
+        puts "You might get better completion using the 'bond' gem"
+    end
+end
 
 # Report whether we are logged in.
 include SolveBio::Credentials
 creds = get_credentials()
 if creds
-    puts "You may be logged in as #{creds[0]}"
+    puts "You are logged in as #{creds[0]}"
 else
-    puts 'You are not logged in yet.'
+    puts 'You are not logged in yet. Login using "login [email [, password]]"'
+
 end

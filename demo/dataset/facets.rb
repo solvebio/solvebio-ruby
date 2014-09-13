@@ -4,9 +4,10 @@
 require 'solvebio'
 
 # SolveBio.client.api_key = 'set-me-correctly'
-if SolveBio.api_key
-    fields = SolveBio::DatasetField.retrieve(691).facets
-    puts fields
-else
+unless SolveBio.api_key
     puts 'Please set SolveBio::api_key. Hint: solvebio.rb login'
+    exit 1
 end
+
+fields = SolveBio::DatasetField.retrieve(691).facets
+puts fields

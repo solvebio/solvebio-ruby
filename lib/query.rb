@@ -48,6 +48,7 @@ class SolveBio::PagingQuery
             initialize(@dataset_id,
                        {
                            :limit => @limit,
+                           :total => total,  # This causes an HTTP request
                            :result_class => @result_class,
                            :debug => @debug,
                            :fields => @fields
@@ -73,11 +74,11 @@ class SolveBio::PagingQuery
     # If you want something different, use the F class which supports
     # ``&`` (and), ``|`` (or) and ``~`` (not) operators. Then call
     # filter once with the resulting Filter instance.
-    def filter(params={})
+    def filter(params={}, conn=:and)
         if filters.kind_of?(SolveBio::Filter)
             return Marshal.load(Marshal.dump(params.filters))
         else
-            return clone(SolveBio::Filter.new(params).filters)
+            return clone(SolveBio::Filter.new(params, conn).filters)
         end
     end
 
@@ -92,6 +93,7 @@ class SolveBio::PagingQuery
         warmup('PagingQuery size')
         return @total
     end
+    alias_method :length, :size
 
     def empty?
         warmup('empty?')
@@ -99,7 +101,7 @@ class SolveBio::PagingQuery
     end
 
     def to_s
-        if @total == 0 or @limit == 0
+        if total == 0 or @limit == 0
             return 'query returned 0 results'
         end
 
@@ -127,6 +129,9 @@ class SolveBio::PagingQuery
     end
 
 
+    # FIXME: consider creating instance variables from
+    # a response object and then using attr_reader to make that
+    # visible. This is instead of:
     # # One hacky way to define attributes (methods) on an object.
     # # Replaces Python's __getattr__
     # def method_missing(meth, *args, &block)
@@ -145,8 +150,6 @@ class SolveBio::PagingQuery
 
     # Retrieve an item or range from the set of results
     def [](key)
-        @request_range = self.to_range(key)
-
         # warmup result set...
         warmup("[#{key}]")
 
@@ -172,8 +175,9 @@ class SolveBio::PagingQuery
 
         result =
             if key.kind_of?(Range)
-                @results[(0..key.end - key.begin)]
+                @results[(0...key.end - key.begin)]
             else
+                @request_range = self.to_range(key)
                 @results[0]
             end
         # reset request range
@@ -262,7 +266,7 @@ class SolveBio::PagingQuery
         offset = _params[:offset] || 0
         @results = @response['results']
         @window = @results
-        @window_range = (offset .. offset + @results.size)
+        @window_range = (offset ... offset + @results.size)
 
         return _params, @response
     end
@@ -278,10 +282,12 @@ class SolveBio::Query < SolveBio::PagingQuery
         warmup('Query total')
         @total
     end
+
     def size
         warmup('Query size')
         [@total, @results.size].min
     end
+    alias_method :length, :size
 
     # "each" must be defined in an Enumerator. Allows the Query object
     # to be an iterable. Iterates through the internal cache using a
@@ -313,7 +319,7 @@ class SolveBio::Query < SolveBio::PagingQuery
             raise IndexError, "Invalid index #{key} >= #{@window_range.end}"
         end
         super[key]
-        # FIXME: Dunno why above isn't enough.
+        # FIXME: Dunno why the above isn't enough.
         @results[key]
     end
 end
@@ -355,26 +361,26 @@ end
 # Demo/test code
 if __FILE__ == $0
     if SolveBio::api_key
-        test_dataset_name = 'omim/0.0.1-1/omim'
+        test_dataset_name = 'ClinVar/2.0.0-1/Variants'
         require_relative 'solvebio'
         require_relative 'errors'
         dataset = SolveBio::Dataset.retrieve(test_dataset_name)
 
-        # bogus filter
+        # A filter
         limit = 5
         results = dataset.query({:paging=>false, :limit => limit}).
-                filter({:omim_id => nil})
+                filter({:alternate_alleles => nil})
         puts results.size
 
-        # limit = 5
-        # results = dataset.query({:limit => limit, :paging =>false})
-        # puts results.size
-        # results.each_with_index { |val, i|
-        #     puts val.size
-        # }
-        # puts results[limit-1]
-        # results = dataset.query({:limit => limit, :paging=>true})
-        # puts results.size
+        limit = 2
+        results = dataset.query({:limit => limit, :paging =>false})
+        puts results.size
+        results.each_with_index { |val, i|
+            puts "#{i}: #{val}"
+        }
+        puts puts "#{limit-1}: #{results[limit-1]}"
+        results = dataset.query({:limit => limit, :paging=>true})
+        puts results.size
     else
         puts 'Set SolveBio::api_key to run demo'
     end

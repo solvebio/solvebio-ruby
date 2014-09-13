@@ -31,6 +31,7 @@ module SolveBio
     def api_key=(value)
         @api_key = value
     end
+
     module_function :logger, :api_key, :api_key=
 
 end

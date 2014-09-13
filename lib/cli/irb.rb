@@ -2,14 +2,23 @@
 # -*- coding: utf-8 -*-
 # Open the SolveBio shell, an IRB wrapper
 require 'irb'
+require_relative 'help'
 
 module IRB
 
     # Stuff to add IRB commands goes here
-    module ExtendCommand
-    end
+    # module ExtendCommand
+    #     class SolveHelp
+    #         def self.execute(conf, *opts)
+    #             SolveBio::help
+    #         end
+    #     end
+
+    # end
 
     module_function
+
+    # ExtendCommandBundle.def_extend_command 'solvehelp', :SolveHelp
 
     def shell
 

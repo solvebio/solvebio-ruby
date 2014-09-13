@@ -41,4 +41,4 @@ As with any other Ruby method call, you can drop the final parenthesis if you li
 
 # To Do
 
-The query module, which includes filters hasn't been done yet. Lots of more tests and demo programs should be written.
+Print format routines haven't been converted, so right now hash printy printing is used. More demo programs using filters and ranges should be written.

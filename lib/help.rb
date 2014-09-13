@@ -3,12 +3,15 @@
 require 'uri'
 require_relative 'main'
 
-# try:
-#     import webbrowser
-# except ImportError:
-#     webbrowser = None
-
 module SolveBio::HelpableAPIResource
+
+    attr_reader :have_launchy
+
+    @@have_launchy = false
+    begin
+        @@have_launchy = require 'launchy'
+    rescue LoadError
+    end
 
     def self.included base
         base.send :include, InstanceMethods
@@ -22,17 +25,22 @@ module SolveBio::HelpableAPIResource
 
     def open_help(path)
         url = URI::join('https://www.solvebio.com/', path)
-        # begin:
-        #     webbrowser.open(url)
-        # rescue webbrowser.Error:
-        puts('The SolveBio Ruby client was unable to open the following ' +
-             'URL: %s' % url.to_s)
+        if @@have_launchy
+            Launchy.open(url)
+        else
+            puts('The SolveBio Ruby client needs the "launchy" gem to ' +
+                 "open help url: #{url.to_s}")
+        end
     end
 end
 
 # Demo code
 if __FILE__ == $0
     include SolveBio::HelpableAPIResource
-    open_help('')
-    open_help('docs')
+    if @@have_launchy
+        open_help('docs')
+        sleep 1
+    else
+        puts "Don't have launchy"
+    end
 end
