@@ -19,13 +19,26 @@ class SolveBio::PagingQuery
 
     def initialize(dataset_id, params={})
         @dataset_id = dataset_id
+
+        begin
+            @limit = Integer(dataset_id)
+        rescue
+            raise TypeError, "'dataset_id' parameter must an Integer"
+        end
+
         @data_url = "/v1/datasets/#{dataset_id}/data"
 
         @total = @results = @response = nil
         reset_range_window
 
         # results per request
-        @limit = Integer(params[:limit]) rescue MAXIMUM_LIMIT
+        @limit = MAXIMUM_LIMIT
+        begin
+            @limit = Integer(params[:limit])
+        rescue
+            raise TypeError, "'limit' parameter must an Integer >= 0"
+        end if params.member?(:limit)
+
         @result_class = params[:result_class] || Hash
         @debug = params[:debug] || false
         @fields = params[:fields]
@@ -33,7 +46,7 @@ class SolveBio::PagingQuery
 
         # parameter error checking
         if @limit < 0
-            raise Exception, "'limit' parameter must be >= 0"
+            raise RangeError, "'limit' parameter must be >= 0"
         end
         self
     end
