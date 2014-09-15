@@ -3,6 +3,7 @@ module SolveBio::Locale
 
     # Used only if r18n-core is not around
     @thousands_sep  = ','
+    @locale = ENV['LANG'] || ENV['LC_NUMERIC'] || 'en_US.UTF-8'
     def thousands_sep
         @thousands_sep
     end
@@ -11,14 +12,16 @@ module SolveBio::Locale
     end
 
     begin
+        old_verbose = $VERBOSE
+        $VERBOSE = false
         require 'r18n-core'
+        R18n.set(@locale)
+        $VERBOSE = old_verbose
         have_r18n = true
     rescue LoadError
         have_r18n = false
     end
     if have_r18n
-        @locale = ENV['LANG'] || ENV['LC_NUMERIC'] || 'en_US.UTF-8'
-        R18n.set(@locale)
         def pretty_int(num)
             R18n::l(num)
         end

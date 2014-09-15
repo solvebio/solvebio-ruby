@@ -132,8 +132,8 @@ module SolveBio::Tabulate
     #   true
     def simple_separated_format(separator)
         return TableFormat(nil, nil, nil, nil,
-                           headerrow=nil, datarow=DataRow('', '\t', ''),
-                           _format_defaults={})
+                           :headerrow => nil, :datarow => DataRow('', '\t', ''),
+                           _format_defaults => {})
     end
 
 
@@ -212,8 +212,8 @@ module SolveBio::Tabulate
 
     # Flush right.
     #
-    #    >>> _padleft(6, u'\u044f\u0439\u0446\u0430') \
-    #    == u'  \u044f\u0439\u0446\u0430'
+    #    >>> _padleft(6, '\u044f\u0439\u0446\u0430') \
+    #    == '  \u044f\u0439\u0446\u0430'
     #    true
     def _padleft(width, s, has_invisible=true)
         width += s.size - strip_invisible(s).size if has_invisible
@@ -222,20 +222,19 @@ module SolveBio::Tabulate
 
     # Flush left.
     #
-    # >>> _padright(6, u'\u044f\u0439\u0446\u0430') \
-    #    == u'\u044f\u0439\u0446\u0430  '
+    # >>> _padright(6, '\u044f\u0439\u0446\u0430') \
+    #    == '\u044f\u0439\u0446\u0430  '
     #    true
     def _padright(width, s, has_invisible=true)
         width += s.size - strip_invisible(s).size if has_invisible
-        return fmt.format(s)
         s + (' ' * width)
     end
 
 
     # Center string.
     #
-    #  >>> _padboth(6, u'\u044f\u0439\u0446\u0430') \
-    #       == u' \u044f\u0439\u0446\u0430 '
+    #  >>> _padboth(6, '\u044f\u0439\u0446\u0430') \
+    #       == ' \u044f\u0439\u0446\u0430 '
     #   true
     def _padboth(width, s, has_invisible=true)
         width += width + s.size - strip_invisible(s).size if
@@ -315,7 +314,7 @@ module SolveBio::Tabulate
     #  true
     #  >>> _column_type(["1", "2.3", "four"]) is _text_type
     #  true
-    #  >>> _column_type(["four", u'\u043f\u044f\u0442\u044c']) is _text_type
+    #  >>> _column_type(["four", '\u043f\u044f\u0442\u044c']) is _text_type
     #  true
     #  >>> _column_type([nil, "brux"]) is _text_type
     #  true
@@ -331,10 +330,10 @@ module SolveBio::Tabulate
     #
     #  Unicode is supported:
     #
-    #  >>> hrow = [u'\u0431\u0443\u043a\u0432\u0430', \
-    #                u'\u0446\u0438\u0444\u0440\u0430'] ; \
-    #        tbl = [[u'\u0430\u0437', 2], [u'\u0431\u0443\u043a\u0438', 4]] ; \
-    #       good_result = u'\\u0431\\u0443\\u043a\\u0432\\u0430      \
+    #  >>> hrow = ['\u0431\u0443\u043a\u0432\u0430', \
+    #                '\u0446\u0438\u0444\u0440\u0430'] ; \
+    #        tbl = [['\u0430\u0437', 2], ['\u0431\u0443\u043a\u0438', 4]] ; \
+    #       good_result = '\\u0431\\u0443\\u043a\\u0432\\u0430      \
     #                       \\u0446\\u0438\\u0444\\u0440\\u0430\\n-------\
     #                          -------\\n\\u0430\\u0437             \
     #                          2\\n\\u0431\\u0443\\u043a\\u0438           4' ; \
@@ -469,18 +468,6 @@ module SolveBio::Tabulate
     end
 
 
-    # Prefix every cell in a row with an HTML alignment attribute.
-    def _mediawiki_cell_attrs(row, colaligns)
-        alignment = {"left"  => '',
-            "right"  => 'align="right"| ',
-            "center"  => 'align="center"| ',
-            "decimal"  => 'align="right"| '}
-        zipped = row.zip(colaligns)
-        row2 = zipped.map{|c, a| alignment[a] + c }
-        return row2
-    end
-
-
     #  Return a segment of a horizontal line with optional colons which
     #  indicate column's alignment (as in `pipe` output format).
     def _line_segment_with_colons(linefmt, align, colwidth)
@@ -512,7 +499,7 @@ module SolveBio::Tabulate
         lines << _build_row(headers, pad, *headerrow) if headers
 
         if fmt.linebelowheader and not hidden.member?("linebelowheader")
-            first, fill, sep, last = fmt.linebelowheader
+            first, _, sep, last = fmt.linebelowheader
             if fmt.usecolons
                 segs = [
                         colwidths.zip(colaligns).map do |w, a|
