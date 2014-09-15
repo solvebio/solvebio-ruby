@@ -10,7 +10,13 @@ module SolveBio::Locale
         @thousands_sep = value
     end
 
-    if require 'r18n-core'
+    begin
+        require 'r18n-core'
+        have_r18n = true
+    rescue LoadError
+        have_r18n = false
+    end
+    if have_r18n
         @locale = ENV['LANG'] || ENV['LC_NUMERIC'] || 'en_US.UTF-8'
         R18n.set(@locale)
         def pretty_int(num)
