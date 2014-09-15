@@ -67,7 +67,7 @@ Gem::Specification.new do |s|
     bin/solvebio.rb
     lib/apiresource.rb
     lib/cli/auth.rb
-    lib/cli/nelp.rb
+    lib/cli/help.rb
     lib/cli/irb.rb
     lib/cli/irbrc.rb
     lib/cli/options.rb
