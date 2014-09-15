@@ -75,6 +75,7 @@ Gem::Specification.new do |s|
     lib/errors.rb
     lib/filter.rb
     lib/help.rb
+    lib/locale.rb
     lib/main.rb
     lib/query.rb
     lib/resource.rb

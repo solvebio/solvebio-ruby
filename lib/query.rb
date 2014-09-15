@@ -2,8 +2,8 @@
 require 'pp'
 require_relative 'client'
 require_relative 'filter'
+require_relative 'locale'
 
-#from .utils.printing import pretty_int
 #from .utils.tabulate import tabulate
 
 # A Query API request wrapper that generates a request from Filter
@@ -113,6 +113,7 @@ class SolveBio::PagingQuery
         return @total == 0
     end
 
+    # Convert SolveBio::QueryPaging object to a String type
     def to_s
         if total == 0 or @limit == 0
             return 'query returned 0 results'
@@ -123,8 +124,14 @@ class SolveBio::PagingQuery
         #                                                  ['Fields', 'Data'],
         #                                                  ['right', 'left']),
         #                                         pretty_int(@total - 1)]
-        msg = "\n#{self[0].pretty_inspect}\n\n... #{@total-1} more results."
+        msg = "\n#{self[0].pretty_inspect}\n" +
+            "\n... #{(@total-1).pretty_int} more results."
         return msg
+    end
+
+    # Convert SolveBio::QueryPaging object to a Hash type
+    def to_h
+        self[0]
     end
 
     def inspect
