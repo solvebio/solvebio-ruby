@@ -5,7 +5,8 @@
 
 This packages provides a command-line interface (CLI) and Ruby API interface to SolveBio.
 
-For more information about SolveBio see http://www.solvebio.com
+For more information about the SolveBio API, https://www.solvebio.com/docs/api/
+For more information about SolveBio, see http://www.solvebio.com
 
 # Installation
 
@@ -24,6 +25,18 @@ But note, you can also run right inside the git repository without installing an
 	solvebio-ruby/bin/solvebio.rb
 
 will get you into a solvebio irb shell. Just about any Ruby file in the project can be run standalone, and when done so, it demos that Ruby code.
+
+# Optional Gem dependencies
+
+The following optional dependencies can make your shell experience better
+
+* [bond](http://tagaholic.me/bond/)
+
+    Better command completion
+
+* [launchy](https://github.com/copiousfreetime/launchy)
+
+    Opens help URLs in a web browser tab
 
 # Demo code and Documentation
 

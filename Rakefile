@@ -28,7 +28,7 @@ end
 desc "Install the gem locally"
 task :install => :gem do
   Dir.chdir(ROOT_DIR) do
-    sh %{gem install --local pkg/#{gemspec.file_name}}
+    sh %{gem install --both pkg/#{gemspec.file_name}}
   end
 end
 
