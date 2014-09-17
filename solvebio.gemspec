@@ -58,8 +58,9 @@ EOD
   # s.add_dependency('openssl', '>=1.1.0')
 
 
-  s.add_optional_dependency 'launchy' # opens URL in web browser for help
-  s.add_optional_dependency 'bond'    # better shell command completion
+  # There is no way to specify optional dependencies.
+  # s.add_optional_dependency 'launchy' # opens URL in web browser for help
+  # s.add_optional_dependency 'bond'    # better shell command completion
 
   ## List your development dependencies here. Development dependencies are
   ## those that are only needed during development
