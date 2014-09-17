@@ -47,11 +47,13 @@ The following optional gems can make your shell experience better
 
 See the [demo folder](https://github.com/solvebio/solvebio-ruby/tree/master/demo) for ready-to-run examples.
 
-The [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?python) has examples. Change Python's `import solvebio`, to Ruby's `require 'solvebio'`.  And anywhere you see `solvebio.`, change that to `SolveBio::`. For example, Python's:
+The online [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?python) has additional examples. To use these with the Ruby client,  change `import solvebio` to `require 'solvebio'` and change `solvebio.` to `SolveBio::` everywhere it occurs.
+
+e.g., a Python example:
 
     solvebio.Depository.retrieve("ClinVar").versions()
 
-becomes Ruby's:
+the same Python example ported to Ruby:
 
     SolveBio::Depository.retrieve("ClinVar").versions()
 
