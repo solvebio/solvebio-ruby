@@ -14,7 +14,7 @@ Right now we only support installing from git:
 
     git clone https://github.com/solvebio/solvebio-ruby.git
 	cd solvebio-ruby
-	bundle install     # install gem dependencies
+	gem install netrc  # install gem dependencies, may need sudo
 	rake test          # or make test
     sudo rake install  # or make install
 
@@ -23,8 +23,6 @@ This also builds a *solvebio* gem which you can use elsewhere.
 But note, you can also run right inside the git repository without installing anything. For example, running:
 
     git clone https://github.com/solvebio/solvebio-ruby.git
-	cd solvebio-ruby
-	bundle install
 	solvebio-ruby/bin/solvebio.rb
 
 will get you into a solvebio irb shell. Just about any Ruby file in the project can be run standalone, and when done so, it demos that Ruby code.
