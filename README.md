@@ -39,6 +39,10 @@ The following optional gems can make your shell experience better
 
     Opens help URLs in a web browser tab
 
+* [rb18n-core](https://https://github.com/ai/r18n)
+
+    Localization for number formatting
+
 # Demo code and Documentation
 
 See the [demo folder](https://github.com/solvebio/solvebio-ruby/tree/master/demo) for ready-to-run examples.
