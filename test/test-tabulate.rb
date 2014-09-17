@@ -21,5 +21,27 @@ class TestTabulate < Test::Unit::TestCase
         assert_equal _type('\x1b[31m42\x1b[0m'), TYPES[:int]
     end
 
+    def test_align
+        assert_equal( 2, afterpoint('123.45'))
+        assert_equal(-1, afterpoint('1001'))
+        assert_equal(-1, afterpoint("eggs"))
+        assert_equal( 2, afterpoint("123e45"))
+
+        assert_equal("  \u044f\u0439\u0446\u0430",
+                     padleft(6, "\u044f\u0439\u0446\u0430"))
+        assert_equal("\u044f\u0439\u0446\u0430  ",
+                     padright(6, "\u044f\u0439\u0446\u0430"))
+
+        assert_equal(" \u044f\u0439\u0446\u0430 ",
+                     padboth(6, "\u044f\u0439\u0446\u0430"))
+
+        assert_equal(" \u044f\u0439\u0446\u0430  ",
+                     padboth(7, "\u044f\u0439\u0446\u0430"))
+
+        assert_equal('abc', padright(2, 'abc'))
+        assert_equal('abc', padleft(2, 'abc'))
+        assert_equal('abc', padboth(2, 'abc'))
+    end
+
 
 end

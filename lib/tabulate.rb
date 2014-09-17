@@ -46,8 +46,8 @@
 #     _binary_type = bytes
 # end
 
-
 require_relative 'main'
+
 module SolveBio::Tabulate
 
     VERSION = '0.6'
@@ -167,7 +167,7 @@ module SolveBio::Tabulate
     # _type('\x1b[31m42\x1b[0m') => TYPE[:int]
     def _type(str, has_invisible=true)
 
-        str = strip_invisible(str) if str.kind_of?(String)  and has_invisible
+        str = strip_invisible(str) if str.kind_of?(String) and has_invisible
 
         if str.nil?
             return TYPES[:none_type]
@@ -181,24 +181,19 @@ module SolveBio::Tabulate
     end
 
 
-    #
     # Symbols after a decimal point, -1 if the string lacks the decimal point.
     #
-    #  >>> _afterpoint("123.45")
-    #  2
-    #  >>> _afterpoint("1001")
-    #  -1
-    #  >>> _afterpoint("eggs")
-    #  -1
-    #  >>> _afterpoint("123e45")
-    #  2
-    def _afterpoint(string)
+    #  afterpoint("123.45") =>  2
+    #  afterpoint("1001")   => -1
+    #  afterpoint("eggs")   => -1
+    #  afterpoint("123e45") =>  2
+    def afterpoint(string)
         if number?(string)
-            if _isint(string)
+            if int?(string)
                 return -1
             else
-                pos = string.rfind(".")
-                pos = string.downcase().rfind('e') if pos < 0
+                pos = string.rindex('.') || -1
+                pos = string.downcase().rindex('e') if pos < 0
                 if pos >= 0
                     return string.size - pos - 1
                 else
@@ -210,37 +205,41 @@ module SolveBio::Tabulate
         end
     end
 
+    def adjusted_size(s, has_invisible)
+        s_width = has_invisible ? strip_invisible(s).size : s.size
+    end
+
     # Flush right.
     #
-    #    >>> _padleft(6, '\u044f\u0439\u0446\u0430') \
-    #    == '  \u044f\u0439\u0446\u0430'
-    #    true
-    def _padleft(width, s, has_invisible=true)
-        width += s.size - strip_invisible(s).size if has_invisible
-        (' ' * width) + s
+    #    padleft(6, '\u044f\u0439\u0446\u0430') => '  \u044f\u0439\u0446\u0430'
+    #    padleft(2, 'abc') => 'abc'
+    def padleft(width, s, has_invisible=true)
+        s_width = adjusted_size(s, has_invisible)
+        s_width < width ? (' ' * (width - s_width)) + s : s
     end
 
     # Flush left.
     #
-    # >>> _padright(6, '\u044f\u0439\u0446\u0430') \
-    #    == '\u044f\u0439\u0446\u0430  '
-    #    true
-    def _padright(width, s, has_invisible=true)
-        width += s.size - strip_invisible(s).size if has_invisible
-        s + (' ' * width)
+    #   padright(6, '\u044f\u0439\u0446\u0430') => '\u044f\u0439\u0446\u0430  '
+    #   padright(2, 'abc') => 'abc'
+    def padright(width, s, has_invisible=true)
+        s_width = adjusted_size(s, has_invisible)
+        s_width < width ? s + (' ' * (width - s_width)) : s
     end
 
 
-    # Center string.
+    # Center string with uneven space on the right
     #
-    #  >>> _padboth(6, '\u044f\u0439\u0446\u0430') \
-    #       == ' \u044f\u0439\u0446\u0430 '
-    #   true
-    def _padboth(width, s, has_invisible=true)
-        width += width + s.size - strip_invisible(s).size if
-            has_invisible
-        pad = ' ' * iwidth
-        pad + s + pad
+    #  padboth(6, '\u044f\u0439\u0446\u0430') => ' \u044f\u0439\u0446\u0430 '
+    #  padboth(2, 'abc') => 'abc'
+    #  padboth(6,  'abc') => ' abc  '
+    def padboth(width, s, has_invisible=true)
+        s_width = adjusted_size(s, has_invisible)
+        return s if s_width >= width
+        pad_size   = width - s_width
+        pad_left   = ' ' * (pad_size/2)
+        pad_right  = ' ' * ((pad_size + 1)/ 2)
+        pad_left + s + pad_right
     end
 
 
@@ -273,19 +272,19 @@ module SolveBio::Tabulate
     def _align_column(strings, alignment, minwidth=0, has_invisible=true)
         if alignment == "right"
             strings = strings.map{|s| s.strip}
-            padfn = :_padleft
+            padfn = :padleft
         elsif alignment.member?['center']
             strings = strings.map{|s| s.strip}
-            padfn = :_padboth
+            padfn = :padboth
         elsif alignment.member?['decimal']
-            decimals = strings.map{|s| _afterpoint(s)}
+            decimals = strings.map{|s| afterpoint(s)}
             maxdecimals = max(decimals)
             zipped = strings.zip(decimals)
             strings = zipped.map{|s| s + (maxdecimals - decs) * " "}
-            padfn = :_padleft
+            padfn = :padleft
         else
             strings = strings.map{|s| s.strip}
-            padfn = :_padright
+            padfn = :padright
         end
 
         if has_invisible
@@ -356,11 +355,11 @@ module SolveBio::Tabulate
 
     def _align_header(header, alignment, width)
         if alignment == "left"
-            return _padright(width, header)
+            return padright(width, header)
         elsif alignment == "center"
-            return _padboth(width, header)
+            return padboth(width, header)
         else
-            return _padleft(width, header)
+            return padleft(width, header)
         end
     end
 
@@ -608,5 +607,22 @@ if __FILE__ == $0
     puts "_type('foo') %s = %s" % [_type('foo'), TYPES[:text_type]]
     puts "_type('1') %s = %s" % [_type('1'), TYPES[:int]]
     puts "_type(''\x1b[31m42\x1b[0m') %s = %s" % [_type('\x1b[31m42\x1b[0m'), TYPES[:int]]
+
+    puts "afterpoint('123.45'):  2 == %d" % afterpoint('123.45')
+    puts "afterpoint('1001') :  -1 == %d" % afterpoint('1001')
+    puts "afterpoint('eggs') :  -1 == %d" % afterpoint('eggs')
+    puts "afterpoint('123e45'):  2 == %d" % afterpoint("123e45")
+
+    puts("padleft(6, '\u044f\u0439\u0446\u0430') = '%s' == '%s'" %
+         [padleft(6, "\u044f\u0439\u0446\u0430"),
+         "  \u044f\u0439\u0446\u0430"])
+    puts("padleft(2, 'abc') = '%s' == '%s'" %
+         [padleft(2, "abc"), 'abc'])
+    puts("padright(2, 'abc') = '%s' == '%s'" %
+         [padright(2, "abc"), 'abc'])
+    puts("padboth(2, 'abc') = '%s' == '%s'" %
+         [padboth(2, "abc"), 'abc'])
+    puts("padboth(6, 'abc') = '%s' == '%s'" %
+         [padboth(6, "abc"), ' abc  '])
 
 end
