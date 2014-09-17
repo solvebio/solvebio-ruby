@@ -50,21 +50,22 @@ class SolveBio::Filter
     # Creates a new Filter, the first argument is expected to be Hash or an Array.
     def initialize(filters={}, conn=:and)
         if filters.kind_of?(Hash)
-            @filters = filters.keys.sort.map{|key| [key,  filters[key]]}
+            @filters = SolveBio::Filter.
+                normalize(filters.keys.sort.map{|key| [key,  filters[key]]})
         elsif filters.kind_of?(Array)
-            @filters = filters
+            @filters = SolveBio::Filter.normalize(filters)
         elsif filters.kind_of?(SolveBio::Filter)
-            @filters = Marshal.load(Marshal.dump(filters.filters))
+            @filters = SolveBio::Filter.deep_copy(filters.filters)
             return self
         else
-            raise RuntimeError, "Invalid filter type #{filters.class}"
+            raise TypeError, "Invalid filter type #{filters.class}"
         end
         @filters = [{conn => @filters}] if filters.size > 1
         self
     end
 
     def inspect
-        return "<Filter #{@filters.inspect}>"
+        return "<SolveBio::Filter #{@filters.inspect}>"
     end
 
     def empty?
@@ -73,7 +74,7 @@ class SolveBio::Filter
 
     # Deep copy
     def clone
-        Marshal.load(Marshal.dump(self))
+        SolveBio::Filter.deep_copy(self)
     end
 
     # OR and AND will create a new Filter, with the filters from both Filter
@@ -128,6 +129,72 @@ class SolveBio::Filter
         return f
     end
 
+    # Checks and normalizes filter array tuples
+    def self.normalize(ary)
+        ary.map do |tuple|
+            unless tuple.kind_of?(Array)
+                raise(TypeError,
+                      "Invalid filter element #{tuple.class}; want Array")
+            end
+            unless tuple.size == 2
+                raise(TypeError,
+                      "filter element size must be 2; is #{tuple.size}")
+            end
+            key, value = tuple
+            if key.to_s =~ /.+__(.+)$/
+                op = $1
+                unless %w(gt gte lt lte in range between).member?(op)
+                    raise(TypeError,
+                          "Invalid field operation #{op} in #{key}")
+                end
+                case op
+                when 'gt', 'gte', 'lt', 'lte'
+                    begin
+                        value = Float(value)
+                    rescue
+                        raise(TypeError,
+                              "Invalid field value #{value} for #{key}; " +
+                              "should be a number")
+                    end
+                    tuple = [key, value]
+                when 'range', 'between'
+                    if value.kind_of?(Range)
+                        value = [value.min, value.max]
+                    end
+                    unless value.kind_of?(Array)
+                        raise(TypeError,
+                              "Invalid field value #{value} for #{key}; " +
+                              "should be an array")
+                    end
+                    unless value.size == 2
+                        raise(TypeError,
+                              "Invalid field value #{value} for #{key}; " +
+                              "array should have exactly two values")
+                    end
+                    if value.first > value.last
+                        raise(IndexError,
+                              "Invalid field value #{value} for #{key}; " +
+                              "start value not greater than end value")
+                    end
+
+                    # FIXME: Should we check that value contains only numbers?
+                    tuple = [key, value]
+                when 'in'
+                    unless value.kind_of?(Array)
+                        raise(TypeError,
+                              "Invalid field value #{value} for #{key}; " +
+                              "should be an array")
+                    end
+
+                end
+            end
+            tuple
+        end
+    end
+
+    def self.deep_copy(obj)
+        Marshal.load(Marshal.dump(obj))
+    end
 
     # Takes an Array of filter items and returns an Array that can be
     # passed off (when converted to JSON) to a SolveBio client filter
