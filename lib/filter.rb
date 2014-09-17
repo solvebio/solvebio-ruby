@@ -260,7 +260,7 @@ class SolveBio::RangeFilter < SolveBio::Filter
 
     #  Shortcut to do range queries on supported datasets.
     def initialize(build, chromosome, start, last, overlap=false)
-        if SUPPORTED_BUILDS.member?(build.downcase)
+        if !SUPPORTED_BUILDS.member?(build.downcase)
             msg = "Build #{build} not supported for range filters. " +
                 "Supported builds are: #{SUPPORTED_BUILDS.join(', ')}"
             raise Exception, msg
