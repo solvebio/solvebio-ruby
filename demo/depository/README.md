@@ -10,7 +10,7 @@ Right now, all depositories are curated by the SolveBio team.
 
 * retrieve a depository
 
-    The [retrieve.rb](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/depository/all.rb) Ruby program shows how to retrieve a single depository
+    The [retrieve.rb](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/depository/retrieve.rb) Ruby program shows how to retrieve a single depository
 
 * listing a depository
 
