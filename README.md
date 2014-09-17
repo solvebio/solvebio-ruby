@@ -6,7 +6,7 @@
 This packages provides a command-line interface (CLI) and Ruby API interface to SolveBio.
 
 For more information about the SolveBio API, https://www.solvebio.com/docs/api/
-For more information about SolveBio, see http://www.solvebio.com
+For more information about SolveBio, see https://www.solvebio.com
 
 # Installation
 

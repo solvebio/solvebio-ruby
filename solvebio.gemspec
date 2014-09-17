@@ -35,7 +35,7 @@ EOD
   ## a custom homepage, consider using your GitHub URL or the like.
   s.authors  = ['solvebio.com']
   s.email    = 'contact@solvebio.com'
-  s.homepage = 'http://solvebio.com'
+  s.homepage = 'https://www.solvebio.com'
 
   ## This gets added to the $LOAD_PATH so that 'lib/NAME.rb' can be required as
   ## require 'NAME.rb' or'/lib/NAME/file.rb' can be as require 'NAME/file.rb'
@@ -50,7 +50,7 @@ EOD
   ## Specify any RDoc options here. You'll want to add your README and
   ## LICENSE files to the extra_rdoc_files list.
   s.rdoc_options = ["--charset=UTF-8"]
-  # s.extra_rdoc_files = %w[README.rdoc]
+  s.extra_rdoc_files = %w[LICENSE]
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
