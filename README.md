@@ -29,7 +29,7 @@ will get you into a solvebio irb shell. Just about any Ruby file in the project 
 
 # Optional Gem dependencies
 
-The following optional dependencies can make your shell experience better
+The following optional gems can make your shell experience better
 
 * [bond](http://tagaholic.me/bond/)
 
