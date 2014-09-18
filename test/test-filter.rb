@@ -50,6 +50,15 @@ class TestFilter < Test::Unit::TestCase
 
     end
 
+    def test_range_filter
+        assert_equal('<RangeFilter [{:and=>[["hg38_start__range", ' +
+                     '[32200000, 32500000]], ' +
+                     '["hg38_end__range", [32200000, 32500000]], ' +
+                     '["hg38_chromosome", "13"]]}]>',
+                     SolveBio::RangeFilter.
+                     new("hg38", "13", 32200000, 32500000).inspect)
+    end
+
     def test_process_filters
         # FIXME: add more and put in a loop.
         filters = [[:omid, nil]]

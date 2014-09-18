@@ -266,16 +266,18 @@ class SolveBio::RangeFilter < SolveBio::Filter
             raise Exception, msg
         end
 
-        f = self.new({"#{[start, last]}_start__range" => [start, last]})
+        f = SolveBio::Filter.new({"#{build}_start__range" => [start, last]})
 
         if overlap
-            f |= self.new({"#{[start, last]}_start__range" => [start, last]})
+            f |=  SolveBio::Filter.
+                new({"#{build}_end__range" => [start, last]})
         else
-            f = f & self.new({"#{build}_start__range" => [start, last]})
+            f &= SolveBio::Filter.
+                new({"#{build}_end__range" => [start, last]})
         end
 
-        f = f & self.new({"#{build}_chromosome" =>
-                             chromosome.str.replace('chr', '')})
+        f &= SolveBio::Filter.
+            new({"#{build}_chromosome" => chromosome.sub('chr', '')})
         @filters = f.filters
     end
 
