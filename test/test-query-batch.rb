@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
-require 'test/unit'
-require_relative '../lib/resource'
+require_relative 'helper'
 
 class TestQueryBatch < Test::Unit::TestCase
 

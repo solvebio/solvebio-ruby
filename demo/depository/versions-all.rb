@@ -3,9 +3,9 @@
 
 require 'solvebio'
 
-# SolveBio::Client.client.api_key = 'set-me-correctly'
+# SolveBio.api_key = 'set-me-correctly'
 unless SolveBio.api_key
-    puts 'Please set SolveBio::api_key. Hint: solvebio.rb login'
+    puts 'Please set SolveBio.api_key. Hint: solvebio.rb login'
     exit 1
 end
 

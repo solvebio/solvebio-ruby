@@ -1,6 +1,5 @@
 $VERBOSE = true
-require 'test/unit'
-require_relative '../lib/resource'
+require_relative 'helper'
 
 class TestQuery < Test::Unit::TestCase
 

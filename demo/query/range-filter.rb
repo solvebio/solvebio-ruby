@@ -9,5 +9,10 @@ unless SolveBio.api_key
     exit 1
 end
 
-results = SolveBio::Dataset.retrieve('ClinVar/2.0.0-1/Variants').query
+filters = SolveBio::RangeFilter.
+    new "hg38", "13", 32200000, 32500000
+
+ds = SolveBio::Dataset.retrieve 'ClinVar/2.0.0-1/Variants'
+
+results = ds.query(:filters => filters)
 puts results
