@@ -11,4 +11,4 @@ The [depository folder](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/
 *Datasets* are access points to data. Dataset names are unique within versions of a depository. The
 [dataset folder](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/dataset) has programs for retrieving properties of a dataset.
 
-However Making queries on a dataset is probably what you will most want to do. The [query folder](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/query) contains examples of queries.
+However, issuing queries on a dataset is probably what you will most want to do. The [query folder](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/query) contains examples of queries.
