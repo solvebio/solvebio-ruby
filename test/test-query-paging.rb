@@ -9,10 +9,15 @@ class TestQueryPaging < Test::Unit::TestCase
     if SolveBio::api_key
 
         def setup
-            @dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
+            begin
+                @dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
+            rescue SocketError
+                @dataset = nil
+            end
         end
 
         def test_query
+            skip('Are you connected to the Internet?') unless @dataset
             results = @dataset.query(:paging=>true, :limit => 10)
             # When paging is on, results.size should return the number
             # of total number of results.
@@ -24,6 +29,7 @@ class TestQueryPaging < Test::Unit::TestCase
         # results that exist. Yes, this is the same as test_query, but
         # we revers the order of access, to make sure "warmup" is called.
         def test_limit
+            skip('Are you connected to the Internet?') unless @dataset
             limit = 10
             results = @dataset.query(:paging=>true, :limit => limit)
             assert_equal(results.total, results.length,
@@ -32,6 +38,7 @@ class TestQueryPaging < Test::Unit::TestCase
 
 
         def test_paging
+            skip('Are you connected to the Internet?') unless @dataset
             limit = 100
             total = 7
             results = @dataset.query(:paging => true, :limit => limit).
@@ -50,6 +57,7 @@ class TestQueryPaging < Test::Unit::TestCase
 
 
         def test_range
+            skip('Are you connected to the Internet?') unless @dataset
             limit = 100
             results = @dataset.query(:paging => true, :limit => limit).
                 filter(:hg19_start__range => [140000000, 140050000])[2..5]
@@ -61,6 +69,7 @@ class TestQueryPaging < Test::Unit::TestCase
         end
 
         def test_paging_and_slice_equivalence
+            skip('Are you connected to the Internet?') unless @dataset
             idx0 = 3
             idx1 = 5
 
@@ -87,6 +96,7 @@ class TestQueryPaging < Test::Unit::TestCase
 
 
         def test_caching
+            skip('Are you connected to the Internet?') unless @dataset
             idx0 = 60
             idx1 = 81
 

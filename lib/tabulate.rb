@@ -52,7 +52,7 @@ module SolveBio::Tabulate
 
     VERSION = '0.6'
 
-    TYPES = {:none_type => 0, :int => 1, :float => 2, :text_type => 4}
+    TYPES = {:none => 0, :int => 1, :float => 2, :text => 4}
 
     # Line = namedtuple("Line", ["begin", "hline", "sep", "end"])
     # DataRow = namedtuple("DataRow", ["begin", "sep", "end"])
@@ -122,8 +122,6 @@ module SolveBio::Tabulate
     #                 without_header_hide=["linebelowheader"])
     # }
 
-    INVISIBILE_CODES = %r{\\x1b\[\d*m}  # ANSI color codes
-
     # Construct a simple TableFormat with columns separated by a separator.
     #
     #   >>> tsv = simple_separated_format("\t") ; \
@@ -137,29 +135,6 @@ module SolveBio::Tabulate
     end
 
 
-    # number?("123.45") => true
-    # number?("123") => true
-    # number?("spam") => false
-    def number?(string)
-        begin
-            Float(string)
-            return true
-        rescue
-            return false
-        end
-    end
-
-    # int?("123") => true
-    # int?("123.45") => false
-    def int?(string)
-        begin
-            Integer(string)
-            return true
-        rescue
-            return false
-        end
-    end
-
     # The least generic type (type(nil), int, float, str, unicode).
     # _type(nil) => type(nil)
     # _type("foo") => TYPE[:text_type]
@@ -167,120 +142,40 @@ module SolveBio::Tabulate
     # _type('\x1b[31m42\x1b[0m') => TYPE[:int]
     def _type(str, has_invisible=true)
 
-        str = strip_invisible(str) if str.kind_of?(String) and has_invisible
+        str = str.strip_invisible if str.kind_of?(String) and has_invisible
 
         if str.nil?
-            return TYPES[:none_type]
-        elsif int?(str)
-            return TYPES[:int]
-        elsif number?(str)
-            return TYPES[:float]
+            return :none
+        elsif str.kind_of?(Fixnum) or str.int?
+            return :int
+        elsif str.kind_of?(Float) or str.number?
+            return :float
         else
-            return TYPES[:text_type]
+            return :text
         end
     end
-
-
-    # Symbols after a decimal point, -1 if the string lacks the decimal point.
-    #
-    #  afterpoint("123.45") =>  2
-    #  afterpoint("1001")   => -1
-    #  afterpoint("eggs")   => -1
-    #  afterpoint("123e45") =>  2
-    def afterpoint(string)
-        if number?(string)
-            if int?(string)
-                return -1
-            else
-                pos = string.rindex('.') || -1
-                pos = string.downcase().rindex('e') if pos < 0
-                if pos >= 0
-                    return string.size - pos - 1
-                else
-                    return -1  # no point
-                end
-            end
-        else
-            return -1  # not a number
-        end
-    end
-
-    def adjusted_size(s, has_invisible)
-        s_width = has_invisible ? strip_invisible(s).size : s.size
-    end
-
-    # Flush right.
-    #
-    #    padleft(6, '\u044f\u0439\u0446\u0430') => '  \u044f\u0439\u0446\u0430'
-    #    padleft(2, 'abc') => 'abc'
-    def padleft(width, s, has_invisible=true)
-        s_width = adjusted_size(s, has_invisible)
-        s_width < width ? (' ' * (width - s_width)) + s : s
-    end
-
-    # Flush left.
-    #
-    #   padright(6, '\u044f\u0439\u0446\u0430') => '\u044f\u0439\u0446\u0430  '
-    #   padright(2, 'abc') => 'abc'
-    def padright(width, s, has_invisible=true)
-        s_width = adjusted_size(s, has_invisible)
-        s_width < width ? s + (' ' * (width - s_width)) : s
-    end
-
-
-    # Center string with uneven space on the right
-    #
-    #  padboth(6, '\u044f\u0439\u0446\u0430') => ' \u044f\u0439\u0446\u0430 '
-    #  padboth(2, 'abc') => 'abc'
-    #  padboth(6,  'abc') => ' abc  '
-    def padboth(width, s, has_invisible=true)
-        s_width = adjusted_size(s, has_invisible)
-        return s if s_width >= width
-        pad_size   = width - s_width
-        pad_left   = ' ' * (pad_size/2)
-        pad_right  = ' ' * ((pad_size + 1)/ 2)
-        pad_left + s + pad_right
-    end
-
-
-    # Remove invisible ANSI color codes.
-    def strip_invisible(s)
-        return s.gsub(INVISIBILE_CODES, '')
-    end
-
-
-    # Visible width of a printed string. ANSI color codes are removed.
-    #
-    #  >>> _visible_width('\x1b[31mhello\x1b[0m'), _visible_width("world")
-    #  (5, 5)
-    def _visible_width(s)
-        if s.kind_of?(_text_type) or s.kind_of?(_binary_type)
-            return strip_invisible(s).size
-        else
-            return _text_type(s).size
-        end
-    end
-
 
     # [string] -> [padded_string]
     #
-    #    >>> list(map(str,_align_column( \
-    #        ["12.345", "-1234.5", "1.23", "1234.5", \
-    #         "1e+234", "1.0e234"], "decimal")))
-    #    ['   12.345  ', '-1234.5    ', '    1.23   ', \
+    #    align_column(
+    #        ["12.345", "-1234.5", "1.23", "1234.5",
+    #         "1e+234", "1.0e234"], "decimal") =>
+    #    ['   12.345  ', '-1234.5    ', '    1.23   ',
     #     ' 1234.5    ', '    1e+234 ', '    1.0e234']
-    def _align_column(strings, alignment, minwidth=0, has_invisible=true)
+    def align_column(strings, alignment, minwidth=0, has_invisible=true)
         if alignment == "right"
             strings = strings.map{|s| s.strip}
             padfn = :padleft
-        elsif alignment.member?['center']
+        elsif alignment == 'center'
             strings = strings.map{|s| s.strip}
             padfn = :padboth
-        elsif alignment.member?['decimal']
-            decimals = strings.map{|s| afterpoint(s)}
-            maxdecimals = max(decimals)
+        elsif alignment == 'decimal'
+            decimals = strings.map{|s| s.afterpoint}
+            maxdecimals = decimals.max
             zipped = strings.zip(decimals)
-            strings = zipped.map{|s| s + (maxdecimals - decs) * " "}
+            strings = zipped.map{|s, decs|
+                s.to_s + " " * ((maxdecimals - decs))
+            }
             padfn = :padleft
         else
             strings = strings.map{|s| s.strip}
@@ -288,40 +183,43 @@ module SolveBio::Tabulate
         end
 
         if has_invisible
-            width_fn = :_visible_width
+            width_fn = :visible_width
         else
             width_fn = :size
         end
 
-        maxwidth = [strings.map{|s| s.call(width_fn)}.max, minwidth].max
-        strings.map{|s| padfn.call(maxwidth, s, has_invisible) }
+        maxwidth = [strings.map{|s| s.send(width_fn)}.max, minwidth].max
+        strings.map{|s| s.send(padfn, maxwidth, has_invisible) }
     end
 
 
-    def _more_generic(type1, type2)
-        invtypes = {4 => '_text_type', 2 => 'float', 1 => 'int', 0 => :none_type}
-        moregeneric = [types[type1] || 4, types[type2] || 4].max
-        return invtypes[moregeneric]
+    INVTYPES = {
+        4 => :text,
+        2 => :float,
+        1 => :int,
+        0 => :none}
+
+    def more_generic(type1, type2)
+        moregeneric = [TYPES[type1] || 4, TYPES[type2] || 4].max
+        return INVTYPES[moregeneric]
     end
 
 
     # The least generic type all column values are convertible to.
     #
-    #  >>> _column_type(["1", "2"]) is _int_type
-    #  true
-    #  >>> _column_type(["1", "2.3"]) is _float_type
-    #  true
-    #  >>> _column_type(["1", "2.3", "four"]) is _text_type
-    #  true
-    #  >>> _column_type(["four", '\u043f\u044f\u0442\u044c']) is _text_type
-    #  true
-    #  >>> _column_type([nil, "brux"]) is _text_type
-    #  true
-    #  >>> _column_type([1, 2, nil]) is _int_type
-    #  true
-    def _column_type(strings, has_invisible=true)
+    #  column_type(["1", "2"]) => :int
+    #  column_type(["1", "2.3"]) => :float
+    #  column_type(["1", "2.3", "four"]) => text
+    #  column_type(["four", '\u043f\u044f\u0442\u044c']) => :text
+    #  column_type([nil, "brux"]) => :text
+    #  column_type([1, 2, nil]) => :int
+    def column_type(strings, has_invisible=true)
         types = strings.map{|s| _type(s, has_invisible)}
-        return reduce(_more_generic, types, int)
+        # require 'trepanning'; debugger
+        return types.reduce(:int){
+            |t, result|
+            more_generic(result, t)
+        }
     end
 
 
@@ -355,11 +253,11 @@ module SolveBio::Tabulate
 
     def _align_header(header, alignment, width)
         if alignment == "left"
-            return padright(width, header)
+            return header.padright(width)
         elsif alignment == "center"
-            return padboth(width, header)
+            return header.padboth(width)
         else
-            return padleft(width, header)
+            return header.padleft(width)
         end
     end
 
@@ -542,7 +440,7 @@ module SolveBio::Tabulate
 
     #     has_invisible = re.search(INVISIBILE_CODES, plain_text)
     #     if has_invisible
-    #         width_fn = :_visible_width
+    #         width_fn = :visible_width
     #     else
     #         width_fn = :size
     #     end
@@ -550,7 +448,7 @@ module SolveBio::Tabulate
     #     # format rows and columns, convert numeric values to strings
     #     cols = list(zip(*list_of_lists))
 
-    #     coltypes = list(map(_column_type, cols))
+    #     coltypes = list(map(column_type, cols))
     #     # cols = [[_format(v, ct, floatfmt, missingval) for v in c]
     #     #         for c, ct in zip(cols, coltypes)]
 
@@ -569,7 +467,7 @@ module SolveBio::Tabulate
     #         else
     #             [0] * cols.size
     #         end
-    #     # cols = [_align_column(c, a, minw, has_invisible)
+    #     # cols = [align_column(c, a, minw, has_invisible)
     #     #     for c, a, minw in zip(cols, aligns, minwidths)]
 
     #     if headers
@@ -595,34 +493,164 @@ module SolveBio::Tabulate
     #     end
 end
 
+class String
+
+    # "123.45".number? => true
+    # "123".number?    => true
+    # "spam".number?   => false
+    def number?
+        begin
+            Float(self)
+            return true
+        rescue
+            return false
+        end
+    end
+
+    # "123".int?    => true
+    # "123.45".int? => false
+    def int?
+        begin
+            Integer(self)
+            return true
+        rescue
+            return false
+        end
+    end
+
+    # Symbols after a decimal point, -1 if the string lacks the decimal point.
+    #
+    #  "123.45".afterpoint =>  2
+    #  "1001".afterpoint   => -1
+    #  "eggs".afterpoint   => -1
+    #  "123e45".afterpoint =>  2
+    def afterpoint
+        if self.number?
+            if self.int?
+                return -1
+            else
+                pos = self.rindex('.') || -1
+                pos = self.downcase().rindex('e') if pos < 0
+                if pos >= 0
+                    return self.size - pos - 1
+                else
+                    return -1  # no point
+                end
+            end
+        else
+            return -1  # not a number
+        end
+    end
+
+    def adjusted_size(has_invisible)
+        return has_invisible ? self.strip_invisible.size : self.size
+    end
+
+    # Visible width of a printed string. ANSI color codes are removed.
+    #
+    #  ['\x1b[31mhello\x1b[0m' "world"].map{|s| s.visible_width} =>
+    #  [5, 5]
+    def visible_width
+        # if self.kind_of?(_text_type) or self.kind_of?(_binary_type)
+            return self.strip_invisible.size
+        # else
+        #    return _text_type(s).size
+        # end
+    end
+
+
+    # Flush right.
+    #
+    #    '\u044f\u0439\u0446\u0430'.padleft(6) =>
+    #    '  \u044f\u0439\u0446\u0430'
+    #    'abc'.padleft(2) => 'abc'
+    def padleft(width, has_invisible=true)
+        s_width = self.adjusted_size(has_invisible)
+        s_width < width ? (' ' * (width - s_width)) + self : self
+    end
+
+    # Flush left.
+    #
+    #   padright(6, '\u044f\u0439\u0446\u0430') => '\u044f\u0439\u0446\u0430  '
+    #   padright(2, 'abc') => 'abc'
+    def padright(width, has_invisible=true)
+        s_width = self.adjusted_size(has_invisible)
+        s_width < width ? self + (' ' * (width - s_width)) : self
+    end
+
+
+    # Center string with uneven space on the right
+    #
+    #  '\u044f\u0439\u0446\u0430'.padboth(6) => ' \u044f\u0439\u0446\u0430 '
+    #  'abc'.padboth(2) => 'abc'
+    #  'abc'.padboth(6) => ' abc  '
+    def padboth(width, has_invisible=true)
+        s_width = self.adjusted_size(has_invisible)
+        return self if s_width >= width
+        pad_size   = width - s_width
+        pad_left   = ' ' * (pad_size/2)
+        pad_right  = ' ' * ((pad_size + 1)/ 2)
+        pad_left + self + pad_right
+    end
+
+
+    INVISIBILE_CODES = %r{\\x1b\[\d*m}  # ANSI color codes
+
+    # Remove invisible ANSI color codes.
+    def strip_invisible
+        return self.gsub(INVISIBILE_CODES, '')
+    end
+
+end
+
 if __FILE__ == $0
     include SolveBio::Tabulate
-    puts 'num? 123.45 %s' % number?("123.45") # true
-    puts "num? 123: %s" % number?("123")      # true
-    puts "num? spam: %s" % number?("spam")    # false
-    puts 'int? 123 %s' % int?("123")          # true
-    puts 'int? 123.45 %s' % int?('124.45')    # false
+    # puts '" 123.45".num? %s'    % "123.45".number?() # true
+    # puts "'123'.num?: %s"       % '123'.number?      # true
+    # puts "'spam'.num? spam: %s" % "spam".number?     # false
+    # puts "'123'.int? %s"        %  "123".int?        # true
+    # puts "'123.45'int?: %s"     % '124.45'.int?      # false
 
-    puts "_type(nil) %s = %s" % [_type(nil), TYPES[:none_type]]
-    puts "_type('foo') %s = %s" % [_type('foo'), TYPES[:text_type]]
-    puts "_type('1') %s = %s" % [_type('1'), TYPES[:int]]
-    puts "_type(''\x1b[31m42\x1b[0m') %s = %s" % [_type('\x1b[31m42\x1b[0m'), TYPES[:int]]
+    # puts "_type(nil) %s = %s" % [_type(nil), TYPES[:none_type]]
+    # puts "_type('foo') %s = %s" % [_type('foo'), TYPES[:text_type]]
+    # puts "_type('1') %s = %s" % [_type('1'), TYPES[:int]]
+    # puts "_type(''\x1b[31m42\x1b[0m') %s = %s" % [_type('\x1b[31m42\x1b[0m'), TYPES[:int]]
 
-    puts "afterpoint('123.45'):  2 == %d" % afterpoint('123.45')
-    puts "afterpoint('1001') :  -1 == %d" % afterpoint('1001')
-    puts "afterpoint('eggs') :  -1 == %d" % afterpoint('eggs')
-    puts "afterpoint('123e45'):  2 == %d" % afterpoint("123e45")
+    # puts "'123.45'.afterpoint:   2 == %d" % '123.45'.afterpoint
+    # puts "'1001'afterpoint   :  -1 == %d" % '1001'.afterpoint
+    # puts "'eggs'.afterpoint  :  -1 == %d" % 'eggs'.afterpoint
+    # puts "'123e45'.afterpoint:   2 == %d" % "123e45".afterpoint
 
-    puts("padleft(6, '\u044f\u0439\u0446\u0430') = '%s' == '%s'" %
-         [padleft(6, "\u044f\u0439\u0446\u0430"),
-         "  \u044f\u0439\u0446\u0430"])
-    puts("padleft(2, 'abc') = '%s' == '%s'" %
-         [padleft(2, "abc"), 'abc'])
-    puts("padright(2, 'abc') = '%s' == '%s'" %
-         [padright(2, "abc"), 'abc'])
-    puts("padboth(2, 'abc') = '%s' == '%s'" %
-         [padboth(2, "abc"), 'abc'])
-    puts("padboth(6, 'abc') = '%s' == '%s'" %
-         [padboth(6, "abc"), ' abc  '])
+    # puts("'\u044f\u0439\u0446\u0430'.padleft(6) = '%s' == '%s'" %
+    #      ["\u044f\u0439\u0446\u0430".padleft(6),
+    #      "  \u044f\u0439\u0446\u0430"])
+    # puts("'abc'.padleft(2) = '%s' == '%s'" %
+    #      ['abc'.padleft(2), 'abc'])
+    # puts("padright(2, 'abc') = '%s' == '%s'" %
+    #      ['abc'.padright(2), 'abc'])
+    # puts("'abc'.padboth(2) = '%s' == '%s'" %
+    #      ['abc'.padboth(2), 'abc'])
+    # puts("'abc'.padboth(6) = '%s' == '%s'" %
+    #      ['abc'.padboth(6), ' abc  '])
 
+    # puts align_column(
+    #                   ["12.345", "-1234.5", "1.23", "1234.5",
+    #                    "1e+234", "1.0e234"], "decimal")
+
+    # puts '=' * 30
+    # puts ['   12.345  ', '-1234.5    ', '    1.23   ',
+    #      ' 1234.5    ', '    1e+234 ', '    1.0e234']
+
+    puts('column_type(["1", "2"]) is int == %s ' %
+         column_type(["1", "2"]))
+    puts('column_type(["1", "2.3"]) is float == %s ' %
+         column_type(["1", "2.3"]))
+    puts('column_type(["1", "2.3", "four"]) is text => %s ' %
+         column_type(["1", "2.3", "four"]))
+    puts('column_type(["four", "\u043f\u044f\u0442\u044c"]) is text => %s ' %
+         column_type(["four", "\u043f\u044f\u0442\u044c"]))
+    puts('column_type([nil, "brux"]) is text => %s ' %
+         column_type([nil, "brux"]))
+    puts('column_type([1, 2, nil]) is int => %s ' %
+         column_type([1, 2, nil]))
 end
