@@ -15,11 +15,11 @@ class TestTabulate < Test::Unit::TestCase
         assert_equal true,  '123'.int?
         assert_equal false, '123.45'.int?
 
-        assert_equal :none, _type(nil)
-        assert_equal :text, _type('foo')
-        assert_equal :int,  _type('1')
-        assert_equal :int,  _type(1)
-        assert_equal :int,  _type('\x1b[31m42\x1b[0m')
+        assert_equal NilClass, _type(nil)
+        assert_equal String, _type('foo')
+        assert_equal Fixnum, _type('1')
+        assert_equal Fixnum, _type(1)
+        assert_equal Fixnum, _type('\x1b[31m42\x1b[0m')
     end
 
     def test_align
@@ -52,13 +52,13 @@ class TestTabulate < Test::Unit::TestCase
     end
 
     def test_column_type
-        assert_equal(:int,   column_type(["1", "2"]))
-        assert_equal(:float, column_type(["1", "2.3"]))
-        assert_equal(:text,  column_type(["1", "2.3", "four"]))
-        assert_equal(:text,
+        assert_equal(Fixnum, column_type(["1", "2"]))
+        assert_equal(Float,  column_type(["1", "2.3"]))
+        assert_equal(String, column_type(["1", "2.3", "four"]))
+        assert_equal(String,
                      column_type(["four", '\u043f\u044f\u0442\u044c']))
-        assert_equal(:text,  column_type([nil, "brux"]))
-        assert_equal(:int,   column_type([1, 2, nil]))
+        assert_equal(String, column_type([nil, "brux"]))
+        assert_equal(Fixnum, column_type([1, 2, nil]))
     end
 
 end

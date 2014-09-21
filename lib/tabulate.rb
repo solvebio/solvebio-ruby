@@ -52,74 +52,87 @@ module SolveBio::Tabulate
 
     VERSION = '0.6'
 
-    TYPES = {:none => 0, :int => 1, :float => 2, :text => 4}
+    TYPES = {NilClass => 0, Fixnum => 1, Float => 2, String => 4}
 
     # Line = namedtuple("Line", ["begin", "hline", "sep", "end"])
+
+    DataRow = Struct.new(:begin, :send, :sep)
     # DataRow = namedtuple("DataRow", ["begin", "sep", "end"])
+
     # TableFormat = namedtuple("TableFormat", ["lineabove", "linebelowheader",
     #                                          "linebetweenrows", "linebelow",
     #                                          "headerrow", "datarow",
     #                                          "padding", "usecolons",
     #                                          "with_header_hide",
     #                                          "without_header_hide"])
-    # _format_defaults = {"padding"  => 0,
-    #     "usecolons"  => false,
-    #     "with_header_hide"  => [],
-    #     "without_header_hide"  => []}
 
+    FORMAT_DEFAULTS = {
+        :padding             => 0,
+        :usecolons           => false,
+        :with_header_hide    => [],
+        :without_header_hide => []
+    }
+
+
+    INVTYPES = {
+        4 => String,
+        2 => Float,
+        1 => Fixnum,
+        0 => NilClass
+    }
 
     # _table_formats = {
     #     "simple" =>
-    #     TableFormat(lineabove=nil,
-    #                 linebelowheader=Line("", "-", "  ", ""),
-    #                 linebetweenrows=nil,
-    #                 linebelow=Line("", "-", "  ", ""),
-    #                 headerrow=DataRow("", "  ", ""),
-    #                 datarow=DataRow("", "  ", ""),
-    #                 padding=0,
-    #                 usecolons=false,
-    #                 with_header_hide=["linebelow"],
-    #                 without_header_hide=[]),
+    #     TableFormat.new(lineabove=nil,
+    #                     linebelowheader=Line("", "-", "  ", ""),
+    #                     linebetweenrows=nil,
+    #                     linebelow=Line("", "-", "  ", ""),
+    #                     headerrow=DataRow.new("", "  ", ""),
+    #                     datarow=DataRow.new("", "  ", ""),
+    #                     padding=0,
+    #                     usecolons=false,
+    #                     with_header_hide=["linebelow"],
+    #                     without_header_hide=[]),
     #     "plain" =>
-    #     TableFormat(nil, nil, nil, nil,
-    #                 DataRow("", "  ", ""), DataRow("", "  ", ""),
-    #                 **_format_defaults),
+    #     TableFormat.new(nil, nil, nil, nil,
+    #                     DataRow.new("", "  ", ""), DataRow.new("", "  ", ""),
+    #                     :format_defaults => FORMAT_DEFAULTS),
 
     #     "grid" =>
-    #     TableFormat(lineabove=Line("+", "-", "+", "+"),
-    #                 linebelowheader=Line("+", "=", "+", "+"),
-    #                 linebetweenrows=Line("+", "-", "+", "+"),
-    #                 linebelow=Line("+", "-", "+", "+"),
-    #                 headerrow=DataRow("|", "|", "|"),
-    #                 datarow=DataRow("|", "|", "|"),
-    #                 padding=1,
-    #                 usecolons=false,
-    #                 with_header_hide=[],
-    #                 without_header_hide=["linebelowheader"]),
+    #     TableFormat.new(lineabove=Line("+", "-", "+", "+"),
+    #                     linebelowheader=Line("+", "=", "+", "+"),
+    #                     linebetweenrows=Line("+", "-", "+", "+"),
+    #                     linebelow=Line("+", "-", "+", "+"),
+    #                     headerrow=DataRow.new("|", "|", "|"),
+    #                     datarow=DataRow.new("|", "|", "|"),
+    #                     padding=1,
+    #                     usecolons=false,
+    #                     with_header_hide=[],
+    #                     without_header_hide=["linebelowheader"]),
 
     #     "pipe" =>
-    #     TableFormat(lineabove=nil,
-    #                 linebelowheader=Line("|", "-", "|", "|"),
-    #                 linebetweenrows=nil,
-    #                 linebelow=nil,
-    #                 headerrow=DataRow("|", "|", "|"),
-    #                 datarow=DataRow("|", "|", "|"),
-    #                 padding=1,
-    #                 usecolons=true,
-    #                 with_header_hide=[],
-    #                 without_header_hide=[]),
+    #     TableFormat.new(lineabove=nil,
+    #                     linebelowheader=Line("|", "-", "|", "|"),
+    #                     linebetweenrows=nil,
+    #                     linebelow=nil,
+    #                     headerrow=DataRow.new("|", "|", "|"),
+    #                     datarow=DataRow.new("|", "|", "|"),
+    #                     padding=1,
+    #                     usecolons=true,
+    #                     with_header_hide=[],
+    #                     without_header_hide=[]),
 
     #     "orgmode" =>
-    #     TableFormat(lineabove=nil,
-    #                 linebelowheader=Line("|", "-", "+", "|"),
-    #                 linebetweenrows=nil,
-    #                 linebelow=nil,
-    #                 headerrow=DataRow("|", "|", "|"),
-    #                 datarow=DataRow("|", "|", "|"),
-    #                 padding=1,
-    #                 usecolons=false,
-    #                 with_header_hide=[],
-    #                 without_header_hide=["linebelowheader"])
+    #         TableFormat.new(lineabove=nil,
+    #                     linebelowheader=Line("|", "-", "+", "|"),
+    #                     linebetweenrows=nil,
+    #                     linebelow=nil,
+    #                     headerrow=DataRow.new("|", "|", "|"),
+    #                     datarow=DataRow.new("|", "|", "|"),
+    #                     padding=1,
+    #                     usecolons=false,
+    #                     with_header_hide=[],
+    #                     without_header_hide=["linebelowheader"])
     # }
 
     # Construct a simple TableFormat with columns separated by a separator.
@@ -129,29 +142,31 @@ module SolveBio::Tabulate
     #            tablefmt=tsv) == 'foo \\t 1\\nspam\\t23'
     #   true
     def simple_separated_format(separator)
-        return TableFormat(nil, nil, nil, nil,
-                           :headerrow => nil, :datarow => DataRow('', '\t', ''),
-                           _format_defaults => {})
+        return TableFormat
+            .new(
+                 :headerrow => nil,
+                 :datarow => DataRow.new('', '\t', ''),
+                 :format_defaults => {})
     end
 
 
-    # The least generic type (type(nil), int, float, str, unicode).
-    # _type(nil) => type(nil)
-    # _type("foo") => TYPE[:text_type]
-    # _type("1") => TYPE[:int]
-    # _type('\x1b[31m42\x1b[0m') => TYPE[:int]
+    # The least generic type, one of NilClass, Fixnum, Float, or String.
+    # _type(nil)   => NilClass
+    # _type("foo") => String
+    # _type("1")   => Fixnum
+    # _type('\x1b[31m42\x1b[0m') => Fixnum
     def _type(str, has_invisible=true)
 
         str = str.strip_invisible if str.kind_of?(String) and has_invisible
 
         if str.nil?
-            return :none
+            return NilClass
         elsif str.kind_of?(Fixnum) or str.int?
-            return :int
+            return Fixnum
         elsif str.kind_of?(Float) or str.number?
-            return :float
+            return Float
         else
-            return :text
+            return String
         end
     end
 
@@ -193,12 +208,6 @@ module SolveBio::Tabulate
     end
 
 
-    INVTYPES = {
-        4 => :text,
-        2 => :float,
-        1 => :int,
-        0 => :none}
-
     def more_generic(type1, type2)
         moregeneric = [TYPES[type1] || 4, TYPES[type2] || 4].max
         return INVTYPES[moregeneric]
@@ -207,16 +216,16 @@ module SolveBio::Tabulate
 
     # The least generic type all column values are convertible to.
     #
-    #  column_type(["1", "2"]) => :int
-    #  column_type(["1", "2.3"]) => :float
-    #  column_type(["1", "2.3", "four"]) => text
-    #  column_type(["four", '\u043f\u044f\u0442\u044c']) => :text
-    #  column_type([nil, "brux"]) => :text
-    #  column_type([1, 2, nil]) => :int
+    #  column_type(["1", "2"]) => Fixnum
+    #  column_type(["1", "2.3"]) => Float
+    #  column_type(["1", "2.3", "four"]) => String
+    #  column_type(["four", '\u043f\u044f\u0442\u044c']) => String
+    #  column_type([nil, "brux"]) => String
+    #  column_type([1, 2, nil]) => Fixnum
     def column_type(strings, has_invisible=true)
         types = strings.map{|s| _type(s, has_invisible)}
         # require 'trepanning'; debugger
-        return types.reduce(:int){
+        return types.reduce(Fixnum){
             |t, result|
             more_generic(result, t)
         }
@@ -236,12 +245,12 @@ module SolveBio::Tabulate
     #                          2\\n\\u0431\\u0443\\u043a\\u0438           4' ; \
     #        tabulate(tbl, headers=hrow) == good_result
     #  true
-    def _format(val, valtype, floatfmt, missingval="")
+    def format(val, valtype, floatfmt, missingval="")
         if val.nil?
             return missingval
         end
 
-        if [Fixnum, _binary_type.class, _text_type.class].member?(valtype)
+        if [Fixnum, String, Fixnum].member?(valtype)
             return "%s" % val
         elsif valtype.kind_of?(Float)
             return "%#{floatfmt}" % Float(val)
@@ -251,7 +260,7 @@ module SolveBio::Tabulate
     end
 
 
-    def _align_header(header, alignment, width)
+    def align_header(header, alignment, width)
         if alignment == "left"
             return header.padright(width)
         elsif alignment == "center"
@@ -280,12 +289,12 @@ module SolveBio::Tabulate
     def _normalize_tabular_data(tabular_data, headers)
         if tabular_data.respond_to?("keys") and tabular_data.respond_to?("values")
             # dict-like and pandas.DataFrame?
-            if hasattr(tabular_data.values, "__call__")
-                # likely a conventional dict
+            if tabular_data.respond_to?(:keys)
+                # likely a conventional Hash
                 keys = tabular_data.keys()
                 # columns have to be transposed
                 rows = list(izip_longest(*tabular_data.values()))
-            elsif hasattr(tabular_data, "index")
+            elsif tabular_data.respond_to?(:index)
                 # values is a property, has .index then
                 # it's likely a pandas.DataFrame (pandas 0.11.0)
                 keys = tabular_data.keys()
@@ -295,7 +304,7 @@ module SolveBio::Tabulate
                 zipped = names.zip(vals)
                 rows = zipped.map{|v, row| [v] + [row]}
             else
-                raise(ValueError, "tabular data doesn't appear to be a dict " +
+                raise(ValueError, "tabular data doesn't appear to be a Hash " +
                       "or a DataFrame")
             end
 
@@ -449,7 +458,7 @@ module SolveBio::Tabulate
     #     cols = list(zip(*list_of_lists))
 
     #     coltypes = list(map(column_type, cols))
-    #     # cols = [[_format(v, ct, floatfmt, missingval) for v in c]
+    #     # cols = [[format(v, ct, floatfmt, missingval) for v in c]
     #     #         for c, ct in zip(cols, coltypes)]
 
 
@@ -475,7 +484,7 @@ module SolveBio::Tabulate
     #         minwidths = [max(minw, width_fn(c[0]))
     #                      for minw, c in zip(minwidths, cols)]
     #                      headers = zip(headers, aligns, minwidths).map do |h, a|
-    #             _align_header(h, a, minw)
+    #             align_header(h, a, minw)
     #         end
     #                      rows = cols[0].zip(cols[1])
     #                  else
@@ -611,10 +620,10 @@ if __FILE__ == $0
     # puts "'123'.int? %s"        %  "123".int?        # true
     # puts "'123.45'int?: %s"     % '124.45'.int?      # false
 
-    # puts "_type(nil) %s = %s" % [_type(nil), TYPES[:none_type]]
-    # puts "_type('foo') %s = %s" % [_type('foo'), TYPES[:text_type]]
-    # puts "_type('1') %s = %s" % [_type('1'), TYPES[:int]]
-    # puts "_type(''\x1b[31m42\x1b[0m') %s = %s" % [_type('\x1b[31m42\x1b[0m'), TYPES[:int]]
+    puts "_type(nil) %s = %s" % [_type(nil), NilClass]
+    puts "_type('foo') %s = %s" % [_type('foo'), String]
+    puts "_type('1') %s = %s" % [_type('1'), Fixnum]
+    puts "_type(''\x1b[31m42\x1b[0m') %s = %s" % [_type('\x1b[31m42\x1b[0m'), Fixnum]
 
     # puts "'123.45'.afterpoint:   2 == %d" % '123.45'.afterpoint
     # puts "'1001'afterpoint   :  -1 == %d" % '1001'.afterpoint
@@ -641,16 +650,16 @@ if __FILE__ == $0
     # puts ['   12.345  ', '-1234.5    ', '    1.23   ',
     #      ' 1234.5    ', '    1e+234 ', '    1.0e234']
 
-    puts('column_type(["1", "2"]) is int == %s ' %
+    puts('column_type(["1", "2"]) is Fixnum == %s ' %
          column_type(["1", "2"]))
-    puts('column_type(["1", "2.3"]) is float == %s ' %
+    puts('column_type(["1", "2.3"]) is Float == %s ' %
          column_type(["1", "2.3"]))
-    puts('column_type(["1", "2.3", "four"]) is text => %s ' %
+    puts('column_type(["1", "2.3", "four"]) is String => %s ' %
          column_type(["1", "2.3", "four"]))
     puts('column_type(["four", "\u043f\u044f\u0442\u044c"]) is text => %s ' %
          column_type(["four", "\u043f\u044f\u0442\u044c"]))
-    puts('column_type([nil, "brux"]) is text => %s ' %
+    puts('column_type([nil, "brux"]) is String => %s ' %
          column_type([nil, "brux"]))
-    puts('column_type([1, 2, nil]) is int => %s ' %
+    puts('column_type([1, 2, nil]) is Fixnum => %s ' %
          column_type([1, 2, nil]))
 end
