@@ -61,4 +61,10 @@ class TestTabulate < Test::Unit::TestCase
         assert_equal(Fixnum, column_type([1, 2, nil]))
     end
 
+    def test_tabulate
+        tsv = simple_separated_format("\t")
+        assert_equal("foo    1\nspam  23",
+                     tabulate([["foo", 1], ["spam", 23]], [], tsv))
+    end
+
 end
