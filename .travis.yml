@@ -3,6 +3,8 @@ before_script:
   - gem install netrc
   - touch ~/.netrc
   - chmod 0600 ~/.netrc
+env:
+  - "COLUMNS=80"
 script: rake
 rvm:
   - 1.9.3
