@@ -9,5 +9,5 @@ unless SolveBio.api_key
     exit 1
 end
 
-results = SolveBio::Dataset.retrieve('ClinVar/2.0.0-1/Variants').query
-puts results
+dataset = SolveBio::Dataset.retrieve('ClinVar/2.0.0-1/Variants')
+puts dataset.query

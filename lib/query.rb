@@ -3,8 +3,7 @@ require 'pp'
 require_relative 'client'
 require_relative 'filter'
 require_relative 'locale'
-
-#from .utils.tabulate import tabulate
+require_relative 'tabulate'
 
 # A Query API request wrapper that generates a request from Filter
 # objects, and can iterate through streaming result sets.
@@ -119,11 +118,19 @@ class SolveBio::PagingQuery
             return 'query returned 0 results'
         end
 
-        # msg = "\n%s\n\n... %s more results." % [
-        #                                         tabulate(self[0].items(),
-        #                                                  ['Fields', 'Data'],
-        #                                                  ['right', 'left']),
-        #                                         pretty_int(@total - 1)]
+        msg =
+            "\n%s\n\n... %s more results." %
+            [SolveBio::Tabulate.tabulate(self[0].to_a,
+                                         ['Fields', 'Data'],
+                                         ['right', 'left']),
+             (@total - 1).pretty_int]
+        return msg
+    end
+
+    def to_pp
+        if total == 0 or @limit == 0
+            return 'query returned 0 results'
+        end
         msg = "\n#{self[0].pretty_inspect}\n" +
             "\n... #{(@total-1).pretty_int} more results."
         return msg
@@ -386,21 +393,22 @@ if __FILE__ == $0
         require_relative 'errors'
         dataset = SolveBio::Dataset.retrieve(test_dataset_name)
 
-        # A filter
-        limit = 5
-        results = dataset.query({:paging=>false, :limit => limit}).
-                filter({:alternate_alleles => nil})
-        puts results.size
+        # # A filter
+        # limit = 5
+        # results = dataset.query({:paging=>false, :limit => limit}).
+        #         filter({:alternate_alleles => nil})
+        # puts results.size
 
         limit = 2
-        results = dataset.query({:limit => limit, :paging =>false})
-        puts results.size
-        results.each_with_index { |val, i|
-            puts "#{i}: #{val}"
-        }
-        puts puts "#{limit-1}: #{results[limit-1]}"
+        # results = dataset.query({:limit => limit, :paging =>false})
+        # puts results.size
+        # results.each_with_index { |val, i|
+        #     puts "#{i}: #{val}"
+        # }
+        # puts "#{limit-1}: #{results[limit-1]}"
         results = dataset.query({:limit => limit, :paging=>true})
-        puts results.size
+        # puts results.size
+        puts results.to_s
     else
         puts 'Set SolveBio::api_key to run demo'
     end
