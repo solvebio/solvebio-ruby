@@ -61,4 +61,4 @@ As with any other Ruby method call, you can drop the final parenthesis if you li
 
 # To Do
 
-Print format routines haven't been converted, so right now hash printy printing is used. More demo programs using filters and ranges should be written.
+This hasn't been extensively field tested yet.
