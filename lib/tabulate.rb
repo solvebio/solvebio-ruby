@@ -57,7 +57,7 @@ module SolveBio::Tabulate
 
     INVISIBILE_CODES = %r{\\x1b\[\d*m}  # ANSI color codes
 
-    Line = Struct.new(:begin, :hline, :sep, :end)
+    Line = Struct.new(:start, :hline, :sep, :last)
 
     DataRow = Struct.new(:start, :sep, :last)
 
@@ -67,12 +67,6 @@ module SolveBio::Tabulate
                              :padding, :usecolons,
                              :with_header_hide,
                              :without_header_hide)
-    # TableFormat = namedtuple("TableFormat", ["lineabove", "linebelowheader",
-    #                                          "linebetweenrows", "linebelow",
-    #                                          "headerrow", "datarow",
-    #                                          "padding", "usecolons",
-    #                                          "with_header_hide",
-    #                                          "without_header_hide"])
 
     FORMAT_DEFAULTS = {
         :padding             => 0,
@@ -92,55 +86,59 @@ module SolveBio::Tabulate
     SIMPLE_DATAROW = DataRow.new('', '  ', '')
     PIPE_DATAROW   = DataRow.new('|', '|', '|')
 
+    SIMPLE_LINE    = Line.new('', '-', '  ', '')
+    GRID_LINE      = Line.new('+', '-', '+', '+')
+
     TABLE_FORMATS = {
         :simple =>
-        TableFormat.new(lineabove=nil,
-                        linebelowheader=Line.new("", "-", "  ", ""),
-                        linebetweenrows=nil,
-                        linebelow=Line.new("", "-", "  ", ""),
-                        headerrow = SIMPLE_DATAROW,
-                        datarow   = SIMPLE_DATAROW,
-                        padding=0,
-                        usecolons=false,
-                        with_header_hide=["linebelow"],
-                        without_header_hide=[]),
+        TableFormat.new(lineabove           = nil,
+                        linebelowheader     = SIMPLE_LINE,
+                        linebetweenrows     = nil,
+                        linebelow           = SIMPLE_LINE,
+                        headerrow           = SIMPLE_DATAROW,
+                        datarow             = SIMPLE_DATAROW,
+                        padding             = 0,
+                        usecolons           = false,
+                        with_header_hide    = ['linebelow'],
+                        without_header_hide = []),
         :grid =>
-        TableFormat.new(lineabove=Line.new("+", "-", "+", "+"),
-                        linebelowheader=Line.new("+", "=", "+", "+"),
-                        linebetweenrows=Line.new("+", "-", "+", "+"),
-                        linebelow=Line.new("+", "-", "+", "+"),
-                        headerrow = PIPE_DATAROW,
-                        datarow   = PIPE_DATAROW,
-                        padding=1,
-                        usecolons=false,
-                        with_header_hide=[],
-                        without_header_hide=["linebelowheader"]),
+        TableFormat.new(lineabove           = SIMPLE_LINE,
+                        linebelowheader     = Line.new('+', '=', '+', '+'),
+                        linebetweenrows     = SIMPLE_LINE,
+                        linebelow           = SIMPLE_LINE,
+                        headerrow           = PIPE_DATAROW,
+                        datarow             = PIPE_DATAROW,
+                        padding             = 1,
+                        usecolons           = false,
+                        with_header_hide    = [],
+                        without_header_hide = ['linebelowheader']),
 
         :pipe =>
-        TableFormat.new(lineabove=nil,
-                        linebelowheader=Line.new("|", "-", "|", "|"),
-                        linebetweenrows=nil,
-                        linebelow=nil,
-                        headerrow = PIPE_DATAROW,
-                        datarow   = PIPE_DATAROW,
-                        padding=1,
-                        usecolons=true,
-                        with_header_hide=[],
-                        without_header_hide=[]),
+        TableFormat.new(lineabove           = nil,
+                        linebelowheader     = Line.new('|', '-', '|', '|'),
+                        linebetweenrows     = nil,
+                        linebelow           = nil,
+                        headerrow           = PIPE_DATAROW,
+                        datarow             = PIPE_DATAROW,
+                        padding             = 1,
+                        usecolons           = true,
+                        with_header_hide    = [],
+                        without_header_hide = []),
 
         :orgmode =>
         TableFormat.new(lineabove=nil,
-                        linebelowheader=Line.new("|", "-", "+", "|"),
-                        linebetweenrows=nil,
-                        linebelow=nil,
-                        headerrow = PIPE_DATAROW,
-                        datarow   = PIPE_DATAROW,
-                        padding=1,
-                        usecolons=false,
-                        with_header_hide=[],
-                        without_header_hide=["linebelowheader"])
+                        linebelowheader     = Line.new('|', '-', '+', '|'),
+                        linebetweenrows     = nil,
+                        linebelow           = nil,
+                        headerrow           = PIPE_DATAROW,
+                        datarow             = PIPE_DATAROW,
+                        padding             = 1,
+                        usecolons           = false,
+                        with_header_hide    = [],
+                        without_header_hide = ['linebelowheader'])
     }
 
+    module_function
     def simple_separated_format(separator)
         # FIXME? python code hard-codes separator = "\n" below.
         return TableFormat
@@ -157,22 +155,21 @@ module SolveBio::Tabulate
                  :without_header_hide => [],
                  )
     end
-    module_function :simple_separated_format
 
     # The least generic type, one of NilClass, Fixnum, Float, or String.
     # _type(nil)   => NilClass
     # _type("foo") => String
     # _type("1")   => Fixnum
     # _type("\x1b[31m42\x1b[0m") => Fixnum
-    def _type(str, has_invisible=true)
+    def _type(obj, has_invisible=true)
 
-        str = str.strip_invisible if str.kind_of?(String) and has_invisible
+        obj = obj.strip_invisible if obj.kind_of?(String) and has_invisible
 
-        if str.nil?
+        if obj.nil?
             return NilClass
-        elsif str.kind_of?(Fixnum) or str.int?
+        elsif obj.kind_of?(Fixnum) or obj.int?
             return Fixnum
-        elsif str.kind_of?(Float) or str.number?
+        elsif obj.kind_of?(Float) or obj.number?
             return Float
         else
             return String
@@ -245,14 +242,14 @@ module SolveBio::Tabulate
     #
     #  Unicode is supported:
     #
-    #  >>> hrow = ['\u0431\u0443\u043a\u0432\u0430', \
-    #                '\u0446\u0438\u0444\u0440\u0430'] ; \
-    #        tbl = [['\u0430\u0437', 2], ['\u0431\u0443\u043a\u0438', 4]] ; \
-    #       good_result = '\\u0431\\u0443\\u043a\\u0432\\u0430      \
-    #                       \\u0446\\u0438\\u0444\\u0440\\u0430\\n-------\
-    #                          -------\\n\\u0430\\u0437             \
-    #                          2\\n\\u0431\\u0443\\u043a\\u0438           4' ; \
-    #        tabulate(tbl, headers=hrow) == good_result
+    #  >>> hrow = ["\u0431\u0443\u043a\u0432\u0430",
+    #              "\u0446\u0438\u0444\u0440\u0430"]
+    #      tbl = [["\u0430\u0437", 2], ["\u0431\u0443\u043a\u0438", 4]]
+    #      expected = "\\u0431\\u0443\\u043a\\u0432\\u0430      \n
+    #                  \\u0446\\u0438\\u0444\\u0440\\u0430\\n-------\n
+    #                   -------\\n\\u0430\\u0437             \n
+    #                   2\\n\\u0431\\u0443\\u043a\\u0438           4'
+    #      tabulate(tbl, hrow) => good_result
     #  true
     def format(val, valtype, floatfmt, missingval="")
         if val.nil?
@@ -287,18 +284,20 @@ module SolveBio::Tabulate
     #
     #    * Array-of-Arrays or another Enumerable of Enumerables
     #
-    #    * Hash of Enumerables (usually used with headers="keys")
+    #    * Hash of Enumerables
     #
     #    The first row can be used as headers if headers="firstrow",
     #    column indices can be used as headers if headers="keys".
     #
-    def _normalize_tabular_data(tabular_data, headers)
-        if tabular_data.respond_to?(:keys) and tabular_data.respond_to?("values")
+    def normalize_tabular_data(tabular_data, headers)
+        if tabular_data.respond_to?(:keys) and tabular_data.respond_to?(:values)
             # likely a Hash
-            keys = tabular_data.keys()
+            keys = tabular_data.keys
+            ## FIXME: what's different in the Python code?
             # columns have to be transposed
             # rows = list(izip_longest(*tabular_data.values()))
-            rows = tabular_data[0].zip(*tabular_data.values[1..-1])
+            # rows = vals[0].zip(*vals[1..-1])
+            rows = tabular_data.values
             if headers == "keys"
                 # headers should be strings
                 headers = keys.map{|k| k.to_s}
@@ -320,13 +319,8 @@ module SolveBio::Tabulate
             rows.shift
         end
 
-        headers = [ headers ]
-
-        # rocky: not needed on enumerable branch
-        # rows = rows.map{|row| [row]}
-
         # pad with empty headers for initial columns if necessary
-        if headers and not rows.empty?
+        if not headers.empty?  and not rows.empty?
             nhs = headers.size
             ncols = rows[0].size
             if nhs < ncols
@@ -336,11 +330,10 @@ module SolveBio::Tabulate
 
         return rows, headers
     end
-    module_function :_normalize_tabular_data
 
     TTY_COLS = ENV['COLUMNS'].to_i || 80 rescue 80
     # Return a string which represents a row of data cells.
-    def _build_row(cells, padding, first, sep, last)
+    def build_row(cells, padding, first, sep, last)
 
         pad = ' ' * padding
         padded_cells = cells.map{|cell| pad + cell + pad }
@@ -364,9 +357,9 @@ module SolveBio::Tabulate
 
 
     # Return a string which represents a horizontal line.
-    def _build_line(colwidths, padding, first, fill, sep, last)
+    def build_line(colwidths, padding, first, fill, sep, last)
         cells = colwidths.map{|w| fill * (w + 2 * padding)}
-        return _build_row(cells, 0, first, sep, last)
+        return build_row(cells, 0, first, sep, last)
     end
 
 
@@ -396,12 +389,12 @@ module SolveBio::Tabulate
         headerrow = fmt.headerrow ? fmt.headerrow : fmt.datarow
 
         if fmt.lineabove and hidden and hidden.member?("lineabove")
-            lines << _build_line(colwidths, pad, *fmt.lineabove)
+            lines << build_line(colwidths, pad, *fmt.lineabove)
         end
 
         unless headers.empty?
-            lines << _build_row(headers, pad, headerrow.start, headerrow.sep,
-                                headerrow.last)
+            lines << build_row(headers, pad, headerrow.start, headerrow.sep,
+                               headerrow.last)
         end
 
         if fmt.linebelowheader and not hidden.member?("linebelowheader")
@@ -411,34 +404,38 @@ module SolveBio::Tabulate
                         colwidths.zip(colaligns).map do |w, a|
                             _line_segment_with_colons(fmt.linebelowheader, a, w + 2 * pad)
                         end ]
-                lines << _build_row(segs, 0, first, sep, last)
+                lines << build_row(segs, 0, first, sep, last)
             else
-                lines << _build_line(colwidths, pad, fmt.linebelowheader.start,
-                                     fmt.linebelowheader.sep, fmt.linebelowheader.last)
+                lines << build_line(colwidths, pad, fmt.linebelowheader.start,
+                                    fmt.linebelowheader.hline,
+                                    fmt.linebelowheader.sep,
+                                    fmt.linebelowheader.last)
             end
         end
 
         if rows and fmt.linebetweenrows and hidden.member?('linebetweenrows')
             # initial rows with a line below
             rows[1..-1].each do |row|
-                lines << _build_row(row, pad, fmt.datarow.start,
-                                    fmt.datarow.sep, fmt.datarow.last)
-                lines << _build_line(colwidths, pad, fmt.linebetweenrows.start,
-                                     fmt.linebetweenrows.sep,
-                                     fmt.linebetweenrows.last)
+                lines << build_row(row, pad, fmt.datarow.start,
+                                   fmt.datarow.sep, fmt.datarow.last)
+                lines << build_line(colwidths, pad, fmt.linebetweenrows.start,
+                                    fmt.linebelowheader.hline,
+                                    fmt.linebetweenrows.sep,
+                                    fmt.linebetweenrows.last)
             end
             # the last row without a line below
-            lines << _build_row(rows[-1], pad, datarow.start,
+            lines << build_row(rows[-1], pad, datarow.start,
                                 datarow.sep, datarow.last)
         else
             rows.each do |row|
-                lines << _build_row(row, pad, datarow.start, datarow.sep,
-                                    datarow.last)
+                lines << build_row(row, pad, datarow.start, datarow.sep,
+                                   datarow.last)
 
                 if fmt.linebelow and hidden.member?('linebelow')
-                    lines << _build_line(colwidths, pad, fmt.linebelow.start,
-                                         fmt.linebelow.sep,
-                                         fmt.linebelow.last)
+                    lines << build_line(colwidths, pad, fmt.linebelow.start,
+                                        fmt.linebelowheader.hline,
+                                        fmt.linebelow.sep,
+                                        fmt.linebelow.last)
                 end
             end
         end
@@ -452,11 +449,10 @@ module SolveBio::Tabulate
     #     "foo    1\nspam  23"
     def tabulate(tabular_data, headers=[], tablefmt=TABLE_FORMATS[:orgmode],
                  floatfmt="g", aligns=[], missingval='')
-        list_of_lists, headers = _normalize_tabular_data(tabular_data, headers)
+        list_of_lists, headers = normalize_tabular_data(tabular_data, headers)
 
         # optimization: look for ANSI control codes once,
         # enable smart width functions only if a control code is found
-        headers = []
         plain_rows = [headers.map{|h| h.to_s}.join("\t")]
         row_text = list_of_lists.map{|row|
             row.map{|r| r.to_s}.join("\t")
@@ -477,10 +473,9 @@ module SolveBio::Tabulate
 
         coltypes = cols.map{|c| column_type(c)}
 
-        # FIXME: reinstate
-        # cols = cols.zip(coltypes).map do |c, ct|
-        #     c.map{|v| format(v, ct, floatfmt, missingval)}
-        # end
+        cols = cols.zip(coltypes).map do |c, ct|
+            c.map{|v| format(v, ct, floatfmt, missingval)}
+        end
 
         # align columns
         if aligns.empty?
@@ -494,27 +489,24 @@ module SolveBio::Tabulate
             if headers.empty?  then
                 [0] * cols.size
             else
-                headers.map{|h| width_fn.call(h) + 2}
+                headers.map{|h| h.send(width_fn) + 2}
             end
 
         cols = cols.zip(aligns, minwidths).map do |c, a, minw|
             align_column(c, a, minw, has_invisible)
         end
 
-    #     if ! headers.empty?
-    #         # align headers and add headers
-    #         minwidths = [max(minw, width_fn(c[0]))
-    #                      for minw, c in zip(minwidths, cols)]
-    #                      headers = zip(headers, aligns, minwidths).map do |h, a|
-    #             align_header(h, a, minw)
-    #         end
-    #         rows = cols[0].zip(cols[1])
-    #     else
-        # minwidths = cols.map{|c| width_fn.call(c[0])}
+        if headers.empty?
+            minwidths = cols.map{|c| c[0].send(width_fn)}
+        else
+            # align headers and add headers
+            minwidths =
+                minwidths.zip(cols).map{|minw, c| [minw, c[0].send(width_fn)].max}
+            headers   =
+                headers.zip(aligns, minwidths).map{|h, a, minw| align_header(h, a, minw)}
+        end
         rows = cols[0].zip(cols[1])
-    #     end
 
-        # require 'trepanning'; debugger
         tablefmt = TABLE_FORMATS[:orgmode] unless
             tablefmt.kind_of?(TableFormat)
 
@@ -524,10 +516,9 @@ module SolveBio::Tabulate
         end
         return format_table(tablefmt, headers, rows, minwidths, aligns)
     end
-    module_function :tabulate
 end
 
-class String
+class Object
 
     # "123.45".number? => true
     # "123".number?    => true
@@ -551,6 +542,9 @@ class String
             return false
         end
     end
+end
+
+class String
 
     # Symbols after a decimal point, -1 if the string lacks the decimal point.
     #
@@ -685,6 +679,28 @@ if __FILE__ == $0
     #      column_type([nil, "brux"]))
     # puts('column_type([1, 2, nil]) is Fixnum => %s ' %
     #      column_type([1, 2, nil]))
-    tsv = simple_separated_format("\t")
-    puts tabulate([["foo", 1], ["spam", 23]], [], tsv)
+    # tsv = simple_separated_format("\t")
+    # puts tabulate([["foo", 1], ["spam", 23]], [], tsv)
+    # hrow = ["\u0431\u0443\u043a\u0432\u0430", "\u0446\u0438\u0444\u0440\u0430"]
+    # tbl = [["\u0430\u0437", 2], ["\u0431\u0443\u043a\u0438", 4]]
+    # puts SolveBio::Tabulate.tabulate(tbl, hrow)
+
+    hash = {
+        "rcvaccession_version"=>2,
+        "hg18_chromosome"=>"3",
+        "hg19_start"=>148562304,
+        "rcvaccession"=>"RCV000060731",
+        "hg38_start"=>148844517,
+        "reference_allele"=>"C",
+        "gene_symbols"=>["CPB1"],
+        "rsid"=>"rs150241322",
+        "hg19_chromosome"=>"3",
+        "hgvs"=>["NC_000003.12:g.148844517C>T"],
+        "clinical_significance"=>"other",
+        "alternate_alleles"=>["T"],
+        "clinical_origin"=>["somatic"],
+        "type"=>"SNV"}
+    puts SolveBio::Tabulate.tabulate(hash.to_a,
+                                     ['Fields', 'Data'],
+                                     ['right', 'left'])
 end

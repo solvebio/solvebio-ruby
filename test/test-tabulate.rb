@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 require_relative '../lib/tabulate'
 $VERBOSE = true
 require 'test/unit'
@@ -63,8 +64,64 @@ class TestTabulate < Test::Unit::TestCase
 
     def test_tabulate
         tsv = simple_separated_format("\t")
-        assert_equal("foo    1\nspam  23",
-                     tabulate([["foo", 1], ["spam", 23]], [], tsv))
+        expected = <<-EOS
+foo    1
+spam  23
+EOS
+        assert_equal(expected.chomp, tabulate([["foo", 1], ["spam", 23]], [], tsv),
+                     'simple separated format table')
+        ####################################################################
+        expected = <<-EOS
+| буква   |   цифра |
+|---------+---------|
+| аз      |       2 |
+| буки    |       4 |
+EOS
+        hrow = ["\u0431\u0443\u043a\u0432\u0430", "\u0446\u0438\u0444\u0440\u0430"]
+        tbl = [["\u0430\u0437", 2], ["\u0431\u0443\u043a\u0438", 4]]
+        assert_equal(expected.chomp, SolveBio::Tabulate.tabulate(tbl, hrow),
+                     'org mode with header and unicode')
+
+        ###################################################################
+        expected = <<-EOS
+| Fields                | Data                        |
+|-----------------------+-----------------------------|
+| rcvaccession_version  | 2                           |
+| hg18_chromosome       | 3                           |
+| hg19_start            | 148562304                   |
+| rcvaccession          | RCV000060731                |
+| hg38_start            | 148844517                   |
+| reference_allele      | C                           |
+| gene_symbols          | CPB1                        |
+| rsid                  | rs150241322                 |
+| hg19_chromosome       | 3                           |
+| hgvs                  | NC_000003.12:g.148844517C>T |
+| clinical_significance | other                       |
+| alternate_alleles     | T                           |
+| clinical_origin       | somatic                     |
+| type                  | SNV                         |
+EOS
+
+        hash = {
+            "rcvaccession_version"=>2,
+            "hg18_chromosome"=>"3",
+            "hg19_start"=>148562304,
+            "rcvaccession"=>"RCV000060731",
+            "hg38_start"=>148844517,
+            "reference_allele"=>"C",
+            "gene_symbols"=>["CPB1"],
+            "rsid"=>"rs150241322",
+            "hg19_chromosome"=>"3",
+            "hgvs"=>["NC_000003.12:g.148844517C>T"],
+            "clinical_significance"=>"other",
+            "alternate_alleles"=>["T"],
+            "clinical_origin"=>["somatic"],
+            "type"=>"SNV"
+        }
+        assert_equal(expected.chomp, tabulate(hash.to_a,
+                                              ['Fields', 'Data'],
+                                              ['right', 'left']),
+                     'mixed data with arrays; close to actual query output')
     end
 
 end
