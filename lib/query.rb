@@ -2,9 +2,8 @@
 require 'pp'
 require_relative 'client'
 require_relative 'filter'
-
-#from .utils.printing import pretty_int
-#from .utils.tabulate import tabulate
+require_relative 'locale'
+require_relative 'tabulate'
 
 # A Query API request wrapper that generates a request from Filter
 # objects, and can iterate through streaming result sets.
@@ -19,13 +18,26 @@ class SolveBio::PagingQuery
 
     def initialize(dataset_id, params={})
         @dataset_id = dataset_id
+
+        begin
+            @limit = Integer(dataset_id)
+        rescue
+            raise TypeError, "'dataset_id' parameter must an Integer"
+        end
+
         @data_url = "/v1/datasets/#{dataset_id}/data"
 
         @total = @results = @response = nil
         reset_range_window
 
         # results per request
-        @limit = Integer(params[:limit]) rescue MAXIMUM_LIMIT
+        @limit = MAXIMUM_LIMIT
+        begin
+            @limit = Integer(params[:limit])
+        rescue
+            raise TypeError, "'limit' parameter must an Integer >= 0"
+        end if params.member?(:limit)
+
         @result_class = params[:result_class] || Hash
         @debug = params[:debug] || false
         @fields = params[:fields]
@@ -33,7 +45,7 @@ class SolveBio::PagingQuery
 
         # parameter error checking
         if @limit < 0
-            raise Exception, "'limit' parameter must be >= 0"
+            raise RangeError, "'limit' parameter must be >= 0"
         end
         self
     end
@@ -100,18 +112,33 @@ class SolveBio::PagingQuery
         return @total == 0
     end
 
+    # Convert SolveBio::QueryPaging object to a String type
     def to_s
         if total == 0 or @limit == 0
             return 'query returned 0 results'
         end
 
-        # msg = "\n%s\n\n... %s more results." % [
-        #                                         tabulate(self[0].items(),
-        #                                                  ['Fields', 'Data'],
-        #                                                  ['right', 'left']),
-        #                                         pretty_int(@total - 1)]
-        msg = "\n#{self[0].pretty_inspect}\n\n... #{@total-1} more results."
+        msg =
+            "\n%s\n\n... %s more results." %
+            [SolveBio::Tabulate.tabulate(self[0].to_a,
+                                         ['Fields', 'Data'],
+                                         ['right', 'left']),
+             (@total - 1).pretty_int]
         return msg
+    end
+
+    def to_pp
+        if total == 0 or @limit == 0
+            return 'query returned 0 results'
+        end
+        msg = "\n#{self[0].pretty_inspect}\n" +
+            "\n... #{(@total-1).pretty_int} more results."
+        return msg
+    end
+
+    # Convert SolveBio::QueryPaging object to a Hash type
+    def to_h
+        self[0]
     end
 
     def inspect
@@ -366,21 +393,22 @@ if __FILE__ == $0
         require_relative 'errors'
         dataset = SolveBio::Dataset.retrieve(test_dataset_name)
 
-        # A filter
-        limit = 5
-        results = dataset.query({:paging=>false, :limit => limit}).
-                filter({:alternate_alleles => nil})
-        puts results.size
+        # # A filter
+        # limit = 5
+        # results = dataset.query({:paging=>false, :limit => limit}).
+        #         filter({:alternate_alleles => nil})
+        # puts results.size
 
         limit = 2
-        results = dataset.query({:limit => limit, :paging =>false})
-        puts results.size
-        results.each_with_index { |val, i|
-            puts "#{i}: #{val}"
-        }
-        puts puts "#{limit-1}: #{results[limit-1]}"
+        # results = dataset.query({:limit => limit, :paging =>false})
+        # puts results.size
+        # results.each_with_index { |val, i|
+        #     puts "#{i}: #{val}"
+        # }
+        # puts "#{limit-1}: #{results[limit-1]}"
         results = dataset.query({:limit => limit, :paging=>true})
-        puts results.size
+        # puts results.size
+        puts results.to_s
     else
         puts 'Set SolveBio::api_key to run demo'
     end

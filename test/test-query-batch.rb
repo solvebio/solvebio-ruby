@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
-require 'test/unit'
-require_relative '../lib/resource'
+require_relative 'helper'
 
 class TestQueryBatch < Test::Unit::TestCase
 
@@ -10,10 +9,15 @@ class TestQueryBatch < Test::Unit::TestCase
     if SolveBio::api_key
 
         def setup
-            @dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
+            begin
+                @dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
+            rescue SocketError
+                @dataset = nil
+            end
         end
 
         def test_invalid_batch_query
+            skip('Are you connected to the Internet?') unless @dataset
             assert_raise SolveBio::Error do
                 SolveBio::BatchQuery
                     .new([
@@ -35,6 +39,7 @@ class TestQueryBatch < Test::Unit::TestCase
         end
 
         def test_batch_query
+            skip('Are you connected to the Internet?') unless @dataset
             queries = [
                        @dataset.query(:limit => 1),
                        @dataset.query(:limit => 10).filter(:hg19_start__gt => 100000)
