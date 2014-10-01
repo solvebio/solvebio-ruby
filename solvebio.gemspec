@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'solvebio'
-  s.version           = '1.5.0'
-  s.date              = '2014-08-16'
+  s.version           = '1.5.2'
+  s.date              = '2014-10-01'
 
   ## Make sure your summary is short. The description may be as long
   ## as you like.

@@ -10,15 +10,15 @@ Right now, all depositories are curated by the SolveBio team.
 
 * retrieve a depository
 
-    The [retrieve.rb](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/depository/retrieve.rb) Ruby program shows how to retrieve a single depository
+    The [retrieve.rb](https://github.com/solvebio/solvebio-ruby/blob/master/demo/depository/retrieve.rb) Ruby program shows how to retrieve a single depository
 
 * listing a depository
 
-    The [all.rb](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/depository/all.rb) Ruby program shows how to list all depositories
+    The [all.rb](https://github.com/solvebio/solvebio-ruby/blob/master/demo/depository/all.rb) Ruby program shows how to list all depositories
 
 * list all versions of a depository
 
-    The [versions-all.rb](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/depository/all.rb) Ruby program shows how to list all versions
+    The [versions-all.rb](https://github.com/solvebio/solvebio-ruby/blob/master/demo/depository/all.rb) Ruby program shows how to list all versions
     of a depository
 
 See also the [SolveBio Depository API](https://www.solvebio.com/docs/api/#depositories)

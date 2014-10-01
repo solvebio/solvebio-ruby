@@ -6,9 +6,9 @@ SolveBio aims to provide robust access to highly curated biological datasets. Wh
 
 A depository contains many versions, which in turn contain many datasets. Each dataset represents an independent “datastore”. Datasets store semi-structured data similar to typical “NoSQL” databases.
 
-The [depository folder](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/depository) has examples involving retrieving, getting version information or listing depositories.
+The [depository folder](https://github.com/solvebio/solvebio-ruby/blob/master/demo/depository) has examples involving retrieving, getting version information or listing depositories.
 
 *Datasets* are access points to data. Dataset names are unique within versions of a depository. The
-[dataset folder](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/dataset) has programs for retrieving properties of a dataset.
+[dataset folder](https://github.com/solvebio/solvebio-ruby/blob/master/demo/dataset) has programs for retrieving properties of a dataset.
 
-However, issuing queries on a dataset is probably what you will most want to do. The [query folder](https://github.com/solvebio/solvebio-ruby/blob/dev/demo/query) contains examples of queries.
+However, issuing queries on a dataset is probably what you will most want to do. The [query folder](https://github.com/solvebio/solvebio-ruby/blob/master/demo/query) contains examples of queries.
