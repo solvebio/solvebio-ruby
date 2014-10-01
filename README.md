@@ -45,7 +45,7 @@ The following optional gems can make your shell experience better
 
 # Demo code and Documentation
 
-See the [demo folder](https://github.com/solvebio/solvebio-ruby/tree/dev/demo) for ready-to-run examples.
+See the [demo folder](https://github.com/solvebio/solvebio-ruby/tree/master/demo) for ready-to-run examples.
 
 The online [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?python) has additional examples. To use these with the Ruby client,  change `import solvebio` to `require 'solvebio'` and change `solvebio.` to `SolveBio::` everywhere it occurs.
 
