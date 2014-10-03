@@ -118,11 +118,11 @@ class SolveBio::PagingQuery
             return 'query returned 0 results'
         end
 
+        sorted_items = SolveBio::Tabulate.
+            tabulate(self[0].to_a.sort_by{|x| x[0]})
         msg =
             "\n%s\n\n... %s more results." %
-            [SolveBio::Tabulate.tabulate(self[0].to_a,
-                                         ['Fields', 'Data'],
-                                         ['right', 'left']),
+            [sorted_items, ['Fields', 'Data'], ['right', 'left'],
              (@total - 1).pretty_int]
         return msg
     end
