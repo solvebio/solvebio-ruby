@@ -30,13 +30,14 @@ class TestNetrc < Test::Unit::TestCase
     end
 
     def test_get_credentials
-        assert_equal ['rocky@example.com', 'shhhh'], get_credentials
+        assert_equal ['rocky@example.com', 'shhhh'], get_credentials.to_a
     end
 
     def test_save_credentials
         new_values = get_credentials.map{|x| x+"abc"}
         save_credentials(*new_values)
-        assert_equal new_values, get_credentials, 'Should append "abc" to creds'
+        assert_equal(new_values, get_credentials.to_a,
+                     'Should append "abc" to creds')
     end
 
     def test_delete_credentials
