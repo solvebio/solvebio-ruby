@@ -28,4 +28,4 @@ puts dataset.query(:filters => filters)
 
 # Range filter. Like 'in' for a contiguous numeric range
 dataset.query(filters =>
-              SolveBio::RangeFilter.new('hg38', "13", 32200000, 32200500))
+              SolveBio::RangeFilter.new('hg38', "13", 32_200_000, 32_200_500))
