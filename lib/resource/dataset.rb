@@ -52,8 +52,9 @@ class SolveBio::Dataset < SolveBio::APIResource
             return DatasetField.retrieve("#{self['full_name']}/#{name}")
         end
 
-        SolveBio::Client.
-            client.request('get', self['fields_url']).to_solvebio
+        result = SolveBio::Client.
+                   client.request('get', self['fields_url'])
+        result.to_solvebio(self.class)
     end
 
     def query(params={})
