@@ -115,9 +115,16 @@ module SolveBio::ListableAPIResource
         def all(params={})
             url = SolveBio::APIResource.class_url(self)
             response = SolveBio::Client.client.request('get', url, params)
-            return response.to_solvebio
+            return response.to_solvebio(self)
         end
     end
+
+    # How many items are in this list?
+    def size
+        self[:data].size
+    end
+    alias :total :size
+
 end
 
 module SolveBio::SearchableAPIResource
