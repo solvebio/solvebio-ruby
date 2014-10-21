@@ -2,7 +2,7 @@
 
 require 'json'
 require 'set'
-require_relative 'client'
+require_relative '../client'
 
 # Add underscore before internal uppercase letters. Also, lowercase
 # all letters.
