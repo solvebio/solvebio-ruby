@@ -27,8 +27,8 @@ class SolveBio::DatasetField < SolveBio::APIResource
 
     def facets(params={})
         response = SolveBio::Client.
-            client.request('get', self[:facets_url], params)
-        return response.to_solvebio
+                     client.request('get', self[:facets_url], params)
+        return response.to_solvebio(SolveBio::SolveObject)
     end
 
     def help
