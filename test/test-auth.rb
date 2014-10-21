@@ -51,4 +51,8 @@ class TestAuth < Test::Unit::TestCase
         output = run_it @@whoami_cmd
         assert_equal 'You are not logged-in.', output
     end
+
+    if SolveBio::API_HOST != 'https://api.solvebio.com'
+      skip :test_logout, "Can't test logout on weird environments"
+    end
 end
