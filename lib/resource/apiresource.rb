@@ -121,7 +121,7 @@ module SolveBio::ListableAPIResource
 
     # How many items are in this list?
     def size
-        self[:data].size
+        self[:total]
     end
     alias :total :size
 
