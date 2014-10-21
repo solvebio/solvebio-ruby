@@ -9,6 +9,7 @@ class TestDataStuff < Test::Unit::TestCase
         if datasets.total == 0
             skip('no datasets found')
         end
+        ## puts "datasets.total #{datasets.total}" ### compare with python
         dataset = datasets[:data][0]
         assert(dataset.member?('id'),
                'Should be able to get id in dataset')
@@ -24,6 +25,7 @@ class TestDataStuff < Test::Unit::TestCase
         end
 
         fields = dataset.fields()
+        ## puts "fields.total #{fields.total}" ### compare with python
         if fields.total == 0
             skip("no fields of dataset #{dataset[:name]} found")
         end
@@ -43,6 +45,8 @@ class TestDataStuff < Test::Unit::TestCase
                    "Should find field #{field} in fields #{dataset_field.id}")
         end
         facets = dataset_field.facets()
+        ## puts "facets['total'] #{facets['total']}" ## compare with python
+
         # We can get small or large numbers like 0 or 4902851621.0
         assert(facets['total'] >= 0,
                'facets should have a numeric total field >= 0')
