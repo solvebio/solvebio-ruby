@@ -10,6 +10,7 @@ IRB.conf[:PROMPT][:SIMPLE] = {
  }
 
 require_relative '../solvebio'
+require_relative '../solvebio/resource'
 include SolveBio::Auth
 
 # Set some demo names that can be used.

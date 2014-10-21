@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
 require 'test/unit'
-require_relative '../lib/solveobject'
+require_relative '../lib/resource/solveobject'
 
 class TestSolveObject < Test::Unit::TestCase
 
