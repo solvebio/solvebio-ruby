@@ -25,13 +25,9 @@ class SolveBio::DatasetField < SolveBio::APIResource
             retrieve(SolveBio::DatasetField, id, params)
     end
 
-    def facets_url
-        return "/v1/dataset_fields/#{self.id}/facets"
-    end
-
     def facets(params={})
         response = SolveBio::Client.
-            client.request('get', facets_url, params)
+            client.request('get', self[:facets_url], params)
         return response.to_solvebio
     end
 
