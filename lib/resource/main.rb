@@ -80,14 +80,16 @@ SolveBio::SolveObject::CONVERSION = {
 }
 
 class Hash
-    def to_solvebio
+    def to_solvebio(klass=nil)
         resp = self.dup()
-        klass_name = resp['class_name']
-        if klass_name.kind_of?(String)
-            klass = SolveBio::SolveObject::CONVERSION[klass_name] ||
-                SolveBio::SolveObject
-        else
-            klass = SolveBio::SolveObject
+        if ! klass
+            klass_name ||= resp['class_name']
+            if klass_name.kind_of?(String)
+                klass = SolveBio::SolveObject::CONVERSION[klass_name] ||
+                        SolveBio::SolveObject
+            else
+                klass = SolveBio::SolveObject
+            end
         end
         SolveBio::SolveObject::construct_from(klass, resp)
     end
