@@ -3,29 +3,29 @@ require 'uri'
 require_relative 'solveobject'
 require_relative '../main'
 require_relative '../client'
+require_relative '../util'
 
 class SolveBio::APIResource < SolveBio::SolveObject
 
     def self.retrieve(cls, id, params={})
         instance = cls.new(id, params)
         instance.refresh()
-        return instance
+        instance
+    end
+
+    def self.class_to_api_name(cls)
+        cls_name = cls.to_s.sub('SolveBio::', '')
+        SolveBio::camelcase_to_underscore(SolveBio::pluralize(cls_name))
     end
 
     def refresh
         refresh_from request('get', instance_url)
-        return self
+        self
     end
 
     def self.class_url(cls)
-        # cls_name = cls.class_name()
         cls_name = cls.to_s.sub('SolveBio::', '')
-        # pluralize
-        if cls_name.end_with?('y')
-            cls_name = cls_name[0..-2] + 'ie'
-        end
-        cls_name = camelcase_to_underscore(cls_name)
-        return "/v1/#{cls_name}s"
+        "/v1/#{class_to_api_name(cls)}"
     end
 
 
@@ -54,7 +54,7 @@ module SolveBio::CreateableAPIResource
         def create(params={})
             url = SolveBio::APIResource.class_url(self)
             response = SolveBio::Client.client.request('post', url, params)
-            return to_solve_object(response)
+            to_solve_object(response)
         end
     end
 end
@@ -69,7 +69,7 @@ class SolveBio::DeletableAPIResource
 
         def delete(params={})
             refresh_from(request('delete', instance_url(), params))
-            return self
+            self
         end
     end
 end
@@ -138,22 +138,24 @@ module SolveBio::SearchableAPIResource
             params['q'] = query
             url = SolveBio::APIResource.class_url(self)
             response = SolveBio::Client.client.request('get', url, params)
-            return response.to_solvebio
+            response.to_solvebio
         end
     end
 end
 
 module SolveBio::SingletonAPIResource
 
+    def self.class_to_api_name(cls)
+        cls_name = cls.to_s.sub('SolveBio::', '')
+        SolveBio::camelcase_to_underscore(cls_name)
+    end
+
     def self.retrieve(cls)
-        return super(SingletonAPIResource, cls).retrieve(nil)
+        super(SingletonAPIResource, cls).retrieve(nil)
     end
 
     def self.class_url(cls)
-        # cls_name = cls.class_name()
-        cls_name = cls.to_s.sub('SolveBio::', '')
-        cls_name = camelcase_to_underscore(cls_name)
-        return "/v1/%s #{cls_name}"
+        "/v1/#{class_to_api_name(cls)}"
     end
 
     def instance_url
@@ -182,7 +184,7 @@ module SolveBio::UpdateableAPIResource
                     params[k] = getattr(obj, k) or ''
                 end
             end
-            return params
+            params
         end
     end
 end

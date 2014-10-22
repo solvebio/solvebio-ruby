@@ -4,14 +4,6 @@ require 'json'
 require 'set'
 require_relative '../client'
 
-# Add underscore before internal uppercase letters. Also, lowercase
-# all letters.
-def camelcase_to_underscore(name)
-    # Using [[:upper:]] and [[:lower]] should help with Unicode.
-    s1 = name.gsub(/(.)([[:upper:]])([[:lower:]]+)/){"#{$1}_#{$2}#{$3}"}
-    return (s1.gsub(/([a-z0-9])([[:upper:]])/){"#{$1}_#{$2}"}).downcase
-end
-
 # Base class for all SolveBio API resource objects
 class SolveBio::SolveObject < Hash
 
