@@ -1,7 +1,7 @@
+# Test Dataset, DatasetField, and Facets
 require 'test/unit'
 require_relative '../lib/resource/main'
 
-# Test Dataset, DatasetField, and Facets
 class TestDataStuff < Test::Unit::TestCase
 
     def test_dataset
