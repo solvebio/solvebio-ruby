@@ -42,8 +42,8 @@ class SolveBio::Depository < SolveBio::APIResource
         return SolveBio::DepositoryVersion.
             retrieve("#{self['full_name']}/#{name}") if name
 
-        response = SolveBio::Client.
-            client.request('get', versions_url, params)
+        response = SolveBio::Client.client
+            .request('get', versions_url, {:params => params})
         return response.to_solvebio
     end
 

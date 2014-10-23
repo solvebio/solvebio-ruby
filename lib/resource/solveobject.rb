@@ -50,8 +50,9 @@ class SolveBio::SolveObject < Hash
         values.each { |k, v| self[k] = to_solve_object(v) }
     end
 
-    def request(method, url, params=nil)
-        response = SolveBio::Client.client.request(method, url, params)
+    def request(method, url, params={})
+        response = SolveBio::Client.client
+            .request method, url, {:params => params}
         return to_solve_object(response)
     end
 

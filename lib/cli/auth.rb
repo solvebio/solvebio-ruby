@@ -37,9 +37,9 @@ module SolveBio::Auth
             :architecture          => SolveBio::ARCHITECTURE,
             # :processor             => processor(),
         }
-        SolveBio::Client.client.request('post',
-                                        '/v1/reports/install',
-                                        data) rescue nil
+        SolveBio::Client.client
+            .request('post', '/v1/reports/install',
+                     {:params => data}) rescue nil
     end
 
 
@@ -65,8 +65,8 @@ module SolveBio::Auth
         # code.  Not sure if it's valid here, or what the equivalent
         # is.
         begin
-            response = SolveBio::Client.
-                client.request('post', '/v1/auth/token', data)
+            response = SolveBio::Client.client
+                .request 'post', '/v1/auth/token', {:params => data}
         rescue SolveBio::Error => e
             puts "Login failed: #{e.to_s}"
             return false

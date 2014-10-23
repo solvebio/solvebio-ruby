@@ -4,6 +4,7 @@ require_relative 'solveobject'
 require_relative '../main'
 require_relative '../client'
 require_relative '../util'
+require_relative '../errors'
 
 class SolveBio::APIResource < SolveBio::SolveObject
 
@@ -53,14 +54,15 @@ module SolveBio::CreateableAPIResource
     module ClassMethods
         def create(params={})
             url = SolveBio::APIResource.class_url(self)
-            response = SolveBio::Client.client.request('post', url, params)
+            response = SolveBio::Client.client
+                .request('post', url, {:params => params} )
             to_solve_object(response)
         end
     end
 end
 
 
-class SolveBio::DeletableAPIResource
+module SolveBio::DeletableAPIResource
     def self.included base
         base.extend ClassMethods
     end
@@ -68,8 +70,12 @@ class SolveBio::DeletableAPIResource
     module ClassMethods
 
         def delete(params={})
-            refresh_from(request('delete', instance_url(), params))
-            self
+            begin
+                refresh_from(request('delete', instance_url(),
+                                     {:params => params}))
+            rescue SolveBio::Error => response
+            end
+            convert_to_solve_object(response)
         end
     end
 end
@@ -114,7 +120,8 @@ module SolveBio::ListableAPIResource
     module ClassMethods
         def all(params={})
             url = SolveBio::APIResource.class_url(self)
-            response = SolveBio::Client.client.request('get', url, params)
+            response = SolveBio::Client.client
+                .request('get', url, {:params => params})
             return response.to_solvebio(self)
         end
     end
@@ -137,7 +144,8 @@ module SolveBio::SearchableAPIResource
         def search(query='', params={})
             params['q'] = query
             url = SolveBio::APIResource.class_url(self)
-            response = SolveBio::Client.client.request('get', url, params)
+            response = SolveBio::Client.client
+                .request('get', url, {:params => params})
             response.to_solvebio
         end
     end
@@ -159,7 +167,7 @@ module SolveBio::SingletonAPIResource
     end
 
     def instance_url
-        class_url()
+        class_url
     end
 end
 
@@ -172,7 +180,7 @@ module SolveBio::UpdateableAPIResource
     module ClassMethods
         def save
             refresh_from(request('patch', instance_url(),
-                                 serialize(self)))
+                                 {:params => serialize(self)}))
             return self
         end
 

@@ -4,8 +4,6 @@ require 'test/unit'
 require 'fileutils'
 require_relative '../lib/client'
 
-# require 'trepanning'
-
 class TestClient < Test::Unit::TestCase
 
     def test_get
@@ -15,10 +13,12 @@ class TestClient < Test::Unit::TestCase
         # Can we get something from google?
         output = `curl --silent http://www.google.com`
         if $?.success? and output
-            assert(client.request('http', 'http://www.google.com', nil,
-                                  true), 'HTTP GET, google.com')
-            assert(client.request('https', 'https://www.google.com', nil,
-                                  true), 'HTTPS GET google.com')
+            assert(client.request('http', 'http://www.google.com',
+                                  {:raw => true}),
+                                  'HTTP GET, google.com')
+            assert(client.request('https', 'https://www.google.com',
+                                  {:raw => true}),
+                                  'HTTPS GET google.com')
         else
             skip('Are you connected to the Internet? www.google.com is unavailable')
         end
