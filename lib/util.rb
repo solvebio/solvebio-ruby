@@ -16,3 +16,14 @@ module SolveBio
         return (s1.gsub(/([a-z0-9])([[:upper:]])/){"#{$1}_#{$2}"}).downcase
     end
 end
+
+# Demo code
+if __FILE__ == $0
+    include SolveBio
+    %w(abc abcDef abc01Def aBcDef a1B2C3 ?Foo Dataset).each do |word|
+        puts word + " -> " + camelcase_to_underscore(word)
+    end
+    ['depository',  'dataset'].each do |word|
+        puts word + " -> " + pluralize(word)
+    end
+end

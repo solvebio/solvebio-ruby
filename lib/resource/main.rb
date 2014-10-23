@@ -6,6 +6,7 @@ require_relative 'dataset'
 require_relative 'datasetfield'
 require_relative 'depository'
 require_relative 'depositoryversion'
+require_relative 'sample'
 require_relative 'user'
 
 class SolveBio::ListObject < SolveBio::SolveObject
@@ -75,41 +76,10 @@ SolveBio::SolveObject::CONVERSION = {
     'DepositoryVersion' => SolveBio::DepositoryVersion,
     'Dataset'           => SolveBio::Dataset,
     'DatasetField'      => SolveBio::DatasetField,
+    'Sample'            => SolveBio::Sample,
     'User'              => SolveBio::User,
     'list'              => SolveBio::ListObject
 }
-
-class Hash
-    def to_solvebio(klass=nil)
-        resp = self.dup()
-        if ! klass
-            klass_name ||= resp['class_name']
-            if klass_name.kind_of?(String)
-                klass = SolveBio::SolveObject::CONVERSION[klass_name] ||
-                        SolveBio::SolveObject
-            else
-                klass = SolveBio::SolveObject
-            end
-        end
-        SolveBio::SolveObject::construct_from(klass, resp)
-    end
-end
-
-class Array
-    def to_solvebio
-        return self.map{|i| to_solve_object(i)}
-    end
-end
-
-
-def to_solve_object(resp)
-    if resp.kind_of?(Array) or
-            (not resp.kind_of? SolveBio::SolveObject and resp.kind_of?(Hash))
-        resp.to_solvebio
-    else
-        return resp
-    end
-end
 
 if __FILE__ == $0
     puts '-' * 50
