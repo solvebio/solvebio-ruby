@@ -6,4 +6,4 @@
 all: check
 
 %:
-	$(MAKE) -C ../.. $@
+	$(MAKE) -C .. $@

@@ -34,19 +34,51 @@ class SolveBio::Client
         }
     end
 
-    def request(method, url, params=nil, raw=false)
+    # FIXME: refactor to not overload params with data and params depending
+    # on the method. Also make it possible to do the simpler things that are
+    # done in Sample.download
 
-        if not @api_host
-            raise SolveBio::Error.new(nil, 'No SolveBio API host is set')
-        elsif not url.start_with?(@api_host)
-            url = URI.join(@api_host, url).to_s
+    #
+    #    Issues an HTTP Request across the wire via the Ruby 'net/http'
+    #    library.
+    #   :param method: String an HTTP method: GET, PUT, POST, DELETE, ...
+    #   :param url: String the place to connect to. If the url doesn't start
+    #         with a protocol (https:// or http://), we'll slap
+    #         solvebio.api_host in the front.
+    #   :param params: Hash will go into the parameters or data section of
+    #         the request as appropriate, depending on the method value.
+    #   :param timeout: Fixnum a timeout value in seconds for the request
+    #   :param raw: bool whether to return the response encoded to json
+    #   :param files: Array File content in the form of a file handle can be
+    #          passed in *files* to upload a file. Generally files are passed
+    #          via POST requests
+    #   :param headers: Hash Custom headers can be provided here;
+    #          generally though this will be set correctly by
+    #          default dependent on the method type. If the content type
+    #          is JSON, we'll JSON-encode params.
+    #   :param allow_redirects: bool if set *false* we won't follow any
+    #          redirects
+
+
+    DEFAULT_REQUEST_OPTS = {
+        :api_host => SolveBio::API_HOST,
+        :files    => nil, # Set to File handle to send a file
+        :timeout  => 80,  # Seconds
+        :raw      => false
+    }
+
+    def request(method, url, opts={})
+
+        opts = DEFAULT_REQUEST_OPTS.merge(opts)
+        if not url.start_with?(opts[:api_host])
+            url = URI.join(opts[:api_host], url).to_s
         end
 
         uri  = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)
 
         # Note: there's also read_timeout and ssl_timeout
-        http.open_timeout = 80 # in seconds
+        http.open_timeout = opts[:timeout] # in seconds
 
         if uri.scheme == 'https'
             http.use_ssl = true
@@ -60,10 +92,8 @@ class SolveBio::Client
 
         request = nil
         if ['POST', 'PUT', 'PATCH'].member?(method.upcase)
-            # FIXME? do we need to do something different for
-            # PUT and PATCH?
             request = Net::HTTP::Post.new(uri.request_uri)
-            request.body = params.to_json
+            request.body = opts[:params].to_json if opts[:params]
         else
             request = Net::HTTP::Get.new(uri.request_uri)
         end
@@ -88,6 +118,11 @@ class SolveBio::Client
                 # handle errors
                 raise $!.message
             end
+        when Net::HTTPRedirection
+            location = response['location']
+            warn "redirected to #{location}"
+            ## fetch(location, limit - 1)
+            return JSON.parse(response.body)
         end
 
         status_code = response.code.to_i
@@ -95,7 +130,7 @@ class SolveBio::Client
             handle_api_error(response)
         end
 
-        if raw
+        if opts[:raw]
             return response.body
         else
             return JSON.parse(response.body)
