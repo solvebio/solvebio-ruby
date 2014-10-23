@@ -13,23 +13,23 @@ class SolveBio::ListObject < SolveBio::SolveObject
     include Enumerable
 
     def all(params={})
-        return request('get', self['url'], params)
+        return request('get', self['url'], {:params => params})
     end
 
     def create(params={})
-        return request('post', self['url'], params)
+        return request('post', self['url'], {:params => params})
     end
 
     def next_page(params={})
         if self['links']['next']
-            return request('get', self['links']['next'], params)
+            return request('get', self['links']['next'], {:params => params})
         end
         return nil
     end
 
     def prev_page(params={})
         if self['links']['prev']
-            request('get', self['links']['prev'], params)
+            request('get', self['links']['prev'], {:params => params})
         end
         return nil
     end

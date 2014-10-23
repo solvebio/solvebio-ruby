@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Something to pull in the entire SolveBio API.
 
-require_relative 'resource'
+require_relative 'resource/main'
 require_relative 'query'
 
 # cli/auth is a little nicer than credentials
