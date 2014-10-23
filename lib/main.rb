@@ -10,7 +10,7 @@ require 'logger'
 
 module SolveBio
 
-    VERSION      = '1.5.0'
+    VERSION      = '1.5.2'
     @api_key     = ENV['SOLVEBIO_API_KEY']
     @logger      = Logger.new('/tmp/solvebio.log')
     API_HOST     = ENV['SOLVEBIO_API_HOST'] || 'https://api.solvebio.com'
