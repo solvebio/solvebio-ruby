@@ -42,8 +42,8 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
             return SolveBio::Dataset.retrieve(datasets_url(name))
         end
 
-        response = SolveBio::Client.
-            client.request('get', datasets_url, params)
+        response = SolveBio::Client.client
+            request('get', datasets_url, {:params => params})
         return response.to_solvebio
     end
 
