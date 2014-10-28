@@ -1,12 +1,7 @@
-require 'test/unit'
-
 require_relative '../lib/solvebio'
+require_relative './helper'
 
 class SampleAccessTest < Test::Unit::TestCase
-
-    if SolveBio::API_HOST == 'https://api.solvebio.com'
-      skip :test_insert_delete, "Tesing only on special environments"
-    end
 
     def check_response(response, expect, msg)
         expect.each do |key, val|
@@ -15,6 +10,10 @@ class SampleAccessTest < Test::Unit::TestCase
     end
 
     def test_insert_delete
+        if SolveBio::API_HOST == 'https://api.solvebio.com'
+            skip "Tesing only on special environments"
+        end
+
         all = SolveBio::Sample.all
         total = all.total
         vcf_url = 'http://downloads.solvebio.com/vcf/small_sample.vcf.gz'
@@ -50,7 +49,7 @@ class SampleAccessTest < Test::Unit::TestCase
 
         # assert_equal(all.total, total, "After uploading a file")
 
-        sample = SolveBio::Sample.retrieve(response.id)
+        # sample = SolveBio::Sample.retrieve(response.id)
         # delete_response = sample.delete
         # assert_equal(delete_response.deleted, true,
         #                  'response.deleted should be true')

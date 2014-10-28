@@ -1,8 +1,7 @@
 # Test Depository, DepositoryVersions
 
 require 'test/unit'
-require_relative '../lib/resource/main'
-require_relative '../lib/main'
+require_relative '../lib/solvebio'
 
 class DepoStuffTest < Test::Unit::TestCase
 
