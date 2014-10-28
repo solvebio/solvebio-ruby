@@ -6,7 +6,7 @@ class TestQueryBatch < Test::Unit::TestCase
 
     TEST_DATASET_NAME = 'ClinVar/2.0.0-1/Variants'
 
-    if SolveBio::api_key
+    if SolveBio::api_key and not local_api?
 
         def setup
             begin
@@ -53,7 +53,11 @@ class TestQueryBatch < Test::Unit::TestCase
 
     else
         def test_skip
-            skip 'Please set SolveBio::api_key'
+            if SolveBio::api_key
+                skip "Dataset #{TEST_DATASET_NAME} not available"
+            else
+                skip 'Please set SolveBio::api_key'
+            end
         end
     end
 
