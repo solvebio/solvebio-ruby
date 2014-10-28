@@ -41,6 +41,8 @@ class TestAuth < Test::Unit::TestCase
 
     # Integration test of logout
     def test_logout
+        skip :test_logout, "Can't test logout on weird environments" if
+            SolveBio::API_HOST != 'https://api.solvebio.com'
 
         # Dunno if we are logged in or out - log out
         output = run_it @logout_cmd
@@ -52,7 +54,4 @@ class TestAuth < Test::Unit::TestCase
         assert_equal 'You are not logged-in.', output
     end
 
-    if SolveBio::API_HOST != 'https://api.solvebio.com'
-      skip :test_logout, "Can't test logout on weird environments"
-    end
 end

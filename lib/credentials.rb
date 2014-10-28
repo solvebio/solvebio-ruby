@@ -3,7 +3,7 @@
 # Deals with reading netrc credentials
 require_relative 'main'
 require 'netrc'
-require 'uri'
+require 'addressable/uri'
 
 #
 #    Raised if the credentials are not found.
@@ -17,7 +17,7 @@ module SolveBio::Credentials
 
     # SolveBio API host -- just the hostname
     def api_host
-        URI(SolveBio::API_HOST).host
+        Addressable::URI.parse(SolveBio::API_HOST).host
     end
 
     def netrc_path

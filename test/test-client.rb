@@ -13,10 +13,10 @@ class TestClient < Test::Unit::TestCase
         # Can we get something from google?
         output = `curl --silent http://www.google.com`
         if $?.success? and output
-            assert(client.request('http', 'http://www.google.com',
-                                  {:raw => true}),
+            assert(client.request('get', 'http://www.google.com',
+                                  {:raw => true, :redirect => true}),
                                   'HTTP GET, google.com')
-            assert(client.request('https', 'https://www.google.com',
+            assert(client.request('get', 'https://www.google.com',
                                   {:raw => true}),
                                   'HTTPS GET google.com')
         else
