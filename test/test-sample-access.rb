@@ -1,4 +1,3 @@
-require_relative '../lib/solvebio'
 require_relative './helper'
 
 class SampleAccessTest < Test::Unit::TestCase
