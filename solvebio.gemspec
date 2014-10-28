@@ -56,7 +56,7 @@ EOD
   ## that are needed for an end user to actually USE your code.
 
   s.add_dependency('netrc',   '>=0.7.7')      # handling .netrc
-  s.add_dependency('rest_client', '>=0.7.7')  # better URI handler
+  s.add_dependency('rest_client', '>=1.8.1')  # better URI handler
   s.add_dependency('addressable', '>=2.3.6')  # better URI parsing
 
   # s.add_dependency('openssl', '>=1.1.0')
