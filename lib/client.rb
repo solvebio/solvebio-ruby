@@ -37,13 +37,19 @@ class SolveBio::Client
     end
 
     DEFAULT_REQUEST_OPTS = {
-        :files    => nil, # Set to File handle to send a file
+        :vcf_file => nil, # Set to File handle to send a file
         :timeout  => 80,  # Seconds
         :raw      => false
     }
 
     def post(url, data, opts={})
-        opts[:payload] = data.to_json
+        opts[:payload] =
+            if opts.member?(:vcf_file)
+                data[:vcf_file] = opts[:vcf_file]
+                data
+            else
+                data.to_json
+            end
         request('post', url, opts)
     end
 
@@ -63,6 +69,10 @@ class SolveBio::Client
         end
 
         headers['Authorization'] = "Token #{@api_key}" if @api_key
+        if opts[:vcf_file]
+            headers.delete(:content_type)
+            headers['Content-Type'] = 'text/plain'
+        end
 
         # Handle some common options
         headers = @headers.merge(opts[:headers]||{})
@@ -78,12 +88,12 @@ class SolveBio::Client
 
         response = nil
         RestClient::Request.
-            execute(:method => method,
-                    :url    => url,
-                    :headers => headers,
-                    :verify_ssl => OpenSSL::SSL::VERIFY_NONE,
+            execute(:method      => method,
+                    :url         => url,
+                    :headers     => headers,
+                    :verify_ssl  => OpenSSL::SSL::VERIFY_NONE,
                     :ssl_version => 'SSLv23',
-                    :payload   => opts[:payload]) do
+                    :payload     => opts[:payload]) do
             |resp, request, result, &block|
             response = resp
             if response.code < 200 or response.code >= 300
