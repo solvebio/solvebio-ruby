@@ -34,19 +34,19 @@ class SampleAccessTest < Test::Unit::TestCase
         assert_equal(all.total, total + 1, "After uploading an url")
         total = total + 1
 
-        # vcf_file = File.join(File.dirname(__FILE__), 'data/sample.vcf.gz')
-        # response = SolveBio::Sample.create('hg19', {:vcf_file => vcf_file})
-        # expect = {
-        #     'class_name' => 'Sample',
-        #     'annotations_count' => 0,
-        #     'description' => '',
-        #     'genome_build' => 'hg19',
-        #     'vcf_md5' => '83acd96171c72ab2bb35e9c52961afd9',
-        #     'vcf_size' => 592
-        # }
+        vcf_file = File.join(File.dirname(__FILE__), 'data/sample.vcf.gz')
+        response = SolveBio::Sample.create('hg19', {:vcf_file => vcf_file})
+        expect = {
+            'class_name' => 'Sample',
+            'annotations_count' => 0,
+            'description' => '',
+            'genome_build' => 'hg19',
+            'vcf_md5' => '83acd96171c72ab2bb35e9c52961afd9',
+            'vcf_size' => 592
+        }
 
-        # check_response(response, expect,
-        #                'create sample.vcf.gz from a file')
+        check_response(response, expect,
+                       'create sample.vcf.gz from a file')
 
         # assert_equal(all.total, total, "After uploading a file")
 
