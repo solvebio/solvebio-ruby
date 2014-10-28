@@ -1,6 +1,7 @@
 language: ruby
 before_script:
-  - gem install netrc
+  - gem install netrc --version=0.7.7
+  - gem install rest_client addressable
   - touch ~/.netrc
   - chmod 0600 ~/.netrc
 env:
