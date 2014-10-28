@@ -37,7 +37,7 @@ class SolveBio::Sample < SolveBio::APIResource
     # VCF format.
     def self.create_from_file(genome_build, vcf_file)
 
-        files = {:vcf_file  => File.open(vcf_file, mode='rb')}
+        files = {:vcf_file  => File.open(vcf_file, 'rb')}
         params = {:genome_build  => genome_build}
         response = SolveBio::Client.client
             .request('post', class_url(self),
