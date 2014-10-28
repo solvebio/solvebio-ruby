@@ -1,4 +1,6 @@
-# A sample Gemfile
+# A bundler Gemfile for specifying dependencies. See http://bundler.io/
 source "https://rubygems.org"
 
-gem "netrc"
+gem 'addressable'
+gem 'rest_client'
+gem 'netrc'

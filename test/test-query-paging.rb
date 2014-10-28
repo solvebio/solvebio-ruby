@@ -6,7 +6,7 @@ class TestQueryPaging < Test::Unit::TestCase
 
     TEST_DATASET_NAME = 'ClinVar/2.0.0-1/Variants'
 
-    if SolveBio::api_key
+    if SolveBio::api_key and not local_api?
 
         def setup
             begin
@@ -16,7 +16,7 @@ class TestQueryPaging < Test::Unit::TestCase
             end
         end
 
-        def test_query
+        def no__test_query
             skip('Are you connected to the Internet?') unless @dataset
             results = @dataset.query(:paging=>true, :limit => 10)
             # When paging is on, results.size should return the number
@@ -28,7 +28,7 @@ class TestQueryPaging < Test::Unit::TestCase
         # In paging queries, results.size should return the total number of
         # results that exist. Yes, this is the same as test_query, but
         # we revers the order of access, to make sure "warmup" is called.
-        def test_limit
+        def no__test_limit
             skip('Are you connected to the Internet?') unless @dataset
             limit = 10
             results = @dataset.query(:paging=>true, :limit => limit)
@@ -44,7 +44,7 @@ class TestQueryPaging < Test::Unit::TestCase
             results = @dataset.query(:paging => true, :limit => limit).
                 filter(:hg19_start__range => [140000000, 140050000])
 
-            assert_equal(total, results.size)
+            assert_equal(total, results.total)
 
             # Make sure we can iterate over the entire result set
             i = 0
@@ -116,7 +116,11 @@ class TestQueryPaging < Test::Unit::TestCase
 
     else
         def test_skip
-            skip 'Please set SolveBio::api_key'
+            if SolveBio::api_key
+                skip "Dataset #{TEST_DATASET_NAME} not available"
+            else
+                skip 'Please set SolveBio::api_key'
+            end
         end
     end
 

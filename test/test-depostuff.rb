@@ -2,6 +2,7 @@
 
 require 'test/unit'
 require_relative '../lib/resource/main'
+require_relative '../lib/main'
 
 class DepoStuffTest < Test::Unit::TestCase
 
@@ -10,7 +11,7 @@ class DepoStuffTest < Test::Unit::TestCase
         if depos.total == 0
             skip('no depositories found')
         end
-        print "depos.total %s" % [depos.total]  # compare with ruby
+        # print "depos.total %s" % [depos.total]  # compare with python
         depo = depos[:data][0]
         assert(depo.member?('id'),
                'Should be able to get id in depository')

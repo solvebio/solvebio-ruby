@@ -26,7 +26,7 @@ class SolveBio::APIResource < SolveBio::SolveObject
 
     def self.class_url(cls)
         cls_name = cls.to_s.sub('SolveBio::', '')
-        "/v1/#{class_to_api_name(cls)}"
+        "/v1/#{class_to_api_name(cls_name)}"
     end
 
 

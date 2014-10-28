@@ -1,4 +1,5 @@
 require_relative 'apiresource'
+require_relative '../query'
 
 class SolveBio::Dataset < SolveBio::APIResource
 

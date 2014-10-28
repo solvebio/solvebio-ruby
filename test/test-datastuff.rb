@@ -1,6 +1,6 @@
 # Test Dataset, DatasetField, and Facets
 require 'test/unit'
-require_relative '../lib/resource/main'
+require_relative '../lib/solvebio'
 
 class TestDataStuff < Test::Unit::TestCase
 
