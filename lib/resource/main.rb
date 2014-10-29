@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require_relative 'solveobject'
+require_relative 'annotation'
 require_relative 'apiresource'
 require_relative 'dataset'
 require_relative 'datasetfield'
@@ -72,6 +73,7 @@ end
 
 
 SolveBio::SolveObject::CONVERSION = {
+    'Annotation'        => SolveBio::Annotation,
     'Depository'        => SolveBio::Depository,
     'DepositoryVersion' => SolveBio::DepositoryVersion,
     'Dataset'           => SolveBio::Dataset,
