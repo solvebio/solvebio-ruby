@@ -55,7 +55,7 @@ module SolveBio::CreateableAPIResource
         def create(params={})
             url = SolveBio::APIResource.class_url(self)
             response = SolveBio::Client.client
-                .request('post', url, {:params => params} )
+                .request('post', url, {:payload => params} )
             to_solve_object(response)
         end
     end
@@ -63,19 +63,15 @@ end
 
 
 module SolveBio::DeletableAPIResource
-    def self.included base
-        base.extend ClassMethods
-    end
 
-    module ClassMethods
-
-        def delete(params={})
-            begin
-                refresh_from(request('delete', instance_url(),
-                                     {:params => params}))
-            rescue SolveBio::Error => response
-            end
-            convert_to_solve_object(response)
+    def self.delete(cls, id, params={})
+        begin
+            cls_name = SolveBio::APIResource::class_to_api_name(cls.class)
+            url = "/v1/#{cls_name}/#{id}"
+            cls.refresh_from(SolveBio::Client.client
+                                .request('delete', url, {:params => params}))
+        rescue SolveBio::Error => response
+            response.to_solve_object(cls)
         end
     end
 end

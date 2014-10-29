@@ -13,9 +13,18 @@ class SolveBio::Sample < SolveBio::APIResource
     include SolveBio::ListableAPIResource
     include SolveBio::HelpableAPIResource
 
+    def annotate
+        SolveBio::Annotation.create :sample_id => self.id
+    end
+
+    def delete(params={})
+        # Make sure we get the right delete. Hash also has a delete.
+        SolveBio::DeletableAPIResource.delete self, self.id,  params
+    end
+
     # FIXME: Rubyize APIResource.retrieve
     def self.retrieve(id, params={})
-        return SolveBio::APIResource.retrieve(self, id)
+        SolveBio::APIResource.retrieve(self, id)
     end
 
     def self.create(genome_build, params={})
