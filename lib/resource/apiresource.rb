@@ -64,8 +64,25 @@ end
 
 module SolveBio::DeletableAPIResource
 
-    def self.delete(cls, id, params={})
+    def delete(params={})
         begin
+            self.refresh_from(SolveBio::Client.client
+                                 .request('delete', instance_url,
+                                          {:params => params}))
+        rescue SolveBio::Error => response
+            response.to_solve_object(cls)
+        end
+    end
+end
+
+module SolveBio::DownloadablAPIResource
+
+    #
+    # Download the file to the specified path (or a temp. dir).
+    #
+    def self.download(cls, url, path=nil)
+        begin
+            download_url = url + '/download'
             cls_name = SolveBio::APIResource::class_to_api_name(cls.class)
             url = "/v1/#{cls_name}/#{id}"
             cls.refresh_from(SolveBio::Client.client
