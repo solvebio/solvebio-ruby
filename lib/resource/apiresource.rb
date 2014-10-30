@@ -98,17 +98,9 @@ module SolveBio::DownloadableAPIResource
         filename = File.join(path, filename)
         response = nil
 
-        RestClient::Request.
-            execute(:method      => 'get',
-                    :url         => download_url,
-                    :verify_ssl  => OpenSSL::SSL::VERIFY_NONE,
-                    :ssl_version => 'SSLv23') do
-            |resp, request, result, &block|
-            response = resp
-            if response.code < 200 or response.code >= 400
-                handle_api_error(result)
-            end
-        end
+        response = SolveBio::Client.client.get(download_url, :raw => true,
+                                               :default_headers => false)
+
         if not (200 <= response.code and response.code < 400)
             SolveBio.Client.handle_api_error(response)
         end
