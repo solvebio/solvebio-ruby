@@ -37,11 +37,20 @@ class SolveBio::Client
     end
 
     DEFAULT_REQUEST_OPTS = {
-        :vcf_file => nil, # Set to File handle to send a file
-        :timeout  => 80,  # Seconds
-        :raw      => false
+        :vcf_file     => nil, # Set to File handle to send a file
+        :timeout      => 80,  # Seconds
+        :raw          => false,
+        :authenticate => true
     }
 
+    # Issues an HTTP GET across the wire via the Ruby 'rest-client'
+    # library. See *request()* for information on opts.
+    def get(url, opts={})
+        request('get', url, opts)
+    end
+
+    # Issues an HTTP POST across the wire via the Ruby 'rest-client'
+    # library. See *request* for information on opts.
     def post(url, data, opts={})
         opts[:payload] =
             if opts.member?(:vcf_file)
@@ -53,7 +62,7 @@ class SolveBio::Client
         request('post', url, opts)
     end
 
-    # Issues an HTTP Request across the wire via the Ruby 'net/http'
+    # Issues an HTTP Request across the wire via the Ruby 'rest-client'
     # library.
     def request(method, url, opts={})
 
@@ -68,7 +77,6 @@ class SolveBio::Client
             url = Addressable::URI.join(api_host, url).to_s
         end
 
-        headers['Authorization'] = "Token #{@api_key}" if @api_key
         if opts[:vcf_file]
             headers.delete(:content_type)
             headers['Content-Type'] = 'text/plain'
@@ -76,6 +84,8 @@ class SolveBio::Client
 
         # Handle some common options
         headers = @headers.merge(opts[:headers]||{})
+        headers['Authorization'] = "Token #{@api_key}" if
+            opts[:authenticate] and @api_key
 
         # Note: there's also read_timeout and ssl_timeout
         # http.open_timeout = opts[:timeout] # in seconds
@@ -96,8 +106,8 @@ class SolveBio::Client
                     :payload     => opts[:payload]) do
             |resp, request, result, &block|
             response = resp
-            if response.code < 200 or response.code >= 300
-                handle_api_error(result)
+            if response.code < 200 or response.code >= 400
+                self.handle_api_error(result)
             end
         end
 
@@ -105,7 +115,7 @@ class SolveBio::Client
         response
     end
 
-    def handle_request_error(e)
+    def self.handle_request_error(e)
         # FIXME: go over this. It is still a rough translation
         # from the python.
         err = e.inspect
@@ -131,6 +141,14 @@ class SolveBio::Client
 
     def self.client
         @@client ||= SolveBio::Client.new()
+    end
+
+    def self.get(*args)
+        client.get(*args)
+    end
+
+    def self.post(*args)
+        client.post(*args)
     end
 
     def self.request(*args)

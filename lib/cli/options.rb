@@ -46,7 +46,7 @@ SolveBio Commands:
     login [email]       Login and save credentials. Use email if provided.
     logout              Logout and delete saved credentials
     whoami              Show your SolveBio email address
-    shell               Open the SolveBio Python shell
+    shell               Open a SolveBio IRB shell
     test                Make sure the SolveBio API is working correctly
 EOH
                 exit

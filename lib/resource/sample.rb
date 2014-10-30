@@ -9,7 +9,7 @@ require_relative '../errors'
 class SolveBio::Sample < SolveBio::APIResource
 
     include SolveBio::DeletableAPIResource
-    # include SolveBio::DownloadableAPIResource
+    include SolveBio::DownloadableAPIResource
     include SolveBio::ListableAPIResource
     include SolveBio::HelpableAPIResource
 
