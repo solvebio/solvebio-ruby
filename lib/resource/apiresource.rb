@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'uri'
+require 'json'
+require 'rest_client'
 require_relative 'solveobject'
 require_relative '../main'
 require_relative '../client'
@@ -68,28 +70,56 @@ module SolveBio::DeletableAPIResource
         begin
             self.refresh_from(SolveBio::Client.client
                                  .request('delete', instance_url,
-                                          {:params => params}))
+                                          {:payload => params}))
         rescue SolveBio::Error => response
             response.to_solve_object(cls)
         end
     end
 end
 
-module SolveBio::DownloadablAPIResource
+module SolveBio::DownloadableAPIResource
 
     #
     # Download the file to the specified path (or a temp. dir).
     #
-    def self.download(cls, url, path=nil)
-        begin
-            download_url = url + '/download'
-            cls_name = SolveBio::APIResource::class_to_api_name(cls.class)
-            url = "/v1/#{cls_name}/#{id}"
-            cls.refresh_from(SolveBio::Client.client
-                                .request('delete', url, {:params => params}))
-        rescue SolveBio::Error => response
-            response.to_solve_object(cls)
+    def download(url, path=nil)
+        download_url = instance_url + '/download'
+        response = SolveBio::Client.client.get(download_url, :raw => true)
+        if response.code != 302
+            # Some kind of error. We expect a redirect
+            raise SolveError('Could not download file: response code' %
+                             response.status_code)
         end
+
+        download_url = response.headers[:location]
+        filename = download_url.split('%3B%20filename%3D')[1]
+
+        path = Dir.tmpdir unless path
+        filename = File.join(path, filename)
+        response = nil
+
+        RestClient::Request.
+            execute(:method      => 'get',
+                    :url         => download_url,
+                    :verify_ssl  => OpenSSL::SSL::VERIFY_NONE,
+                    :ssl_version => 'SSLv23') do
+            |resp, request, result, &block|
+            response = resp
+            if response.code < 200 or response.code >= 400
+                handle_api_error(result)
+            end
+        end
+        if not (200 <= response.code and response.code < 400)
+            SolveBio.Client.handle_api_error(response)
+        end
+
+        File.open(filename, 'wb') do |fh|
+            fh.write(response.body)
+        end
+
+        self['local_filename'] = filename
+        self['code'] = response.code
+        self
     end
 end
 
