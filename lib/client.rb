@@ -37,10 +37,10 @@ class SolveBio::Client
     end
 
     DEFAULT_REQUEST_OPTS = {
-        :vcf_file     => nil, # Set to File handle to send a file
-        :timeout      => 80,  # Seconds
-        :raw          => false,
-        :authenticate => true
+        :vcf_file         => nil, # Set to File handle to send a file
+        :timeout         => 80,  # Seconds
+        :raw             => false,
+        :default_headers => true
     }
 
     # Issues an HTTP GET across the wire via the Ruby 'rest-client'
@@ -77,18 +77,13 @@ class SolveBio::Client
             url = Addressable::URI.join(api_host, url).to_s
         end
 
-        if opts[:vcf_file]
-            headers.delete(:content_type)
-            headers['Content-Type'] = 'text/plain'
+        # Handle some default options and add authorization header
+        if opts[:default_headers]
+            headers = @headers.merge(opts[:headers]||{})
+            headers['Authorization'] = "Token #{@api_key}"
+        else
+            headers = nil
         end
-
-        # Handle some common options
-        headers = @headers.merge(opts[:headers]||{})
-        headers['Authorization'] = "Token #{@api_key}" if
-            opts[:authenticate] and @api_key
-
-        # Note: there's also read_timeout and ssl_timeout
-        # http.open_timeout = opts[:timeout] # in seconds
 
         SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
         # puts 'API %s Request: %s' % [method.upcase, url]
