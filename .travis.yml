@@ -1,19 +1,18 @@
 language: ruby
 before_script:
-  - gem install netrc --version=0.7.7
-  - gem install rest_client addressable
-  - touch ~/.netrc
-  - chmod 0600 ~/.netrc
+- gem install netrc --version=0.7.7
+- gem install rest_client addressable
+- touch ~/.netrc
+- chmod 0600 ~/.netrc
 env:
   global:
-    - "COLUMNS=80"
+  - COLUMNS=80
 script: rake
 rvm:
-  - 1.9.3
-  - 2.0.0
-  - 2.1.1
-  - 2.1.2
-
+- 1.9.3
+- 2.0.0
+- 2.1.1
+- 2.1.2
 notifications:
-slack:
-    secure: WvTImIlFKtCSTrcpk11RB467ybQBmZatk1k9CEEb5qkRRX0IUhmmNzV4xKIJR40Hf1u84uW6j5AeD/OChHycU+1C/OmMgyFAIYMAkE8db+dGtpdlQO5a5Jj9xzK8nfUKrw6Y3JzDTn+mQkeFyRP6D8fj3WPWOV5G9EOTY62sLiQ=
+  slack:
+    secure: aIpZOAZwIk/3ZToZqAPEdM4yKyD6UuDmR+KyH2eL+24mTxU+Jp8hum02LlRsdeOXweup9Ov/h7SuDQXfEt506oLmkhfDwk+v2j2RkHmFco4l4M+rI1QAtJw1xhzrscwgnJqkW8n81U5Se84KzU+x7N6EvDcki8G1KlbuU2A9f74=
