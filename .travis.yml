@@ -7,7 +7,6 @@ before_script:
 env:
   global:
     - "COLUMNS=80"
-    - "SOLVEBIO_API_KEY=0cedb161d845e6a58ec6781478b8314c536e632f"
 script: rake
 rvm:
   - 1.9.3
