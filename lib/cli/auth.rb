@@ -51,7 +51,7 @@ module SolveBio::Auth
     # Prompt user for login information (email/password).
     # Email and password are used to get the user's auth_token key.
     #
-    def login(email=nil, password=nil)
+    def login(email=nil)
         delete_credentials
 
         email, password = ask_for_credentials email unless
