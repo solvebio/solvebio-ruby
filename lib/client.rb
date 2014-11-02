@@ -150,31 +150,3 @@ class SolveBio::Client
     end
 
 end
-
-if __FILE__ == $0
-    # puts SolveBio::Client.client.headers
-    # puts SolveBio::Client.client.api_host
-    # puts '-' * 30
-    # begin
-    #     response = SolveBio::Client
-    #         .client.request('get', 'http://google.com', :raw => true, :timeout => 30)
-    # rescue SolveBio::Error => e
-    #     puts e
-    # end
-    # puts response.inspect
-    # puts '-' * 30
-    # response = SolveBio::Client
-    #     .client.request 'get', 'http://www.google.com', :raw => true
-    # puts response.inspect
-    # puts '-' * 30
-    # response = SolveBio::Client
-    #     .client.request 'get', 'https://www.google.com', :raw => true
-    # puts response.inspect
-
-    puts '-' * 30
-    response = SolveBio::Client
-        .client.request('post', '/v1/auth/token',
-                        {:params => {:email => 'rocky', :password => 'bar'}})
-    puts response
-
-end
