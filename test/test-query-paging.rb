@@ -27,7 +27,7 @@ class TestQueryPaging < Test::Unit::TestCase
 
         # In paging queries, results.size should return the total number of
         # results that exist. Yes, this is the same as test_query, but
-        # we revers the order of access, to make sure "warmup" is called.
+        # we reverse the order of access, to make sure "warmup" is called.
         def test_limit
             skip('Are you connected to the Internet?') unless @dataset
             limit = 10

@@ -7,20 +7,24 @@ require_relative '../lib/credentials'
 # Does .netrc reading and manipulation work?
 class TestNetrc < Test::Unit::TestCase
 
-    warn_level = $VERBOSE
-    $VERBOSE = nil
-    SolveBio::API_HOST = 'https://api.solvebio.com'
-    $VERBOSE = warn_level
 
     def setup
         @netrc_path_save = ENV["NETRC_PATH"]
         path = ENV['NETRC_PATH'] = File.join(File.dirname(__FILE__), 'data')
         FileUtils.cp(File.join(path, 'netrc-save'), File.join(path, '.netrc'))
         File.chmod(0600, "#{path}/.netrc")
+        @old_warn_level = $VERBOSE
+        @old_api_host = SolveBio::API_HOST
+        $VERBOSE = nil
+        SolveBio.const_set(:API_HOST, 'https://api.solvebio.com')
+        $VERBOSE = @old_warn_level
     end
 
     def teardown
         ENV["NETRC_PATH"] = @netrc_path_save
+        $VERBOSE = nil
+        SolveBio.const_set(:API_HOST, @old_api_host)
+        $VERBOSE = @old_warn_level
     end
 
     include SolveBio::Credentials
