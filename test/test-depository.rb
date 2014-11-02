@@ -1,10 +1,9 @@
 # Test Depository, DepositoryVersions
 
 require_relative './helper'
+class DepositoryTest < Test::Unit::TestCase
 
-class DepoStuffTest < Test::Unit::TestCase
-
-    def test_depostuff
+    def test_depositories
         depos = SolveBio::Depository.all()
         if depos.total == 0
             skip('no depositories found')
