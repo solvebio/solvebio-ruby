@@ -62,10 +62,8 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
         save()
     end
 
-    # FIXME: is there a better field to sort on?
     def <=>(other)
-        require 'trepanning'; debugger
-        self.id <=> other.id
+        self[:full_name] <=> other[:full_name]
     end
 
 end
