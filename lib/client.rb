@@ -97,7 +97,6 @@ class SolveBio::Client
                     :url         => url,
                     :headers     => headers,
                     :ssl_version => 'SSLv23',
-                    :verify_ssl  => OpenSSL::SSL::VERIFY_NONE,
                     :payload     => opts[:payload]) do
             |resp, request, result, &block|
             response = resp
@@ -130,7 +129,7 @@ class SolveBio::Client
     # *response* parameter is a (subclass) of Net::HTTPResponse.
     def handle_api_error(response)
         SolveBio::logger.info("API Error: #{response.msg}") unless
-            [301, 400, 401, 403, 404].member?(response.code.to_i)
+            [400, 401, 403, 404].member?(response.code.to_i)
         raise SolveBio::Error.new(response)
     end
 
