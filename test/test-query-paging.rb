@@ -16,7 +16,7 @@ class TestQueryPaging < Test::Unit::TestCase
             end
         end
 
-        def no__test_query
+        def test_query
             skip('Are you connected to the Internet?') unless @dataset
             results = @dataset.query(:paging=>true, :limit => 10)
             # When paging is on, results.size should return the number
@@ -28,7 +28,7 @@ class TestQueryPaging < Test::Unit::TestCase
         # In paging queries, results.size should return the total number of
         # results that exist. Yes, this is the same as test_query, but
         # we revers the order of access, to make sure "warmup" is called.
-        def no__test_limit
+        def test_limit
             skip('Are you connected to the Internet?') unless @dataset
             limit = 10
             results = @dataset.query(:paging=>true, :limit => limit)
