@@ -101,7 +101,7 @@ module SolveBio::DownloadableAPIResource
         response = SolveBio::Client.client.get(download_url, :raw => true,
                                                :default_headers => false)
 
-        if not (200 <= response.code and response.code < 400)
+        if not(200 <= response.code and response.code < 400)
             SolveBio.Client.handle_api_error(response)
         end
 

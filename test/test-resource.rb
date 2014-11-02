@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
-require 'test/unit'
-require_relative '../lib/solvebio'
+require_relative './helper'
+require_relative '../lib/resource/main'
 
 class TestResource < Test::Unit::TestCase
 
