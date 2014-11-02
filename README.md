@@ -10,13 +10,15 @@ For more information about SolveBio, see https://www.solvebio.com
 
 # Installation
 
-Right now we only support installing from git:
+    gem install solvebio # may need sudo
+
+Installing from git:
 
     git clone https://github.com/solvebio/solvebio-ruby.git
 	cd solvebio-ruby
 	gem install netrc  # install gem dependencies, may need sudo
-	rake test          # or make test
-    sudo rake install  # or make install
+	rake test          # or "make test"
+    sudo rake install  # or "make install"
 
 This also builds a *solvebio* gem which you can use elsewhere.
 

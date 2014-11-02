@@ -37,8 +37,6 @@ class SolveBio::Client
     end
 
     DEFAULT_REQUEST_OPTS = {
-        :vcf_file         => nil, # Set to File handle to send a file
-        :timeout         => 80,  # Seconds
         :raw             => false,
         :default_headers => true
     }
@@ -64,6 +62,8 @@ class SolveBio::Client
 
     # Issues an HTTP Request across the wire via the Ruby 'rest-client'
     # library.
+    # options:
+    #      vcf_file
     def request(method, url, opts={})
 
         opts = DEFAULT_REQUEST_OPTS.merge(opts)
@@ -96,8 +96,8 @@ class SolveBio::Client
             execute(:method      => method,
                     :url         => url,
                     :headers     => headers,
-                    :verify_ssl  => OpenSSL::SSL::VERIFY_NONE,
                     :ssl_version => 'SSLv23',
+                    :verify_ssl  => OpenSSL::SSL::VERIFY_NONE,
                     :payload     => opts[:payload]) do
             |resp, request, result, &block|
             response = resp
