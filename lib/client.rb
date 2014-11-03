@@ -51,8 +51,7 @@ class SolveBio::Client
     # library. See *request* for information on opts.
     def post(url, data, opts={})
         opts[:payload] =
-            if opts.member?(:vcf_file)
-                data[:vcf_file] = opts[:vcf_file]
+            if opts.member?(:no_json)
                 data
             else
                 data.to_json
@@ -62,8 +61,6 @@ class SolveBio::Client
 
     # Issues an HTTP Request across the wire via the Ruby 'rest-client'
     # library.
-    # options:
-    #      vcf_file
     def request(method, url, opts={})
 
         opts = DEFAULT_REQUEST_OPTS.merge(opts)
