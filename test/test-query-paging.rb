@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
+require 'socket'
 require_relative 'helper'
+require_relative '../lib/resource/main'
 
 class TestQueryPaging < Test::Unit::TestCase
-
-    TEST_DATASET_NAME = 'ClinVar/2.0.0-1/Variants'
 
     if SolveBio::api_key and not local_api?
 
@@ -40,9 +40,9 @@ class TestQueryPaging < Test::Unit::TestCase
         def test_paging
             skip('Are you connected to the Internet?') unless @dataset
             limit = 100
-            total = 7
+            total = 4
             results = @dataset.query(:paging => true, :limit => limit).
-                filter(:hg19_start__range => [140000000, 140050000])
+                filter(:hgnc_id__in => [2396, 24040, 2409, 2411])
 
             assert_equal(total, results.total)
 
@@ -58,13 +58,13 @@ class TestQueryPaging < Test::Unit::TestCase
 
         def test_range
             skip('Are you connected to the Internet?') unless @dataset
-            limit = 100
+            limit = 30
             results = @dataset.query(:paging => true, :limit => limit).
-                filter(:hg19_start__range => [140000000, 140050000])[2..5]
+                filter(:hgnc_id__range => [10, 6000])[2..5]
             assert_equal(3, results.size)
 
             results = @dataset.query(:paging => true, :limit => limit).
-                filter(:hg19_start__range => [140000000, 140050000])[0..8]
+                filter(:hgnc_id__range => [10, 6000])[0..7]
             assert_equal(7, results.size)
         end
 
@@ -74,8 +74,8 @@ class TestQueryPaging < Test::Unit::TestCase
             idx1 = 5
 
             query = proc{
-                @dataset.query( :paging => true, :limit => 20).
-                filter(:hg19_start__range => [140000000, 140060000])[2..10]
+                @dataset.query( :paging => true, :limit => 10).
+                filter(:hgnc_id__range => [1000, 5000])[2..10]
             }
 
             results_slice = query.call()[idx0...idx1]
@@ -88,8 +88,8 @@ class TestQueryPaging < Test::Unit::TestCase
             assert_equal(results_slice.size, results_paging.size)
 
             results_paging.size.times do |i|
-                id_a = results_paging[i][:hg19_start]
-                id_b = results_slice[i][:hg19_start]
+                id_a = results_paging[i][:hgnic_id]
+                id_b = results_slice[i][:hgnc_id]
                 assert_equal(id_a, id_b)
             end
         end
