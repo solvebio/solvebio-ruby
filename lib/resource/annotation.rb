@@ -10,7 +10,6 @@ class SolveBio::Annotation < SolveBio::APIResource
     include SolveBio::DeletableAPIResource
     include SolveBio::DownloadableAPIResource
     include SolveBio::ListableAPIResource
-    include SolveBio::HelpableAPIResource
 end
 
 if __FILE__ == $0
