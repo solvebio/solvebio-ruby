@@ -1,9 +1,9 @@
 $VERBOSE = true
+require 'socket'
 require_relative 'helper'
+require_relative '../lib/resource/main'
 
 class TestQuery < Test::Unit::TestCase
-
-    TEST_DATASET_NAME = 'ClinVar/2.0.0-1/Variants'
 
     if SolveBio::api_key and not local_api?
 
@@ -41,7 +41,7 @@ class TestQuery < Test::Unit::TestCase
             skip('Are you connected to the Internet?') unless @dataset
             limit = 100
             results = @dataset.query(:paging=>false, :limit => limit).
-                filter({:hg19_start => 1234})
+                filter({:omim_ids => 999999})
             assert_equal(0, results.size)
 
             assert_raise IndexError do
@@ -49,7 +49,7 @@ class TestQuery < Test::Unit::TestCase
             end
 
             results = @dataset.query(:paging=>false, :limit => limit).
-                filter :hg19_start => 148459988
+                filter :omim_ids => 123631
             assert_equal(1, results.size)
         end
 
@@ -58,15 +58,14 @@ class TestQuery < Test::Unit::TestCase
         def test_limit_filter
             skip('Are you connected to the Internet?') unless @dataset
             limit = 10
-            num_filters = 3
+            num_filters = 2
 
-            filters3 =
-                SolveBio::Filter.new(:hg19_start => 148459988) |
-                SolveBio::Filter.new(:hg19_start => 148562304) |
-                SolveBio::Filter.new(:hg19_start => 148891521)
+            filters =
+                SolveBio::Filter.new(:omim_ids => 123631) |
+                SolveBio::Filter.new(:omim_ids => 123670)
 
             results = @dataset.query(:paging=>false, :limit => limit,
-                                     :filters => filters3)
+                                     :filters => filters)
 
             num_filters.times do |i|
                 assert results[i]

@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
+require 'socket'
 require_relative 'helper'
+require_relative '../lib/resource/main'
 
 class TestQueryBatch < Test::Unit::TestCase
-
-    TEST_DATASET_NAME = 'ClinVar/2.0.0-1/Variants'
 
     if SolveBio::api_key and not local_api?
 
@@ -22,19 +22,17 @@ class TestQueryBatch < Test::Unit::TestCase
                 SolveBio::BatchQuery
                     .new([
                           @dataset.query(:limit => 1, :fields => [:bogus_field]),
-                          @dataset.query(:limit => 10).filter(:hg19_start__gt => 100000)
+                          @dataset.query(:limit => 10).filter(:bogus_id__gt => 100000)
                          ]).execute
             end
 
-            dataset2 = SolveBio::Dataset.retrieve('HGNC/1.0.0-1/HGNC')
+            dataset2 = SolveBio::Dataset.retrieve('ClinVar/2.0.0-1/Variants')
             results = SolveBio::BatchQuery
                 .new([
                       dataset2.query(:limit => 1),
-                      @dataset.query(:limit => 10).filter(:hg19_start => 100000)
+                      @dataset.query(:limit => 10).filter(:hgnc_id__gt => 100)
                      ]).execute
             assert_equal(2, results.length)
-
-
 
         end
 
@@ -42,7 +40,7 @@ class TestQueryBatch < Test::Unit::TestCase
             skip('Are you connected to the Internet?') unless @dataset
             queries = [
                        @dataset.query(:limit => 1),
-                       @dataset.query(:limit => 10).filter(:hg19_start__gt => 100000)
+                       @dataset.query(:limit => 10).filter(:hgnc_id__gt => 100)
                       ]
             results = SolveBio::BatchQuery.new(queries).execute
             assert_equal(2, results.size)
