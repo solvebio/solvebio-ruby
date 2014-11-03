@@ -42,9 +42,10 @@ class SolveBio::Sample < SolveBio::APIResource
     def self.create_from_file(genome_build, vcf_file)
 
         fh = File.open(vcf_file, 'rb')
-        params = {:genome_build  => genome_build}
+        params = {:genome_build  => genome_build,
+                  :vcf_file => fh}
         response = SolveBio::Client.client.post(class_url(self), params,
-                                                :vcf_file => fh)
+                                                :no_json => true)
         to_solve_object(response)
     end
 
