@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-ENV['COLUMNS'] = '80'
 require_relative '../lib/tabulate'
 $VERBOSE = true
 require 'test/unit'
