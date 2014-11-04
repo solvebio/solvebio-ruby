@@ -7,23 +7,20 @@ require 'addressable/uri'
 require_relative 'credentials'
 require_relative 'errors'
 
-# rest_client will use .netrc and basic authentication if
-# it finds our api_host. This is *not* what we want here.
-# There is no option to tell rest_client not to avoid
-# using .netrc. So as a last resort, we'll supercede
-# rest_client and make it do nothing.
-class RestClient::Request
-    @@solvebio_old_verbose = $VERBOSE
-    $VERBOSE = false
-    def setup_credentials(req); end
-    $VERBOSE = @@solvebio_old_verbose
-end
-
 # A requests-based HTTP client for SolveBio API resources
 class SolveBio::Client
 
     attr_reader :headers, :api_host
     attr_accessor :api_key
+
+    # Add our own kind of Authorization tokens. This has to be
+    # done this way, late, because the rest-client gem looks for
+    # .netrc and will set basic authentication if it finds a match.
+    RestClient.add_before_execution_proc do | req, args |
+        if args[:authorization]
+            req.instance_variable_get('@header')['authorization'] = [args[:authorization]]
+        end
+    end
 
     def initialize(api_key=nil, api_host=nil)
         @api_key = api_key || SolveBio::api_key
@@ -88,19 +85,22 @@ class SolveBio::Client
         if opts[:default_headers] and @api_key
             headers = @headers.merge(opts[:headers]||{})
             headers['Authorization'] = "Token #{@api_key}"
+            authorization = "Token #{@api_key}"
         else
             headers = nil
+            authorization = nil
         end
 
         SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
 
         response = nil
         RestClient::Request.
-            execute(:method      => method,
-                    :url         => url,
-                    :headers     => headers,
-                    :timeout     => opts[:timeout] || 80,
-                    :payload     => opts[:payload]) do
+            execute(:method        => method,
+                    :url           => url,
+                    :headers       => headers,
+                    :authorization => authorization,
+                    :timeout       => opts[:timeout] || 80,
+                    :payload       => opts[:payload]) do
             |resp, request, result, &block|
             response = resp
             if response.code < 200 or response.code >= 400
