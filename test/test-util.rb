@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
 require 'test/unit'
-require_relative '../lib/solveobject'
+require_relative '../lib/util'
 
 class TestSolveObject < Test::Unit::TestCase
 
@@ -20,8 +20,23 @@ class TestSolveObject < Test::Unit::TestCase
             ]
         data.each do |triple|
             assert_equal(triple[1],
-                         camelcase_to_underscore(triple[0]),
+                         SolveBio::camelcase_to_underscore(triple[0]),
                          triple[2])
         end
     end
+
+    def test_pluralize
+        data =
+            [
+             ['depository',  'depositories', "ends in 'y'"],
+             ['dataset',     'datasets',     "simply adds an 's'"]
+            ]
+        data.each do |triple|
+            assert_equal(triple[1],
+                         SolveBio::pluralize(triple[0]),
+                         triple[2])
+        end
+
+    end
+
 end

@@ -2,15 +2,7 @@
 
 require 'json'
 require 'set'
-require_relative 'client'
-
-# Add underscore before internal uppercase letters. Also, lowercase
-# all letters.
-def camelcase_to_underscore(name)
-    # Using [[:upper:]] and [[:lower]] should help with Unicode.
-    s1 = name.gsub(/(.)([[:upper:]])([[:lower:]]+)/){"#{$1}_#{$2}#{$3}"}
-    return (s1.gsub(/([a-z0-9])([[:upper:]])/){"#{$1}_#{$2}"}).downcase
-end
+require_relative '../client'
 
 # Base class for all SolveBio API resource objects
 class SolveBio::SolveObject < Hash
@@ -43,13 +35,13 @@ class SolveBio::SolveObject < Hash
     # Note: *key* is turned into a string before access, because the underlying key type
     # is a string.
     def [](key)
-        return super(key.to_s)
+        super(key.to_s)
     end
 
     def self.construct_from(cls, values)
         instance = cls.new(values['id'])
         instance.refresh_from(values)
-        return instance
+        instance
     end
 
     def refresh_from(values)
@@ -58,9 +50,10 @@ class SolveBio::SolveObject < Hash
         values.each { |k, v| self[k] = to_solve_object(v) }
     end
 
-    def request(method, url, params=nil)
-        response = SolveBio::Client.client.request(method, url, params)
-        return to_solve_object(response)
+    def request(method, url, params={})
+        response = SolveBio::Client.client
+            .request method, url, {:params => params}
+        to_solve_object(response)
     end
 
     def inspect
@@ -74,27 +67,55 @@ class SolveBio::SolveObject < Hash
             ident_parts << "full_name=#{self['full_name']}"
         end
 
-        return '<%s:%x> JSON: %s' % [ident_parts.join(' '),
-                                     self.object_id, self.to_json]
+        '<%s:%x> JSON: %s' % [ident_parts.join(' '),
+                              self.object_id, self.to_json]
 
     end
 
     def to_s
         # No equivalent of Python's json sort_keys?
-        return JSON.pretty_generate(self, :indent => '  ')
-        # return self.to_json json.dumps(self, sort_keys=true, indent=2)
+        JSON.pretty_generate(self, :indent => '  ')
+        # self.to_json json.dumps(self, sort_keys=true, indent=2)
     end
 
     # @property
     def id
-        return self['id']
+        self['id']
+    end
+end
+
+class Hash
+    def to_solvebio(klass=nil)
+        resp = self.dup()
+        if ! klass
+            klass_name ||= resp['class_name']
+            if klass_name.kind_of?(String)
+                klass = SolveBio::SolveObject::CONVERSION[klass_name] ||
+                        SolveBio::SolveObject
+            else
+                klass = SolveBio::SolveObject
+            end
+        end
+        SolveBio::SolveObject::construct_from(klass, resp)
+    end
+end
+
+class Array
+    def to_solvebio
+        return self.map{|i| to_solve_object(i)}
+    end
+end
+
+def to_solve_object(resp)
+    if resp.kind_of?(Array) or
+            (not resp.kind_of? SolveBio::SolveObject and resp.kind_of?(Hash))
+        resp.to_solvebio
+    else
+        return resp
     end
 end
 
 if __FILE__ == $0
-    %w(abc abcDef abc01Def aBcDef a1B2C3 ?Foo Dataset).each do |word|
-        puts word + " -> " + camelcase_to_underscore(word)
-    end
     puts SolveBio::SolveObject.new.inspect
     puts SolveBio::SolveObject.new(64).inspect
 

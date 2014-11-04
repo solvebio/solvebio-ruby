@@ -1,3 +1,10 @@
 require 'test/unit'
-require_relative '../lib/resource'
-SolveBio.api_key = 'ce68f783a65275d3e81463621d825bad20eb20b0'
+ENV['SOLVEBIO_API_HOST'] ||= 'https://api.solvebio.com'
+require_relative '../lib/main'
+
+TEST_DATASET_NAME = 'HGNC/1.0.0-1/HGNC'
+
+
+def local_api?
+    ENV['SOLVEBIO_LOCAL_API']
+end

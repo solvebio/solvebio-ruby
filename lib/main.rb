@@ -7,12 +7,21 @@
 # Have questions or comments? email us at: contact@solvebio.com
 
 require 'logger'
+require 'fileutils'
 
 module SolveBio
 
-    VERSION      = '1.5.0'
+    VERSION      = '1.6.1'
     @api_key     = ENV['SOLVEBIO_API_KEY']
-    @logger      = Logger.new('/tmp/solvebio.log')
+    logfile      =
+        if ENV['SOLVEBIO_LOGFILE']
+            ENV['SOLVEBIO_LOGFILE']
+        else
+            dir = File::expand_path '~/.solvebio'
+            FileUtils.mkdir_p(dir) unless File.exist? dir
+            File::expand_path File.join(dir, 'solvebio.log')
+        end
+    @logger      = Logger.new(logfile)
     API_HOST     = ENV['SOLVEBIO_API_HOST'] || 'https://api.solvebio.com'
 
     # Config info in reports and requests. Encapsulate more?

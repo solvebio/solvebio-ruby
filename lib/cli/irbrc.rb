@@ -10,6 +10,7 @@ IRB.conf[:PROMPT][:SIMPLE] = {
  }
 
 require_relative '../solvebio'
+require_relative '../resource/apiresource'
 include SolveBio::Auth
 
 # Set some demo names that can be used.
@@ -48,6 +49,6 @@ creds = get_credentials()
 if creds
     puts "You are logged in as #{creds[0]}"
 else
-    puts 'You are not logged in yet. Login using "login [email [, password]]"'
+    puts 'You are not logged in yet. Login using "login [email]"'
 
 end

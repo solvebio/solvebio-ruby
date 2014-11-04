@@ -34,14 +34,17 @@ class TestAuth < Test::Unit::TestCase
     def teardown
         # Restore creds to what they were when we started
         save_credentials(*@@creds) if @@creds
-        i_am = run_it @@whoami_cmd
-        assert_equal(@i_was, i_am,
-                     'get_credential and save_creditentials be idempotent')
+        netrc_path = SolveBio::Credentials.netrc_path
+        n = Netrc.read(netrc_path)
+        if n[SolveBio::API_HOST]
+            i_am = run_it @@whoami_cmd
+            assert_equal(@i_was, i_am,
+                         'get_credential and save_creditentials be idempotent')
+        end
     end
 
     # Integration test of logout
     def test_logout
-
         # Dunno if we are logged in or out - log out
         output = run_it @logout_cmd
         # We should be logged out. Try again, and check message.
@@ -51,4 +54,5 @@ class TestAuth < Test::Unit::TestCase
         output = run_it @@whoami_cmd
         assert_equal 'You are not logged-in.', output
     end
+
 end

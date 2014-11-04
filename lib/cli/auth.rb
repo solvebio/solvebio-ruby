@@ -37,9 +37,9 @@ module SolveBio::Auth
             :architecture          => SolveBio::ARCHITECTURE,
             # :processor             => processor(),
         }
-        SolveBio::Client.client.request('post',
-                                        '/v1/reports/install',
-                                        data) rescue nil
+        SolveBio::Client.client
+            .request('post', '/v1/reports/install',
+                     {:params => data}) rescue nil
     end
 
 
@@ -51,7 +51,7 @@ module SolveBio::Auth
     # Prompt user for login information (email/password).
     # Email and password are used to get the user's auth_token key.
     #
-    def login(email=nil, password=nil)
+    def login(email=nil)
         delete_credentials
 
         email, password = ask_for_credentials email unless
@@ -65,8 +65,8 @@ module SolveBio::Auth
         # code.  Not sure if it's valid here, or what the equivalent
         # is.
         begin
-            response = SolveBio::Client.
-                client.request('post', '/v1/auth/token', data)
+            response = SolveBio::Client.client
+                .request 'post', '/v1/auth/token', {:payload => data}
         rescue SolveBio::Error => e
             puts "Login failed: #{e.to_s}"
             return false

@@ -283,7 +283,7 @@ class SolveBio::PagingQuery
         _params.merge!(params)
         SolveBio::logger.debug("querying dataset: #{_params}")
 
-        @response = SolveBio::Client.client.request('post', @data_url, _params)
+        @response = SolveBio::Client.client.post(@data_url, _params)
         @total    = @response['total']
         SolveBio::logger.
             debug("query response took: #{@response['took']} ms, " +
@@ -379,8 +379,7 @@ class SolveBio::BatchQuery
     def execute(params={})
         _params = build_query()
         _params.merge!(params)
-        response = SolveBio::Client.
-            client.request('post', '/v1/batch_query', _params)
+        response = SolveBio::Client.client.post('/v1/batch_query', _params)
         return response
     end
 end

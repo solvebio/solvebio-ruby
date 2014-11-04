@@ -1,12 +1,11 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 require 'openssl'
-require 'net/http'
+require 'rest_client'
 require 'json'
+require 'addressable/uri'
 require_relative 'credentials'
 require_relative 'errors'
-
-# import textwrap
 
 # A requests-based HTTP client for SolveBio API resources
 class SolveBio::Client
@@ -14,17 +13,27 @@ class SolveBio::Client
     attr_reader :headers, :api_host
     attr_accessor :api_key
 
+    # Add our own kind of Authorization tokens. This has to be
+    # done this way, late, because the rest-client gem looks for
+    # .netrc and will set basic authentication if it finds a match.
+    RestClient.add_before_execution_proc do | req, args |
+        if args[:authorization]
+            req.instance_variable_get('@header')['authorization'] = [args[:authorization]]
+        end
+    end
+
     def initialize(api_key=nil, api_host=nil)
         @api_key = api_key || SolveBio::api_key
         SolveBio::api_key  ||= api_key
         @api_host = api_host || SolveBio::API_HOST
+
         # Mirroring comments from:
         # http://ruby-doc.org/stdlib-2.1.2/libdoc/net/http/rdoc/Net/HTTP.html
         # gzip compression is used in preference to deflate
         # compression, which is used in preference to no compression.
         @headers  = {
-            'Content-Type'    => 'application/json',
-            'Accept'          => 'application/json',
+            :content_type     => :json,
+            :accept           => :json,
             'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
             'User-Agent'      => 'SolveBio Ruby Client %s [%s/%s]' % [
                 SolveBio::VERSION,
@@ -34,119 +43,112 @@ class SolveBio::Client
         }
     end
 
-    def request(method, url, params=nil, raw=false)
+    DEFAULT_REQUEST_OPTS = {
+        :raw             => false,
+        :default_headers => true
+    }
 
-        if not @api_host
-            raise SolveBio::Error.new(nil, 'No SolveBio API host is set')
-        elsif not url.start_with?(@api_host)
-            url = URI.join(@api_host, url).to_s
+    # Issues an HTTP GET across the wire via the Ruby 'rest-client'
+    # library. See *request()* for information on opts.
+    def get(url, opts={})
+        request('get', url, opts)
+    end
+
+    # Issues an HTTP POST across the wire via the Ruby 'rest-client'
+    # library. See *request* for information on opts.
+    def post(url, data, opts={})
+        opts[:payload] =
+            if opts.member?(:no_json)
+                data
+            else
+                data.to_json
+            end
+        request('post', url, opts)
+    end
+
+    # Issues an HTTP Request across the wire via the Ruby 'rest-client'
+    # library.
+    def request(method, url, opts={})
+
+        opts = DEFAULT_REQUEST_OPTS.merge(opts)
+
+        # Expand URL with API host if none was given
+        api_host = @api_host or SolveBio::API_HOST
+
+        if not api_host
+            raise SolveBio::Error.new('No SolveBio API host is set')
+        elsif not url.start_with?(api_host)
+            url = Addressable::URI.join(api_host, url).to_s
         end
 
-        uri  = URI.parse(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-
-        # Note: there's also read_timeout and ssl_timeout
-        http.open_timeout = 80 # in seconds
-
-        if uri.scheme == 'https'
-            http.use_ssl = true
-            # FIXME? Risky - see
-            # http://www.rubyinside.com/how-to-cure-nethttps-risky-default-https-behavior-4010.html
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        # Handle some default options and add authorization header
+        if opts[:default_headers] and @api_key
+            headers = @headers.merge(opts[:headers]||{})
+            authorization = "Token #{@api_key}"
+        else
+            headers = nil
+            authorization = nil
         end
 
-        http.set_debug_output($stderr) if $DEBUG
         SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
 
-        request = nil
-        if ['POST', 'PUT', 'PATCH'].member?(method.upcase)
-            # FIXME? do we need to do something different for
-            # PUT and PATCH?
-            request = Net::HTTP::Post.new(uri.request_uri)
-            request.body = params.to_json
-        else
-            request = Net::HTTP::Get.new(uri.request_uri)
-        end
-        @headers.each { |k, v| request.add_field(k, v) }
-        request.add_field('Authorization', "Token #{@api_key}") if @api_key
-        response = http.request(request)
-
-        # FIXME: There's probably gzip decompression built in to
-        # net/http. Until I figure out how to get that to work, the
-        # below works.
-        case response
-        when Net::HTTPSuccess then
-            begin
-                if response['Content-Encoding'].eql?( 'gzip' ) then
-                    puts "Performing gzip decompression for response body." if $DEBUG
-                    sio = StringIO.new( response.body )
-                    gz = Zlib::GzipReader.new( sio )
-                    response.body = gz.read()
-                end
-            rescue Exception
-                puts "Error occurred (#{$!.message})" if $DEBUG
-                # handle errors
-                raise $!.message
+        response = nil
+        RestClient::Request.
+            execute(:method        => method,
+                    :url           => url,
+                    :headers       => headers,
+                    :authorization => authorization,
+                    :timeout       => opts[:timeout] || 80,
+                    :payload       => opts[:payload]) do
+            |resp, request, result, &block|
+            response = resp
+            if response.code < 200 or response.code >= 400
+                self.handle_api_error(result)
             end
         end
 
-        status_code = response.code.to_i
-        if status_code < 200 or status_code >= 300
-            handle_api_error(response)
-        end
-
-        if raw
-            return response.body
-        else
-            return JSON.parse(response.body)
-        end
+        response = JSON.parse(response) unless opts[:raw]
+        response
     end
 
-    def handle_request_error(e)
+    def self.handle_request_error(e)
         # FIXME: go over this. It is still a rough translation
         # from the python.
         err = e.inspect
         if e.kind_of?(requests.exceptions.RequestException)
             msg = SolveBio::Error::Default_message
         else
-            msg = 'Unexpected error communicating with SolveBio. ' +
+            msg = "Unexpected error communicating with SolveBio.\n" +
                 "It looks like there's probably a configuration " +
-                'issue locally. If this problem persists, let us ' +
+                'issue locally.\nIf this problem persists, let us ' +
                 'know at contact@solvebio.com.'
         end
         msg = msg + "\n\n(Network error: #{err}"
         raise SolveBio::Error.new(nil, msg)
     end
 
+    # SolveBio's API error handler returns a SolveBio::Error.  The
+    # *response* parameter is a (subclass) of Net::HTTPResponse.
     def handle_api_error(response)
-        if [400, 401, 403, 404].member?(response.code.to_i)
-            raise SolveBio::Error.new(response)
-        else
-            SolveBio::logger.info("API Error: #{response.msg}")
-            raise SolveBio::Error.new(response)
-        end
+        SolveBio::logger.info("API Error: #{response.msg}") unless
+            [400, 401, 403, 404].member?(response.code.to_i)
+        raise SolveBio::Error.new(response)
     end
 
     def self.client
         @@client ||= SolveBio::Client.new()
     end
 
+    def self.get(*args)
+        client.get(*args)
+    end
+
+    def self.post(*args)
+        client.post(*args)
+    end
+
     def self.request(*args)
         client.request(*args)
     end
 
-end
-
-if __FILE__ == $0
-    puts SolveBio::Client.client.headers
-    puts SolveBio::Client.client.api_host
-    client = SolveBio::Client.new(nil, 'http://google.com')
-    response = client.request('http', 'http://google.com') rescue 'no good'
-    puts response.inspect
-    puts '-' * 30
-    response = client.request('http', 'http://www.google.com') rescue 'nope'
-    puts response.inspect
-    puts '-' * 30
-    response = client.request('http', 'https://www.google.com') rescue 'nope'
-    puts response.inspect
 end

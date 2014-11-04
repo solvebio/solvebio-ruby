@@ -1,14 +1,14 @@
 #!/usr/bin/env ruby
 $VERBOSE = true
-require 'test/unit'
-require_relative '../lib/resource'
+require_relative './helper'
+require_relative '../lib/resource/main'
 
 class TestResource < Test::Unit::TestCase
 
     # Do the class FULL_NAME_REGEX contants match what the think they
     # should?
     def test_full_name_regexp
-        assert('Clinvar/2.0.0-1/Variants' =~
+        assert('HGNC/1.0.0-1/HGNC' =~
                 SolveBio::Dataset::FULL_NAME_REGEX,
                 'Dataset regexp')
 
@@ -27,18 +27,11 @@ class TestResource < Test::Unit::TestCase
     def test_Dataset_from_response
         resp = {
             'class_name' => 'Dataset',
-            'data_url'   => 'https://api.solvebio.com/v1/datasets/25/data',
-            'depository' => 'ClinVar',
-            'depository_id' => 223,
-            'depository_version' => 'ClinVar/2.0.0-1',
-            'depository_version_id' => 15,
-            'description' => '',
-            'fields_url' => 'https://api.solvebio.com/v1/datasets/25/fields',
-            'full_name' => 'ClinVar/2.0.0-1/Variants',
-            'id'  => 25,
-            'name' => 'Variants',
-            'title' => 'Variants',
-            'url' => 'https://api.solvebio.com/v1/datasets/25'
+            'depository' => 'HGNC',
+            'depository_version' => 'HGNC/1.0.0-1',
+            'full_name' => 'HGNC/1.0.0-1/HGNC',
+            'name' => 'HGNC',
+            'title' => 'HGNC'
         }
         so = resp.to_solvebio
         assert_equal SolveBio::Dataset, so.class, 'Hash -> SolveObject'
