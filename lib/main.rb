@@ -18,7 +18,7 @@ module SolveBio
             ENV['SOLVEBIO_LOGFILE']
         else
             dir = File::expand_path '~/.solvebio'
-            mkdir_p(dir) unless File.exist? dir
+            FileUtils.mkdir_p(dir) unless File.exist? dir
             File::expand_path File.join(dir, 'solvebio.log')
         end
     @logger      = Logger.new(logfile)
