@@ -84,7 +84,6 @@ class SolveBio::Client
         # Handle some default options and add authorization header
         if opts[:default_headers] and @api_key
             headers = @headers.merge(opts[:headers]||{})
-            headers['Authorization'] = "Token #{@api_key}"
             authorization = "Token #{@api_key}"
         else
             headers = nil
