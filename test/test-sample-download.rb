@@ -4,6 +4,7 @@ require_relative './helper'
 class TestDownload < Test::Unit::TestCase
 
     def test_sample_download
+        # TODO: update to how Python client tests downloads
         all = SolveBio::Sample.all()
         if all.total == 0
             return skip("no samples found to download")

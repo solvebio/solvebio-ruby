@@ -10,7 +10,7 @@ class SampleAccessTest < Test::Unit::TestCase
 
     def test_insert_delete
         if SolveBio::API_HOST == 'https://api.solvebio.com'
-            skip "Tesing only on special environments"
+            skip "Testing only on local/dev environments"
         end
 
         all = SolveBio::Sample.all

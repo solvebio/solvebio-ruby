@@ -2,8 +2,6 @@ require_relative './helper'
 
 class AnnotationTest < Test::Unit::TestCase
 
-    # TODO: check unauthorized access
-
     def check_response(response, expect, msg)
         expect.each do |key, val|
             assert_equal(val, response[key], msg)
@@ -12,7 +10,7 @@ class AnnotationTest < Test::Unit::TestCase
 
     def test_annotation
         if SolveBio::API_HOST == 'https://api.solvebio.com'
-            skip "Tesing only on special environments"
+            skip "Annotation testing only on local/dev environments"
         end
 
         vcf_file = File.join(File.dirname(__FILE__), "data/sample.vcf.gz")
