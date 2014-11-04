@@ -7,13 +7,20 @@ require 'addressable/uri'
 require_relative 'credentials'
 require_relative 'errors'
 
-# import textwrap
-
 # A requests-based HTTP client for SolveBio API resources
 class SolveBio::Client
 
     attr_reader :headers, :api_host
     attr_accessor :api_key
+
+    # Add our own kind of Authorization tokens. This has to be
+    # done this way, late, because the rest-client gem looks for
+    # .netrc and will set basic authentication if it finds a match.
+    RestClient.add_before_execution_proc do | req, args |
+        if args[:authorization]
+            req.instance_variable_get('@header')['authorization'] = [args[:authorization]]
+        end
+    end
 
     def initialize(api_key=nil, api_host=nil)
         @api_key = api_key || SolveBio::api_key
@@ -78,8 +85,10 @@ class SolveBio::Client
         if opts[:default_headers] and @api_key
             headers = @headers.merge(opts[:headers]||{})
             headers['Authorization'] = "Token #{@api_key}"
+            authorization = "Token #{@api_key}"
         else
             headers = nil
+            authorization = nil
         end
 
         SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
@@ -90,11 +99,12 @@ class SolveBio::Client
 
         response = nil
         RestClient::Request.
-            execute(:method      => method,
-                    :url         => url,
-                    :headers     => headers,
-                    :ssl_version => 'SSLv23',
-                    :payload     => opts[:payload]) do
+            execute(:method        => method,
+                    :url           => url,
+                    :headers       => headers,
+                    :authorization => authorization,
+                    :timeout       => opts[:timeout] || 80,
+                    :payload       => opts[:payload]) do
             |resp, request, result, &block|
             response = resp
             if response.code < 200 or response.code >= 400
