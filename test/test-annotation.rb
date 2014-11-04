@@ -1,6 +1,6 @@
 require_relative './helper'
 
-class AnnotationTest < Test::Unit::TestCase
+class TestAnnotation < Test::Unit::TestCase
 
     def check_response(response, expect, msg)
         expect.each do |key, val|
@@ -15,7 +15,7 @@ class AnnotationTest < Test::Unit::TestCase
 
         vcf_file = File.join(File.dirname(__FILE__), "data/sample.vcf.gz")
         my_sample = SolveBio::Sample
-                      .create('hg19', :vcf_file => vcf_file)
+                      .create('GRCh37', :vcf_file => vcf_file)
         assert(my_sample)
 
         sample_id = my_sample['id']
