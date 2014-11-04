@@ -90,38 +90,39 @@ EOS
         expected = <<-EOS
 | Fields                | Data                        |
 |-----------------------+-----------------------------|
-| rcvaccession_version  | 2                           |
-| hg18_chromosome       | 3                           |
-| hg19_start            | 148562304                   |
-| rcvaccession          | RCV000060731                |
-| hg38_start            | 148844517                   |
-| reference_allele      | C                           |
-| gene_symbols          | CPB1                        |
-| rsid                  | rs150241322                 |
-| hg19_chromosome       | 3                           |
-| hgvs                  | NC_000003.12:g.148844517C>T |
-| clinical_significance | other                       |
 | alternate_alleles     | T                           |
 | clinical_origin       | somatic                     |
+| clinical_significance | other                       |
+| gene_symbols          | CPB1                        |
+| hg18_chromosome       | 3                           |
+| hg19_chromosome       | 3                           |
+| hg19_start            | 148562304                   |
+| hg38_start            | 148844517                   |
+| hgvs                  | NC_000003.12:g.148844517C>T |
+| rcvaccession          | RCV000060731                |
+| rcvaccession_version  | 2                           |
+| reference_allele      | C                           |
+| rsid                  | rs150241322                 |
 | type                  | SNV                         |
 EOS
 
-        hash = {
-            "rcvaccession_version"=>2,
-            "hg18_chromosome"=>"3",
-            "hg19_start"=>148562304,
-            "rcvaccession"=>"RCV000060731",
-            "hg38_start"=>148844517,
-            "reference_allele"=>"C",
-            "gene_symbols"=>["CPB1"],
-            "rsid"=>"rs150241322",
-            "hg19_chromosome"=>"3",
-            "hgvs"=>["NC_000003.12:g.148844517C>T"],
-            "clinical_significance"=>"other",
-            "alternate_alleles"=>["T"],
-            "clinical_origin"=>["somatic"],
-            "type"=>"SNV"
+         hash = {
+            "alternate_alleles"    => ["T"],
+            "clinical_origin"      => ["somatic"],
+            "clinical_significance"=> "other",
+            "gene_symbols"         => ["CPB1"],
+            "hg18_chromosome"      => "3",
+            "hg19_chromosome"      => "3",
+            "hg19_start"           => 148562304,
+            "hg38_start"           => 148844517,
+            "hgvs"                 => ["NC_000003.12:g.148844517C>T"],
+            "rcvaccession"         => "RCV000060731",
+            "rcvaccession_version" => 2,
+            "reference_allele"     => "C",
+            "rsid"                 => "rs150241322",
+            "type"                 => "SNV"
         }
+        sorted_items = tabulate(hash.to_a.sort_by{|x| x[0]})
         assert_equal(expected.chomp, tabulate(hash.to_a,
                                               ['Fields', 'Data'],
                                               ['right', 'left']),
