@@ -1,14 +1,11 @@
 # Test Depository, DepositoryVersions
 
 require_relative './helper'
-class DepositoryTest < Test::Unit::TestCase
+class TestDepository < Test::Unit::TestCase
 
     def test_depositories
         depos = SolveBio::Depository.all()
-        if depos.total == 0
-            skip('no depositories found')
-        end
-        # print "depos.total %s" % [depos.total]  # compare with python
+
         depo = depos[:data][0]
         assert(depo.member?('id'),
                'Should be able to get id in depository')
