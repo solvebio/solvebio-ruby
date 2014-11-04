@@ -10,9 +10,10 @@ require 'logger'
 
 module SolveBio
 
-    VERSION      = '1.5.2'
+    VERSION      = '1.6.1'
     @api_key     = ENV['SOLVEBIO_API_KEY']
-    @logger      = Logger.new('/tmp/solvebio.log')
+    @logger      = Logger.new(ENV['SOLVEBIO_LOGFILE'] ||
+                              File::expand_path('~/.solvebio/solvebio.log'))
     API_HOST     = ENV['SOLVEBIO_API_HOST'] || 'https://api.solvebio.com'
 
     # Config info in reports and requests. Encapsulate more?
