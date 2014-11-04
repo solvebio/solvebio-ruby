@@ -1,6 +1,6 @@
 require_relative './helper'
 
-class SampleAccessTest < Test::Unit::TestCase
+class TestSampleAccess < Test::Unit::TestCase
 
     def check_response(response, expect, msg)
         expect.each do |key, val|
@@ -20,12 +20,12 @@ class SampleAccessTest < Test::Unit::TestCase
             'class_name'        => 'Sample',
             'annotations_count' => 0,
             'description'       =>  '',
-            'genome_build'      => 'hg19',
+            'genome_build'      => 'GRCh37',
             'vcf_md5'           => 'a03e39e96671a01208cffd234812556d',
             'vcf_size'          => 12124
         }
 
-        response = SolveBio::Sample.create('hg19', :vcf_url => vcf_url)
+        response = SolveBio::Sample.create('GRCh37', :vcf_url => vcf_url)
         check_response(response, expect,
                        'create sample.vcf.gz from url')
         all = SolveBio::Sample.all
@@ -33,12 +33,12 @@ class SampleAccessTest < Test::Unit::TestCase
         total = total + 1
 
         vcf_file = File.join(File.dirname(__FILE__), 'data/sample.vcf.gz')
-        response = SolveBio::Sample.create('hg19', {:vcf_file => vcf_file})
+        response = SolveBio::Sample.create('GRCh37', {:vcf_file => vcf_file})
         expect = {
             'class_name' => 'Sample',
             'annotations_count' => 0,
             'description' => '',
-            'genome_build' => 'hg19',
+            'genome_build' => 'GRCh37',
             'vcf_md5' => '83acd96171c72ab2bb35e9c52961afd9',
             'vcf_size' => 592
         }

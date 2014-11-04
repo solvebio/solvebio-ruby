@@ -1,20 +1,21 @@
 require 'fileutils'
 require_relative './helper'
 
-class TestDownload < Test::Unit::TestCase
+class TestSampleDownload < Test::Unit::TestCase
 
     def test_sample_download
-        # TODO: update to how Python client tests downloads
-        all = SolveBio::Sample.all()
-        if all.total == 0
-            return skip("no samples found to download")
+        if SolveBio::API_HOST == 'https://api.solvebio.com'
+            skip "Testing only on local/dev environments"
         end
-        sample = all['data'][0]
-        solve_obj = sample.download(Dir.tmpdir)
-        assert_equal(solve_obj['code'], 200,
+
+        vcf_file = File.join(File.dirname(__FILE__), 'data/sample.vcf.gz')
+        sample = SolveBio::Sample.create('GRCh37', {:vcf_file => vcf_file})
+        puts sample
+        response = sample.download()
+        assert_equal(response['code'], 200,
                      "Download sample file status ok")
-        assert(File.exist?(solve_obj['local_filename']),
+        assert(File.exist?(response['filename']),
                "Download sample file on filesystem")
-        FileUtils.rm solve_obj['local_filename']
+        FileUtils.rm response['filename']
     end
 end
