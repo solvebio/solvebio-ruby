@@ -82,9 +82,10 @@ module SolveBio::DownloadableAPIResource
     #
     # Download the file to the specified path (or a temp. dir).
     #
-    def download(url, path=nil)
+    def download(path=nil)
         download_url = instance_url + '/download'
         response = SolveBio::Client.client.get(download_url, :raw => true)
+
         if response.code != 302
             # Some kind of error. We expect a redirect
             raise SolveError('Could not download file: response code' %
@@ -101,15 +102,11 @@ module SolveBio::DownloadableAPIResource
         response = SolveBio::Client.client.get(download_url, :raw => true,
                                                :default_headers => false)
 
-        if not(200 <= response.code and response.code < 400)
-            SolveBio.Client.handle_api_error(response)
-        end
-
         File.open(filename, 'wb') do |fh|
             fh.write(response.body)
         end
 
-        self['local_filename'] = filename
+        self['filename'] = filename
         self['code'] = response.code
         self
     end
