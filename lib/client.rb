@@ -91,10 +91,6 @@ class SolveBio::Client
         end
 
         SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
-        # puts 'API %s Request: %s' % [method.upcase, url]
-        # puts method, "url: #{url} headers: #{headers}"
-        # puts "params: #{opts[:params]}"
-
 
         response = nil
         RestClient::Request.
