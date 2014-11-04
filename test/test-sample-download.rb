@@ -10,7 +10,6 @@ class TestSampleDownload < Test::Unit::TestCase
 
         vcf_file = File.join(File.dirname(__FILE__), 'data/sample.vcf.gz')
         sample = SolveBio::Sample.create('GRCh37', {:vcf_file => vcf_file})
-        puts sample
         response = sample.download()
         assert_equal(response['code'], 200,
                      "Download sample file status ok")
