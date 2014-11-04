@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
+ENV['COLUMNS'] = '80'
 require_relative '../lib/tabulate'
 $VERBOSE = true
 require 'test/unit'
@@ -63,6 +64,10 @@ class TestTabulate < Test::Unit::TestCase
     end
 
     def test_tabulate
+        old_verbose = $VERBOSE
+        $VERBOSE=nil
+        SolveBio::Tabulate.const_set(:TTY_COLS, 80)
+        $VERBOSE=old_verbose
         tsv = simple_separated_format("\t")
         expected = <<-EOS
 foo    1
