@@ -122,7 +122,6 @@ EOS
             "rsid"                 => "rs150241322",
             "type"                 => "SNV"
         }
-        sorted_items = tabulate(hash.to_a.sort_by{|x| x[0]})
         assert_equal(expected.chomp, tabulate(hash.to_a,
                                               ['Fields', 'Data'],
                                               ['right', 'left']),
