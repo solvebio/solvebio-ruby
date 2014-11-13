@@ -59,13 +59,7 @@ class SolveBio::Dataset < SolveBio::APIResource
     end
 
     def query(params={})
-        paging = false
-        if params.member?(:paging)
-            paging = params[:paging]
-            params.delete(:paging)
-        end
-        q = paging ? SolveBio::PagingQuery.new(self['id'], params) :
-            SolveBio::Query.new(self['id'], params)
+        q = SolveBio::Query.new(self['id'], params)
 
         if params[:filters]
             return q.filter(params[:filters])
