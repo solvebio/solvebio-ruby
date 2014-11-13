@@ -52,11 +52,11 @@ class TestQueryPaging < Test::Unit::TestCase
         limit = 30
         results = @dataset.query(:paging => true, :limit => limit).
             filter(:hgnc_id__range => [10, 6000])[2..5]
-        assert_equal(3, results.size)
+        assert_equal(4, results.size)
 
         results = @dataset.query(:paging => true, :limit => limit).
             filter(:hgnc_id__range => [10, 6000])[0..7]
-        assert_equal(7, results.size)
+        assert_equal(8, results.size)
     end
 
     def test_paging_and_slice_equivalence

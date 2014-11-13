@@ -69,10 +69,7 @@ class SolveBio::Query
     end
 
     def total
-        unless @total
-            warmup('Query total')
-            @total = @response["total"]
-        end
+        warmup('Query total') unless @total
         @total
     end
 
@@ -108,11 +105,7 @@ class SolveBio::Query
     # ``&`` (and), ``|`` (or) and ``~`` (not) operators. Then call
     # filter once with the resulting Filter instance.
     def filter(params={}, conn=:and)
-        if filters.kind_of?(SolveBio::Filter)
-            return Marshal.load(Marshal.dump(params.filters))
-        else
-            return clone(SolveBio::Filter.new(params, conn).filters)
-        end
+        return clone(SolveBio::Filter.new(params, conn).filters)
     end
 
     # Shortcut to do range queries on supported datasets.
@@ -235,10 +228,10 @@ class SolveBio::Query
             raise IndexError, 'Indexing not supporting when limit < 0.'
         end
         if key.kind_of?(Range)
-            if key.begin < 0 or key.end < 0
+            if key.begin < 0
                 raise IndexError, 'Negative indexing is not supported'
             end
-            if key.begin > key.end
+            if key.end > 0 and key.begin > key.end
                 raise IndexError, 'Backwards indexing is not supported'
             end
         elsif key < 0
@@ -247,12 +240,9 @@ class SolveBio::Query
             raise IndexError, 'Index beyond end of results'
         end
 
-        # FIXME: is it right that we can assume that the results are in
-        # @results. Do I need another index check?
-
         result =
             if key.kind_of?(Range)
-                @results[(0...key.end - key.begin)]
+                @results[key.begin..key.end]
             else
                 @request_range = self.to_range(key)
                 @results[0]
@@ -330,14 +320,14 @@ class SolveBio::Query
         return self unless block_given?
         @pager.last = size if @pager.last == -1
         @pager.offset = @pager.first
-        0.upto(size).each do |i|
+        0.upto(size-1).each do |i|
             result_start = @pager.offset
             if @pager.has_next?
                 SolveBio::logger.debug('  Query window range: [%s...%s]' %
                                        [result_start, result_start + 1])
             else
                 SolveBio::logger.debug('executing query. offset/limit: %6d/%d' %
-                                       [i_offset, @limit])
+                                       [i, @limit])
                 execute()
                 # ?? Should we doublecheck execute status?
                 result_start = @pager.offset

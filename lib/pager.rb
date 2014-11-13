@@ -4,9 +4,9 @@
 require_relative 'main'
 class SolveBio::Pager
 
-    attr_reader :first
-    attr_reader :last
-    attr_reader :offset
+    attr_reader   :first
+    attr_accessor :last   # we can update last, when last == -1
+    attr_accessor :offset
 
     def offset_absolute
         return @first + @offset
