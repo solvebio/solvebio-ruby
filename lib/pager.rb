@@ -52,15 +52,3 @@ class SolveBio::Pager
         "range: #{@first}..#{@last}: offset #{@offset}"
     end
 end
-
-# Demo/test code
-if __FILE__ == $0
-    p = SolveBio::Pager.new(0, 100, 4)
-    p = SolveBio::Pager.from_range 0..3
-    puts p.advance, p.has_next?
-    puts p.advance, p.has_next?
-    puts p.advance, p.has_next?
-    puts p.reset(0, 1)
-    puts p.has_next?
-    puts p.advance, p.has_next?
-end

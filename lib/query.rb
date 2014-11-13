@@ -228,26 +228,41 @@ class SolveBio::Query
             raise IndexError, 'Indexing not supporting when limit < 0.'
         end
         if key.kind_of?(Range)
-            if key.begin < 0
+            return [] if key.first.nil? and key.max.nil?
+            last = (key.max || key.last)
+            last = last < 0 ? size+last : last
+            first = key.min || key.first
+            if first < 0 or last < 0
                 raise IndexError, 'Negative indexing is not supported'
             end
-            if key.end > 0 and key.begin > key.end
-                raise IndexError, 'Backwards indexing is not supported'
+            if first > last
+                return []
             end
+            if @pager.first <= first and @pager.last >= last
+                adjusted_first = first - @pager.first
+                adjusted_last  = last - @pager.first
+                return @results[adjusted_first..adjusted_last]
+            end
+            results = []
+            @pager.reset(key.min, last, 0)
+            self.each do |r|
+                results << r
+            end
+            return results
         elsif key < 0
             raise IndexError, 'Negative indexing is not supported'
         elsif key >= size
             raise IndexError, 'Index beyond end of results'
         end
 
-        result =
-            if key.kind_of?(Range)
-                @results[key.begin..key.end]
-            else
-                @request_range = self.to_range(key)
-                @results[0]
-            end
-        return result
+        # if Range.new(@pager.first, @pager.last).include?(key)
+        #     adjusted_key = key - @pager.first
+        #     return @results[adjusted_key]
+        # else
+            @pager.reset(key, key)
+            execute
+            return @results[0]
+        # end
     end
 
     # range operations
@@ -369,34 +384,5 @@ class SolveBio::BatchQuery
         _params.merge!(params)
         response = SolveBio::Client.client.post('/v1/batch_query', _params)
         return response
-    end
-end
-
-# Demo/test code
-if __FILE__ == $0
-    if SolveBio::api_key
-        test_dataset_name = 'ClinVar/2.0.0-1/Variants'
-        require_relative 'solvebio'
-        require_relative 'errors'
-        dataset = SolveBio::Dataset.retrieve(test_dataset_name)
-
-        # # A filter
-        # limit = 5
-        # results = dataset.query({:paging=>false, :limit => limit}).
-        #         filter({:alternate_alleles => nil})
-        # puts results.size
-
-        limit = 2
-        # results = dataset.query({:limit => limit, :paging =>false})
-        # puts results.size
-        # results.each_with_index { |val, i|
-        #     puts "#{i}: #{val}"
-        # }
-        # puts "#{limit-1}: #{results[limit-1]}"
-        results = dataset.query({:limit => limit, :paging=>true})
-        # puts results.size
-        puts results.to_s
-    else
-        puts 'Set SolveBio::api_key to run demo'
     end
 end
