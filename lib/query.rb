@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 require 'pp'
 require_relative 'client'
+require_relative 'cursor'
 require_relative 'filter'
 require_relative 'locale'
-require_relative 'pager'
 require_relative 'tabulate'
 
 # A Query API request wrapper that generates a request from Filter
@@ -12,7 +12,8 @@ class SolveBio::Query
 
     include Enumerable
 
-    INT_MAX = 4611686018427387903
+    # 2**62 - 1 fits Rubywise into a 64-bit Fixnum
+    INT_MAX ||= 4_611_686_018_427_387_903
 
     # The maximum number of results fetched in one go. Note however
     # that iterating over a query can cause more fetches.
@@ -48,7 +49,7 @@ class SolveBio::Query
 
         @response  = nil
         @count     = nil
-        @pager     = SolveBio::Pager.new(0 , -1, 0)
+        @cursor     = SolveBio::Cursor.new(0 , -1, 0)
         @page_size = params[:page_size] || DEFAULT_PAGE_SIZE
 
         begin
@@ -238,13 +239,13 @@ class SolveBio::Query
             if first > last
                 return []
             end
-            if @pager.first <= first and @pager.last >= last
-                adjusted_first = first - @pager.first
-                adjusted_last  = last - @pager.first
+            if @cursor.first <= first and @cursor.last >= last
+                adjusted_first = first - @cursor.first
+                adjusted_last  = last - @cursor.first
                 return @results[adjusted_first..adjusted_last]
             end
             results = []
-            @pager.reset(key.min, last, 0)
+            @cursor.reset(key.min, last, 0)
             self.each do |r|
                 results << r
             end
@@ -255,11 +256,11 @@ class SolveBio::Query
             raise IndexError, 'Index beyond end of results'
         end
 
-        # if Range.new(@pager.first, @pager.last).include?(key)
-        #     adjusted_key = key - @pager.first
+        # if Range.new(@cursor.first, @cursor.last).include?(key)
+        #     adjusted_key = key - @cursor.first
         #     return @results[adjusted_key]
         # else
-            @pager.reset(key, key)
+            @cursor.reset(key, key)
             execute
             return @results[0]
         # end
@@ -299,7 +300,7 @@ class SolveBio::Query
     def execute
         _params = build_query()
 
-        offset = @pager.offset_absolute
+        offset = @cursor.offset_absolute
         limit =
             if @limit == INT_MAX
                 @page_size
@@ -317,7 +318,7 @@ class SolveBio::Query
                   "total: #{@total}")
 
         @results = @response['results']
-        @pager.reset(offset, offset + limit, 0)
+        @cursor.reset(offset, offset + limit, 0)
 
         return _params, @response
     end
@@ -333,11 +334,11 @@ class SolveBio::Query
     # cursor.
     def each(*pass)
         return self unless block_given?
-        @pager.last = size if @pager.last == -1
-        @pager.offset = @pager.first
+        @cursor.last = size if @cursor.last == -1
+        @cursor.offset = @cursor.first
         0.upto(size-1).each do |i|
-            result_start = @pager.offset
-            if @pager.has_next?
+            result_start = @cursor.offset
+            if @cursor.has_next?
                 SolveBio::logger.debug('  Query window range: [%s...%s]' %
                                        [result_start, result_start + 1])
             else
@@ -345,9 +346,9 @@ class SolveBio::Query
                                        [i, @limit])
                 execute()
                 # ?? Should we doublecheck execute status?
-                result_start = @pager.offset
+                result_start = @cursor.offset
             end
-            @pager.advance
+            @cursor.advance
             yield @results[result_start]
         end
         return self

@@ -2,7 +2,7 @@
 #    Stateful cursor object that tracks of the range and offset of a Query.
 #
 require_relative 'main'
-class SolveBio::Pager
+class SolveBio::Cursor
 
     attr_reader   :first
     attr_accessor :last   # we can update last, when last == -1
@@ -27,7 +27,7 @@ class SolveBio::Pager
     # reset parameters:
     #  - `first`: Absolute first position
     #  - `last`: Absolute last position
-    #  - `offset` (optional): Pager offset relative to `first`
+    #  - `offset` (optional): Cursor offset relative to `first`
     def reset(first, last, offset=0)
         @first = first
         @last = last
@@ -38,7 +38,7 @@ class SolveBio::Pager
     # Reset the internal offset from an absolute position.
     #
     #  :Parameters:
-    # - `offset_absolute`: Absolute pager offset
+    # - `offset_absolute`: Absolute cursor offset
     #
     def reset_absolute(absolute_offset)
         @offset = absolute_offset - @first
