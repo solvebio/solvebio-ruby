@@ -160,8 +160,7 @@ class SolveBio::Query
             return 'query returned 0 results'
         end
 
-        sorted_items = SolveBio::Tabulate.
-            tabulate(self[0].to_a.sort_by{|x| x[0]})
+        sorted_items = SolveBio::Tabulate.tabulate(self[0].to_a, [], [], true)
         msg =
             "\n%s\n\n... %s more results." %
             [sorted_items, ['Fields', 'Data'], ['right', 'left'],

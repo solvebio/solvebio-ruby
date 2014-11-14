@@ -73,9 +73,12 @@ class SolveBio::SolveObject < Hash
     end
 
     def to_s
-        # No equivalent of Python's json sort_keys?
-        JSON.pretty_generate(self, :indent => '  ')
-        # self.to_json json.dumps(self, sort_keys=true, indent=2)
+        if self.respond_to?(:tabulate)
+            self.tabulate(self)
+        else
+            # No equivalent of Python's json sort_keys?
+            JSON.pretty_generate(self, :indent => '  ')
+        end
     end
 
     # @property

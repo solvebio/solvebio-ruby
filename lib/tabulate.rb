@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# This file contains code from python-tabulate, modified for SolveBio
+# This was derived from python-tabulate.
 #
 # Copyright © 2011-2013 Sergey Astanin
 #
@@ -22,30 +22,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-# from __future__ require 'print_function'
-# from __future__ require 'unicode_literals'
-
-# from collections require 'namedtuple'
-# from platform require 'python_version_tuple'
-
-# if python_version_tuple()[0] < "3"
-#     from itertools require 'izip_longest'
-#     _none_type = type(nil)
-#     _int_type = int
-#     _float_type = float
-#     _text_type = unicode
-#     _binary_type = str
-# else
-#     from itertools require 'zip_longest as izip_longest'
-#     from functools require 'reduce'
-#     _none_type = type(nil)
-#     _int_type = int
-#     _float_type = float
-#     _text_type = str
-#     _binary_type = bytes
-# end
-
 
 require_relative 'main'
 
@@ -139,6 +115,17 @@ module SolveBio::Tabulate
     }
 
     module_function
+
+    # Simulate Python's multi-parameter zip function. Ruby's zip
+    # function, like Perl's, expects each arg to have dimension 2.
+    def python_zip(args)
+        result = args.first.reduce([]){|r, i| r << []}
+        args.each_with_index do |ary, i|
+            ary.each_with_index {|v, j| result[j][i] = v}
+        end
+        result
+    end
+
     def simple_separated_format(separator)
         # FIXME? python code hard-codes separator = "\n" below.
         return TableFormat
@@ -445,10 +432,12 @@ module SolveBio::Tabulate
     # Construct a simple TableFormat with columns separated by a separator.
     #
     #   tsv = simple_separated_format("\t")
-    #   tabulate([["foo", 1], ["spam", 23]], [], tsv) =>
+    #   tabulate([["foo", 1], ["spam", 23]], [], true, tsv) =>
     #     "foo    1\nspam  23"
-    def tabulate(tabular_data, headers=[], tablefmt=TABLE_FORMATS[:orgmode],
-                 floatfmt="g", aligns=[], missingval='')
+    def tabulate(tabular_data, headers=[], aligns=[], sort=true,
+                 tablefmt=TABLE_FORMATS[:orgmode], floatfmt="g", missingval='')
+
+        tabular_data = tabular_data.sort_by{|x| x[0]} if sort
         list_of_lists, headers = normalize_tabular_data(tabular_data, headers)
 
         # optimization: look for ANSI control codes once,
@@ -505,14 +494,16 @@ module SolveBio::Tabulate
             headers   =
                 headers.zip(aligns, minwidths).map{|h, a, minw| align_header(h, a, minw)}
         end
-        rows = cols[0].zip(cols[1])
+        rows = python_zip(cols)
 
         tablefmt = TABLE_FORMATS[:orgmode] unless
             tablefmt.kind_of?(TableFormat)
 
         # make sure values don't have newlines or tabs in them
-        rows = rows.each do |r|
-            r[1] = r[1].gsub("\n", '').gsub("\t", '')
+        rows.each do |r|
+            r.each_with_index do |c, i|
+                r[i] = c.gsub("\n", '').gsub("\t", '')
+            end
         end
         return format_table(tablefmt, headers, rows, minwidths, aligns)
     end

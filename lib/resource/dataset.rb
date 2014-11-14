@@ -1,5 +1,6 @@
 require_relative 'apiresource'
 require_relative '../query'
+require_relative '../tabulate'
 
 class SolveBio::Dataset < SolveBio::APIResource
 
@@ -55,7 +56,18 @@ class SolveBio::Dataset < SolveBio::APIResource
 
         result = SolveBio::Client.
                    client.request('get', self['fields_url'])
-        result.to_solvebio(self.class)
+        results = result.to_solvebio
+        unless results.respond_to?(:tabulate)
+            results.define_singleton_method(:tabulate) do |results|
+                ary = results.to_a.map do |fields|
+                    [fields['name'], fields['data_type'], fields['description']]
+                end
+                SolveBio::Tabulate.tabulate(ary,
+                                            ['Field', 'Data Type', 'Description'],
+                                            ['left', 'left', 'left'], true)
+            end
+        end
+        results
     end
 
     def query(params={})
