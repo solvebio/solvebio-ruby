@@ -58,8 +58,8 @@ class SolveBio::Dataset < SolveBio::APIResource
                    client.request('get', self['fields_url'])
         results = result.to_solvebio
         unless results.respond_to?(:tabulate)
-            results.define_singleton_method(:tabulate) do |results|
-                ary = results.to_a.map do |fields|
+            results.define_singleton_method(:tabulate) do |results_hash|
+                ary = results_hash.to_a.map do |fields|
                     [fields['name'], fields['data_type'], fields['description']]
                 end
                 SolveBio::Tabulate.tabulate(ary,
