@@ -159,10 +159,11 @@ class SolveBio::Query
             return 'query returned 0 results'
         end
 
-        sorted_items = SolveBio::Tabulate.tabulate(self[0].to_a, [], [], true)
+        sorted_items = SolveBio::Tabulate.
+            tabulate(self[0], ['Fields', 'Data'], ['right', 'left'], true)
         msg =
             "\n%s\n\n... %s more results." %
-            [sorted_items, ['Fields', 'Data'], ['right', 'left'],
+            [sorted_items,
              (@total - 1).pretty_int]
         return msg
     end
