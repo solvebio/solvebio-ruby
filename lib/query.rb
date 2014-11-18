@@ -19,9 +19,10 @@ class SolveBio::Query
     # that iterating over a query can cause more fetches.
     DEFAULT_PAGE_SIZE ||= 1000
 
+    attr_reader   :dataset_id
     attr_accessor :filters
     attr_accessor :limit
-    attr_reader   :dataset_id
+    attr_reader   :page_size
     attr_reader   :response
 
     # Creates a new Query object.
@@ -293,7 +294,6 @@ class SolveBio::Query
     def execute
         _params = build_query()
 
-        offset = @cursor.offset_absolute
         limit =
             if @limit == INT_MAX
                 @page_size
@@ -314,6 +314,10 @@ class SolveBio::Query
         @cursor.reset(offset, offset + limit, 0)
 
         return _params, @response
+    end
+
+    def offset
+        @cursor.offset_absolute
     end
 
     def size
@@ -366,15 +370,14 @@ class SolveBio::BatchQuery
 
         @queries.each do |i|
             q = i.build_query
-            # TODO: fix this
-            # _limit =
-            #     if i.limit == i.INT_MAX
-            #         i.page_size
-            #     else
-            #         [i.page_size, i.limit - offset].min
-            #     end
-            q.merge!(:dataset => i.dataset_id, :limit => _limit,
-                     :offset => i.cursor.offset_absolute)
+            limit =
+                if i.limit == SolveBio::Query::INT_MAX
+                    i.page_size
+                else
+                    [i.page_size, i.limit - i.offset].min
+                end
+            q.merge!(:dataset => i.dataset_id, :limit => limit,
+                     :offset => i.offset)
             query[:queries] << q
         end
 
