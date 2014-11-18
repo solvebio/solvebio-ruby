@@ -58,21 +58,6 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
         results
     end
 
-    # Set the released flag and optional release date and save
-    def release(released_at=nil)
-        if released_at
-            @released_at = released_at
-        end
-        @released = true
-        save()
-    end
-
-    # Unset the released flag and save
-    def unrelease
-        @released = false
-        save()
-    end
-
     def <=>(other)
         self[:full_name] <=> other[:full_name]
     end
