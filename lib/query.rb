@@ -59,7 +59,6 @@ class SolveBio::Query
         end if params.member?(:limit)
 
         @result_class = params[:result_class] || Hash
-        @debug = params[:debug] || false
         @fields = params[:fields]
 
         # parameter error checking
@@ -81,7 +80,6 @@ class SolveBio::Query
                            :limit => @limit,
                            :total => total,  # This causes an HTTP request
                            :result_class => @result_class,
-                           :debug => @debug,
                            :fields => @fields
                        })
 
@@ -183,9 +181,8 @@ class SolveBio::Query
     end
 
     def inspect
-        return '<%s: @dataset_id=%s, @total=%s, @limit=%s, @debug=%s>' %
-            [self.class, @dataset_id, @total ? @total : '?',
-             @limit, @debug]
+        return '<%s: @dataset_id=%s, @total=%s, @limit=%s>' %
+            [self.class, @dataset_id, @total ? @total : '?', @limit]
     end
 
     # warmup result set...
@@ -272,10 +269,7 @@ class SolveBio::Query
     end
 
     def build_query
-        q = {
-            :limit => @limit,
-            :debug => @debug
-        }
+        q = {}
 
         if @filters
             filters = SolveBio::Filter.process_filters(@filters)
@@ -372,7 +366,15 @@ class SolveBio::BatchQuery
 
         @queries.each do |i|
             q = i.build_query
-            q.merge!(:dataset => i.dataset_id)
+            # TODO: fix this
+            # _limit =
+            #     if i.limit == i.INT_MAX
+            #         i.page_size
+            #     else
+            #         [i.page_size, i.limit - offset].min
+            #     end
+            q.merge!(:dataset => i.dataset_id, :limit => _limit,
+                     :offset => i.cursor.offset_absolute)
             query[:queries] << q
         end
 
