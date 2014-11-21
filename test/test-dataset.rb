@@ -13,7 +13,8 @@ class TestDataset < Test::Unit::TestCase
 
         %w(class_name created_at data_url depository depository_id
            depository_version depository_version_id description
-          fields_url full_name name title updated_at url).each do |field|
+          fields_url full_name genome_builds is_genomic
+          name title updated_at url).each do |field|
             assert(@dataset.member?(field),
                    "Should find field #{field} in dataset #{@dataset.id}")
         end

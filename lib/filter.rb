@@ -53,7 +53,7 @@ class SolveBio::Filter
             @filters = SolveBio::Filter.
                 normalize(filters.keys.sort.map{|key| [key,  filters[key]]})
         elsif filters.kind_of?(Array)
-            @filters = SolveBio::Filter.normalize(filters)
+            @filters = filters
         elsif filters.kind_of?(SolveBio::Filter)
             @filters = SolveBio::Filter.deep_copy(filters.filters)
             return self
@@ -242,53 +242,69 @@ class SolveBio::Filter
 
 end
 
-# Helper class that generates Range Filters from UCSC-style ranges.
-class SolveBio::RangeFilter < SolveBio::Filter
-    SUPPORTED_BUILDS = ['hg18', 'hg19', 'hg38']
+# Helper class that generates filters on genomic coordinates.
+#
+#    Range filtering only works on "genomic" datasets
+#    (where dataset['is_genomic'] is true).
 
-    #    Handles UCSC-style range queries (hg19:chr1:100-200)
+class SolveBio::GenomicFilter < SolveBio::Filter
+
+    # Standardized fields for genomic coordinates in SolveBio
+    FIELD_START = 'genomic_coordinates.start'
+    FIELD_STOP = 'genomic_coordinates.stop'
+    FIELD_CHR = 'genomic_coordinates.chromosome'
+
+    #   Handles UCSC-style range queries (chr1:100-200)
     def self.from_string(string, overlap=false)
         begin
             build, chromosome, pos = string.split(':')
         rescue ValueError
             raise ValueError,
-                'Please use UCSC-style format: "hg19:chr2:1000-2000"'
+                'Please use UCSC-style format: "chr2:1000-2000"'
         end
 
         if pos.member?('-')
-            start, last = pos.replace(',', '').split('-')
+            start, stop = pos.replace(',', '').split('-')
         else
-            start = last = pos.replace(',', '')
+            start = stop = pos.replace(',', '')
         end
 
-        return self.new(build, chromosome, start, last, overlap=overlap)
+        return self.new(build, chromosome, start, stop, overlap=overlap)
     end
 
-    #  Shortcut to do range queries on supported datasets.
-    def initialize(build, chromosome, start, last, overlap=false)
-        if !SUPPORTED_BUILDS.member?(build.downcase)
-            msg = "Build #{build} not supported for range filters. " +
-                "Supported builds are: #{SUPPORTED_BUILDS.join(', ')}"
-            raise Exception, msg
+    # This class supports single position and range filters.
+    #
+    # By default, the filter will match any record that overlaps with
+    # the position or range specified. Exact matches must be explicitly
+    # specified using the `exact` parameter.
+    def initialize(chromosome, start, stop=nil, exact=false)
+
+        begin
+            start = Integer(start)
+            stop = stop ? Integer(stop) : start
+        rescue ValueError
+            raise ValueError('Start and stop positions must be integers')
         end
 
-        f = SolveBio::Filter.new({"#{build}_start__range" => [start, last]})
-
-        if overlap
-            f |=  SolveBio::Filter.
-                new({"#{build}_end__range" => [start, last]})
+        if exact
+            f = SolveBio::Filter.new({FIELD_START => start, FIELD_STOP  => stop})
         else
-            f &= SolveBio::Filter.
-                new({"#{build}_end__range" => [start, last]})
+            f = SolveBio::Filter.new({"#{FIELD_START}__lte" => start,
+                                      "#{FIELD_START}__gte" => stop})
+            if start != stop
+                f |= SolveBio::Filter.new({"#{FIELD_START}__range" =>
+                                           [start, stop + 1]})
+                f |= SolveBio::Filter.new({"#{FIELD_STOP}__range" =>
+                                           [start, stop + 1]})
+            end
         end
 
-        f &= SolveBio::Filter.
-            new({"#{build}_chromosome" => chromosome.sub('chr', '')})
+        f &= SolveBio::Filter.new({"chromosome" => chromosome.sub('chr', '')})
         @filters = f.filters
     end
 
     def inspect
-        return "<RangeFilter #{@filters}>"
+        return "<GenomicFilter #{@filters}>"
     end
 end
 
