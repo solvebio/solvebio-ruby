@@ -4,7 +4,7 @@ require 'test/unit'
 require 'fileutils'
 require_relative '../lib/cli/credentials'
 
-# Does .netrc reading and manipulation work?
+# Does reading and manipulation of the SolveBio credentials file work?
 class TestNetrc < Test::Unit::TestCase
 
 
@@ -31,7 +31,8 @@ class TestNetrc < Test::Unit::TestCase
     include SolveBio::Credentials
 
     def test_netrc
-        assert netrc_path, 'Should get a location for .netrc'
+        assert(netrc_path,
+               "Should get a location for SolveBio's credentials")
     end
 
     def test_get_credentials
@@ -47,7 +48,8 @@ class TestNetrc < Test::Unit::TestCase
 
     def test_delete_credentials
         delete_credentials
-        assert_equal nil, get_credentials, 'Should be able to delete credentials'
+        assert_equal(nil, get_credentials,
+                     'Should be able to delete credentials')
     end
 
 end
