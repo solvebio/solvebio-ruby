@@ -2,7 +2,7 @@
 $VERBOSE = true
 require 'test/unit'
 require 'fileutils'
-require_relative '../lib/credentials'
+require_relative '../lib/cli/credentials'
 
 # Does .netrc reading and manipulation work?
 class TestNetrc < Test::Unit::TestCase

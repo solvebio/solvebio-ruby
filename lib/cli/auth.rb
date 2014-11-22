@@ -4,8 +4,8 @@
 require 'readline'
 require 'io/console'
 
+require_relative  'credentials'
 require_relative  '../errors'
-require_relative  '../credentials'
 require_relative  '../client'
 
 module SolveBio::Auth

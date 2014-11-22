@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 # Deals with reading netrc credentials
-require_relative 'main'
+require_relative '../main'
 require 'netrc'
 require 'addressable/uri'
 

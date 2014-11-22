@@ -4,8 +4,6 @@
 require_relative 'resource/main'
 require_relative 'query'
 
-# cli/auth is a little nicer than credentials
-# FIXME: consider moving cli/auth moving out of cli?
 require_relative 'cli/auth'
 
 # Set authentication if possible
