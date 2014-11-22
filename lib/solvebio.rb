@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-# Something to pull in the entire SolveBio API.
+# SolveBio Ruby Client
+# ~~~~~~~~~~~~~~~~~~~~~~
+#
+# This is the Ruby client & library for the SolveBio API.
+#
+# Have questions or comments? email us at: contact@solvebio.com
 
+# Pull in the entire SolveBio API.
 require_relative 'resource/main'
 require_relative 'query'
-
-require_relative 'cli/auth'
-
-# Set authentication if possible
-include SolveBio::Credentials
-creds = get_credentials()
-SolveBio.api_key = SolveBio::Client.client.api_key = creds[1] if creds

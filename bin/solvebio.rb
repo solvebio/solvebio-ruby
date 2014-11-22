@@ -3,6 +3,7 @@
 
 # SolveBio Ruby command-line program
 
+require_relative '../lib/cli/auth'
 require_relative '../lib/solvebio'
 require_relative '../lib/cli/options'
 require_relative '../lib/cli/irb'

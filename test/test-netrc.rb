@@ -9,10 +9,11 @@ class TestNetrc < Test::Unit::TestCase
 
 
     def setup
-        @netrc_path_save = ENV["NETRC_PATH"]
-        path = ENV['NETRC_PATH'] = File.join(File.dirname(__FILE__), 'data')
-        FileUtils.cp(File.join(path, 'netrc-save'), File.join(path, '.netrc'))
-        File.chmod(0600, "#{path}/.netrc")
+        @home_path_save = ENV['HOME']
+        home_path = ENV['HOME'] = File.join(File.dirname(__FILE__), 'data')
+        credentials_file = netrc_path
+        FileUtils.cp(File.join(home_path, 'netrc-save'), credentials_file)
+        File.chmod(0600, credentials_file)
         @old_warn_level = $VERBOSE
         @old_api_host = SolveBio::API_HOST
         $VERBOSE = nil
@@ -21,7 +22,7 @@ class TestNetrc < Test::Unit::TestCase
     end
 
     def teardown
-        ENV["NETRC_PATH"] = @netrc_path_save
+        ENV["HOME"] = @home_path_save
         $VERBOSE = nil
         SolveBio.const_set(:API_HOST, @old_api_host)
         $VERBOSE = @old_warn_level

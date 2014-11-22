@@ -41,6 +41,12 @@ module SolveBio
         @api_key = value
     end
 
-    module_function :logger, :api_key, :api_key=
+
+    def login
+        require_relative 'cli/auth'
+        SolveBio::Auth.login_if_needed
+    end
+
+    module_function :logger, :login, :api_key, :api_key=
 
 end
