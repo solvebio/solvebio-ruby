@@ -23,5 +23,4 @@ class TestClient < Test::Unit::TestCase
             skip('Are you connected to the Internet? www.google.com is unavailable')
         end
     end
-
 end
