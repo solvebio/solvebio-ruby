@@ -196,38 +196,44 @@ class SolveBio::Filter
         Marshal.load(Marshal.dump(obj))
     end
 
-    # Takes an Array of filter items and returns an Array that can be
-    # passed off (when converted to JSON) to a SolveBio client filter
-    # parameter. As such, the output format is highly dependent on
-    # the SolveBio API format.
+    # Takes a SolveBio::Filter or an Array of filter items and returns
+    # an Array that can be passed off (when converted to JSON) to a
+    # SolveBio client filter parameter. As such, the output format is
+    # highly dependent on the SolveBio API format.
     #
     # The filter items can be either a SolveBio::Filter, or Hash of
     # the right form, or an Array of the right form.
     def self.process_filters(filters)
         rv = []
-        filters.each do |f|
-            if f.kind_of?(SolveBio::Filter)
-                if f.filters
-                    rv << process_filters(f.filters)
-                    next
-                end
-            elsif f.kind_of?(Hash)
-                key = f.keys[0]
-                val = f[key]
-
-                if val.kind_of?(Hash)
-                    filter_filters = process_filters(val)
-                    if filter_filters.size == 1
-                        filter_filters = filter_filters[0]
+        if filters.kind_of?(SolveBio::Filter)
+            if filters.filters
+                rv = process_filters(filters.filters)
+            end
+        else
+            filters.each do |f|
+                if f.kind_of?(SolveBio::Filter)
+                    if f.filters
+                        rv << process_filters(f.filters)
+                        next
                     end
-                    rv << {key => filter_filters}
+                elsif f.kind_of?(Hash)
+                    key = f.keys[0]
+                    val = f[key]
+
+                    if val.kind_of?(Hash)
+                        filter_filters = process_filters(val)
+                        if filter_filters.size == 1
+                            filter_filters = filter_filters[0]
+                        end
+                        rv << {key => filter_filters}
+                    else
+                        rv << {key => process_filters(val)}
+                    end
+                elsif f.kind_of?(Array)
+                    rv << f
                 else
-                    rv << {key => process_filters(val)}
+                    raise TypeError, "Invalid filter class #{f.class}"
                 end
-            elsif f.kind_of?(Array)
-                rv << f
-            else
-                raise TypeError, "Invalid filter class #{f.class}"
             end
         end
         return rv
