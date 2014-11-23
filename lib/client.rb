@@ -150,16 +150,16 @@ class SolveBio::Client
         @@client ||= SolveBio::Client.new()
     end
 
-    def self.get(*args)
-        client.get(*args)
+    def self.get(url, opts={})
+        client.get(url, opts)
     end
 
-    def self.post(*args)
-        client.post(*args)
+    def self.post(url, opts={})
+        client.post(url, opts)
     end
 
-    def self.request(*args)
-        client.request(*args)
+    def self.request(url, opts={})
+        client.request(url, opts)
     end
 
 end

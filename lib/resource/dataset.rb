@@ -1,5 +1,6 @@
 require_relative 'apiresource'
 require_relative '../query'
+require_relative '../tabulate'
 
 class SolveBio::Dataset < SolveBio::APIResource
 
@@ -55,17 +56,22 @@ class SolveBio::Dataset < SolveBio::APIResource
 
         result = SolveBio::Client.
                    client.request('get', self['fields_url'])
-        result.to_solvebio(self.class)
+        results = result.to_solvebio
+        unless results.respond_to?(:tabulate)
+            results.define_singleton_method(:tabulate) do |results_hash|
+                ary = results_hash.to_a.map do |fields|
+                    [fields['name'], fields['data_type'], fields['description']]
+                end
+                SolveBio::Tabulate.tabulate(ary,
+                                            ['Field', 'Data Type', 'Description'],
+                                            ['left', 'left', 'left'], true)
+            end
+        end
+        results
     end
 
     def query(params={})
-        paging = false
-        if params.member?(:paging)
-            paging = params[:paging]
-            params.delete(:paging)
-        end
-        q = paging ? SolveBio::PagingQuery.new(self['id'], params) :
-            SolveBio::Query.new(self['id'], params)
+        q = SolveBio::Query.new(self['id'], params)
 
         if params[:filters]
             return q.filter(params[:filters])

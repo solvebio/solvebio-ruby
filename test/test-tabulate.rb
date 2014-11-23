@@ -72,7 +72,8 @@ class TestTabulate < Test::Unit::TestCase
 foo    1
 spam  23
 EOS
-        assert_equal(expected.chomp, tabulate([["foo", 1], ["spam", 23]], [], tsv),
+        assert_equal(expected.chomp, tabulate([["foo", 1], ["spam", 23]], [], [],
+                                              false, tsv),
                      'simple separated format table')
         ####################################################################
         expected = <<-EOS
@@ -88,25 +89,25 @@ EOS
 
         ###################################################################
         expected = <<-EOS
-| Fields                | Data                        |
+|                Fields | Data                        |
 |-----------------------+-----------------------------|
-| alternate_alleles     | T                           |
-| clinical_origin       | somatic                     |
+|     alternate_alleles | T                           |
+|       clinical_origin | somatic                     |
 | clinical_significance | other                       |
-| gene_symbols          | CPB1                        |
-| hg18_chromosome       | 3                           |
-| hg19_chromosome       | 3                           |
-| hg19_start            | 148562304                   |
-| hg38_start            | 148844517                   |
-| hgvs                  | NC_000003.12:g.148844517C>T |
-| rcvaccession          | RCV000060731                |
-| rcvaccession_version  | 2                           |
-| reference_allele      | C                           |
-| rsid                  | rs150241322                 |
-| type                  | SNV                         |
+|          gene_symbols | CPB1                        |
+|       hg18_chromosome | 3                           |
+|       hg19_chromosome | 3                           |
+|            hg19_start | 148562304                   |
+|            hg38_start | 148844517                   |
+|                  hgvs | NC_000003.12:g.148844517C>T |
+|          rcvaccession | RCV000060731                |
+|  rcvaccession_version | 2                           |
+|      reference_allele | C                           |
+|                  rsid | rs150241322                 |
+|                  type | SNV                         |
 EOS
 
-         hash = {
+        hash = {
             "alternate_alleles"    => ["T"],
             "clinical_origin"      => ["somatic"],
             "clinical_significance"=> "other",
