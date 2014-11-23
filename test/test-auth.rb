@@ -2,7 +2,7 @@
 $VERBOSE = true
 require 'test/unit'
 require 'rbconfig'
-require_relative '../lib/credentials'
+require_relative '../lib/cli/credentials'
 
 class TestAuth < Test::Unit::TestCase
 
