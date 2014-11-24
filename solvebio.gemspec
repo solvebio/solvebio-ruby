@@ -70,6 +70,7 @@ EOD
   # s.add_development_dependency('DEVDEPNAME', [">= 1.1.0", "< 2.0.0"])
   s.add_development_dependency('rake')
   s.add_development_dependency('rdoc')
+  s.add_development_dependency('webmock')
   s.files = `git ls-files`.split($/)
 
   ## Test files will be grabbed from the file list. Make sure the path glob

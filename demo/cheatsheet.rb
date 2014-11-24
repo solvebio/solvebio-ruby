@@ -27,5 +27,5 @@ filters = SolveBio::Filter.new :gene_symbols__in => ["BRCA2", "BRCA1"]
 puts dataset.query(:filters => filters)
 
 # Range filter. Like 'in' for a contiguous numeric range
-dataset.query(filters =>
+dataset.query(:filters =>
               SolveBio::RangeFilter.new('hg38', "13", 32_200_000, 32_200_500))
