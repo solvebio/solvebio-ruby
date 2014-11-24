@@ -38,7 +38,7 @@ module SolveBio::Auth
     def send_install_report
         require 'socket';
         data = {
-            # :solvebio_version      => 'solvebio-ruby ' + SolveBio::version,
+            :solvebio_version      => 'solvebio-ruby %s' % SolveBio::VERSION,
             :ruby_version          => SolveBio::RUBY_VERSION,
             :ruby_implementation   => SolveBio::RUBY_IMPLEMENTATION,
             :architecture          => SolveBio::ARCHITECTURE,
