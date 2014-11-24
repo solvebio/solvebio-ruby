@@ -255,9 +255,9 @@ class SolveBio::GenomicFilter < SolveBio::Filter
     FIELD_CHR = 'genomic_coordinates.chromosome'
 
     #   Handles UCSC-style range queries (chr1:100-200)
-    def self.from_string(string, overlap=false)
+    def self.from_string(string, exact=false)
         begin
-            build, chromosome, pos = string.split(':')
+            chromosome, pos = string.split(':')
         rescue ValueError
             raise ValueError,
                 'Please use UCSC-style format: "chr2:1000-2000"'
@@ -269,7 +269,7 @@ class SolveBio::GenomicFilter < SolveBio::Filter
             start = stop = pos.replace(',', '')
         end
 
-        return self.new(build, chromosome, start, stop, overlap=overlap)
+        return self.new(chromosome, start, stop, exact)
     end
 
     # This class supports single position and range filters.
@@ -278,7 +278,6 @@ class SolveBio::GenomicFilter < SolveBio::Filter
     # the position or range specified. Exact matches must be explicitly
     # specified using the `exact` parameter.
     def initialize(chromosome, start, stop=nil, exact=false)
-
         begin
             start = Integer(start)
             stop = stop ? Integer(stop) : start
