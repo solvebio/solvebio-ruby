@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-# Deals with reading netrc credentials
+# Deals with reading SolveBio's netrc-style credentials file
 require_relative 'main'
 require 'netrc'
 require 'addressable/uri'

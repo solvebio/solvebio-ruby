@@ -1,10 +1,11 @@
-# Test Depository, DepositoryVersions
+# Test Depository
 
 require_relative './helper'
+require_relative '../lib/resource/main'
 class TestDepository < Test::Unit::TestCase
 
     def test_depositories
-        depos = SolveBio::Depository.all()
+        depos = SolveBio::Depository.all
 
         depo = depos[:data][0]
         assert(depo.member?('id'),
@@ -22,14 +23,11 @@ class TestDepository < Test::Unit::TestCase
                    "Should find field #{field} in depo #{depo.id}")
         end
 
-        depo_version_id = depo.versions()[:data][0].id
-        depo_version = SolveBio::DepositoryVersion.retrieve(depo_version_id)
-
-        %w(class_name created_at datasets_url depository depository_id
-           description full_name id latest name released released_at
-           title updated_at url).each do |field|
-            assert(depo_version.member?(field),
-                   "Should find field #{field} in depo version")
-        end
+        expected_start = '
+ Fields         | Data                                                         |
+----------------+--------------------------------------------------------------|
+ description    |
+'[1..-2]
+        assert(depo.to_s.start_with?(expected_start), 'depository tabulate')
     end
 end

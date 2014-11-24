@@ -15,6 +15,10 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
     #  'Clinvar/2.0.0-1'
     FULL_NAME_REGEX = %r{^[\w\.]+/[\w\-\.]+$}
 
+     # Fields that get shown by tabulate
+    TAB_FIELDS = %w(datasets_url depository description full_name
+                   latest url)
+
     # Supports lookup by full name
     def self.retrieve(id, params={})
         if id.kind_of?(String)
