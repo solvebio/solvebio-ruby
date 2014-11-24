@@ -29,6 +29,7 @@ class SolveBio::Query
     #
     # Parameters:
     #   - `dataset_id`: Unique ID of dataset to query.
+    #   - `genome_build`: The genome build to use for the query.
     #   - `result_class` (optional): Class of object returned by query.
     #   - `fields` (optional): List of specific fields to retrieve.
     #   - `filters` (optional): List of filter objects.
@@ -39,6 +40,7 @@ class SolveBio::Query
         @limit        = INT_MAX
         @result_class = params[:result_class]
         @filters      = params[:filters] || []
+        @genome_build = params[:genome_build]
         @total        = nil
 
         begin
@@ -47,10 +49,9 @@ class SolveBio::Query
             raise TypeError, "'dataset_id' parameter must an Integer"
         end
 
-
         @response  = nil
         @count     = nil
-        @cursor     = SolveBio::Cursor.new(0 , -1, 0)
+        @cursor    = SolveBio::Cursor.new(0 , -1, 0)
         @page_size = params[:page_size] || DEFAULT_PAGE_SIZE
 
         begin
@@ -78,6 +79,7 @@ class SolveBio::Query
         result =
             initialize(@dataset_id,
                        {
+                           :genome_build => @genome_build,
                            :limit => @limit,
                            :total => total,  # This causes an HTTP request
                            :result_class => @result_class,
@@ -109,10 +111,19 @@ class SolveBio::Query
     end
 
     # Shortcut to do range queries on supported datasets.
-    def range(chromosome, start, last, strand=nil, overlap=true)
+    def range(chromosome, start, stop, exact=false)
         # TODO: ensure dataset supports range queries?
-        return self.
-            clone([self.new(chromosome, start, last, strand, overlap)])
+        return self.clone(SolveBio::GenomicFilter
+                             .new(chromosome, start, stop, exact))
+    end
+
+    # Shortcut to do a single position filter on genomic datasets.
+    def position(chromosome, position, exact=false)
+        return self.clone(SolveBio::GenomicFilter
+                             .new(:filters =>
+                                  [SolveBio::GenomicFilter
+                                      .new(chromosome, position, position,
+                                           exact)]))
     end
 
     #
@@ -282,9 +293,8 @@ class SolveBio::Query
             end
         end
 
-        if @fields
-            q[:fields] = @fields
-        end
+        q[:fields] = @fields if @fields
+        q[:genome_build] = @genome_build if @genome_build
 
         return q
     end
