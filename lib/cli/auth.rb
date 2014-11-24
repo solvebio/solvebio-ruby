@@ -38,16 +38,14 @@ module SolveBio::Auth
     def send_install_report
         require 'socket';
         data = {
-            :hostname              => Socket.gethostname(),
+            # :solvebio_version      => 'solvebio-ruby ' + SolveBio::version,
             :ruby_version          => SolveBio::RUBY_VERSION,
             :ruby_implementation   => SolveBio::RUBY_IMPLEMENTATION,
-            # :platform              => platform(),
             :architecture          => SolveBio::ARCHITECTURE,
-            # :processor             => processor(),
         }
         SolveBio::Client.client
             .request('post', '/v1/reports/install',
-                     {:params => data}) rescue nil
+                     {:payload => data}) rescue nil
     end
 
     def login_msg(email)
