@@ -2,7 +2,19 @@
 $VERBOSE = true
 require 'test/unit'
 require 'fileutils'
+require_relative '../lib/cli/auth'
 require_relative '../lib/cli/credentials'
+
+def silence_output(&block)
+    original_stdout = $stdout
+    $stdout = fake = StringIO.new
+    begin
+        yield
+    ensure
+        $stdout = original_stdout
+    end
+   fake.string
+end
 
 # Does reading and manipulation of the SolveBio credentials file work?
 class TestNetrc < Test::Unit::TestCase
@@ -44,12 +56,27 @@ class TestNetrc < Test::Unit::TestCase
         save_credentials(*new_values)
         assert_equal(new_values, get_credentials.to_a,
                      'Should append "abc" to creds')
+
+
     end
 
     def test_delete_credentials
         delete_credentials
         assert_equal(nil, get_credentials,
                      'Should be able to delete credentials')
+        pair = ['testagain@solvebio.com', 'b00b00']
+        save_credentials(*pair)
+        auths = get_credentials()
+        assert_equal(pair, auths,
+                     "Should get newly set credentials for host #{SolveBio::API_HOST}")
+
+        # Make sure login_if_needed is setting the api key when it finds
+        # credentials
+        SolveBio.api_key = nil
+        silence_output {
+            self.assert(SolveBio::Auth::login_if_needed, "Should find credentials")
+        }
+        self.assert(SolveBio::api_key, "API key should be set when login_if_needed succeeds")
     end
 
 end

@@ -14,7 +14,7 @@ module SolveBio::Auth
 
     # If we've given an email address before, we'll use that
     # as the default address the next time we call login.
-    last_email = nil
+    @last_email = nil
 
     def ask_for_credentials(email=nil)
         while true
@@ -75,9 +75,9 @@ module SolveBio::Auth
             login_msg(email)
             return true
         else
-            email = last_email if email
+            email = @last_email if email
             email, password = ask_for_credentials email
-            last_email = email
+            @last_email = email
             data = {
                 :email    => email,
                 :password => password
@@ -92,7 +92,7 @@ module SolveBio::Auth
             else
                 save_credentials(email.downcase, response['token'])
                 # reset the default client's auth token
-                SolveBio::Client.client.api_key = response['token']
+                SolveBio.api_key = response['token']
                 send_install_report
                 puts 'You are now logged-in.'
                 return true
@@ -106,6 +106,7 @@ module SolveBio::Auth
         creds = get_credentials
         if creds
             last_email = creds[0]
+            SolveBio.api_key = creds[1]
             login_msg(last_email)
             return true
         else
@@ -116,7 +117,7 @@ module SolveBio::Auth
     def logout
         if get_credentials
             delete_credentials
-            SolveBio::Client.client.api_key = nil
+            SolveBio.api_key = nil
             puts 'You have been logged out.'
             return true
         else
