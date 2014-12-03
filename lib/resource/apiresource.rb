@@ -7,6 +7,7 @@ require_relative '../main'
 require_relative '../client'
 require_relative '../util'
 require_relative '../errors'
+require_relative '../tabulate'
 
 class SolveBio::APIResource < SolveBio::SolveObject
 
@@ -158,7 +159,19 @@ module SolveBio::ListableAPIResource
         end
     end
 
-    # How many items are in this list?
+    def to_s
+        if self.class.constants.member?(:TAB_FIELDS)
+            items = self.class.const_get(:TAB_FIELDS).map{
+                |name| [name, self[name]]
+            }
+        else
+            items = self
+        end
+        return SolveBio::Tabulate.tabulate(items, ['Fields', 'Data'],
+                                           ['right', 'left'], true)
+    end
+
+# How many items are in this list?
     def size
         self[:total]
     end

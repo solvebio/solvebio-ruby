@@ -16,6 +16,9 @@ class SolveBio::Depository < SolveBio::APIResource
     ALLOW_FULL_NAME_ID = true
     FULL_NAME_REGEX = %r{^[\w\-\.]+$}
 
+    # Fields that get shown by tabulate
+    TAB_FIELDS = %w(description full_name latest_version name title url)
+
     # lookup by ID or full name
     def self.retrieve(id, params={})
         if id.kind_of?(String)
