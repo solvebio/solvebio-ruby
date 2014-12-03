@@ -47,7 +47,18 @@ class SolveBio::Depository < SolveBio::APIResource
 
         response = SolveBio::Client.client
             .request('get', versions_url, {:params => params})
-        return response.to_solvebio
+        results = response.to_solvebio
+        unless results.respond_to?(:tabulate)
+            results.define_singleton_method(:tabulate) do |results|
+                ary = results.to_a.map do |fields|
+                    [fields['full_name'], fields['title'], fields['description']]
+                end
+                SolveBio::Tabulate.tabulate(ary,
+                                            ['Depository Version', 'Title', 'Description'],
+                                            ['left', 'left', 'left'], true)
+            end
+        end
+        results
     end
 
 end

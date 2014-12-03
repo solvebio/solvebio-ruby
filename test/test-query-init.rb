@@ -5,7 +5,7 @@ require_relative '../lib/query'
 class TestQuery < Test::Unit::TestCase
 
     def test_query_initialize
-        [SolveBio::PagingQuery, SolveBio::Query].each do |klass|
+        [SolveBio::Query].each do |klass|
             assert klass.new(5)
             assert klass.new('5')
             assert_raises TypeError do
@@ -24,6 +24,5 @@ class TestQuery < Test::Unit::TestCase
             end
         end
     end
-
 
 end

@@ -14,7 +14,6 @@ class TestDepository < Test::Unit::TestCase
         depo2 = SolveBio::Depository.retrieve(depo.id)
         assert_equal(depo, depo2,
                          "Retrieving dataset id #{depo.id} found by all()")
-
         %w(class_name created_at description external_resources
            full_name id is_private is_restricted latest_version
            latest_version_id name title updated_at url versions_count

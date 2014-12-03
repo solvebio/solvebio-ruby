@@ -47,23 +47,19 @@ class SolveBio::DepositoryVersion < SolveBio::APIResource
         end
 
         response = SolveBio::Client.client
-            request('get', datasets_url, {:params => params})
-        return response.to_solvebio
-    end
-
-    # Set the released flag and optional release date and save
-    def release(released_at=nil)
-        if released_at
-            @released_at = released_at
+                     .request('get', datasets_url, {:params => params})
+        results = response.to_solvebio
+        unless results.respond_to?(:tabulate)
+            results.define_singleton_method(:tabulate) do |results|
+                ary = results.to_a.map do |fields|
+                    [fields['full_name'], fields['title'], fields['description']]
+                end
+                SolveBio::Tabulate.tabulate(ary,
+                                            ['Field', 'Title', 'Description'],
+                                            ['left', 'left', 'left'], true)
+            end
         end
-        @released = true
-        save()
-    end
-
-    # Unset the released flag and save
-    def unrelease
-        @released = false
-        save()
+        results
     end
 
     def <=>(other)

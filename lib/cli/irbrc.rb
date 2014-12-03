@@ -43,12 +43,5 @@ unless have_completion
     end
 end
 
-# Report whether we are logged in.
 include SolveBio::Credentials
-creds = get_credentials()
-if creds
-    puts "You are logged in as #{creds[0]}"
-else
-    puts 'You are not logged in yet. Login using "login [email]"'
-
-end
+login_if_needed

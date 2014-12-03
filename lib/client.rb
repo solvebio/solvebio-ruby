@@ -4,7 +4,6 @@ require 'openssl'
 require 'rest_client'
 require 'json'
 require 'addressable/uri'
-require_relative 'credentials'
 require_relative 'errors'
 
 # A requests-based HTTP client for SolveBio API resources
@@ -93,18 +92,30 @@ class SolveBio::Client
         SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
 
         response = nil
-        RestClient::Request.
-            execute(:method        => method,
-                    :url           => url,
-                    :headers       => headers,
-                    :authorization => authorization,
-                    :timeout       => opts[:timeout] || 80,
-                    :payload       => opts[:payload]) do
-            |resp, request, result, &block|
-            response = resp
-            if response.code < 200 or response.code >= 400
-                self.handle_api_error(result)
+        while true do
+            RestClient::Request.
+                execute(:method        => method,
+                        :url           => url,
+                        :headers       => headers,
+                        :authorization => authorization,
+                        :timeout       => opts[:timeout] || 80,
+                        :payload       => opts[:payload]) do
+                |resp, request, result, &block|
+                response = resp
+                if 429 == response.code
+                    begin
+                        delay = Integer(response.headers[:retry_after])
+                    rescue
+                        delay = 10
+                    end
+                    SolveBio::logger.info("Too many requests; sleeping for #{delay}")
+                    sleep(delay)
+                    next
+                elsif response.code < 200 or response.code >= 400
+                    handle_api_error(result)
+                end
             end
+            break
         end
 
         response = JSON.parse(response) unless opts[:raw]
@@ -139,16 +150,16 @@ class SolveBio::Client
         @@client ||= SolveBio::Client.new()
     end
 
-    def self.get(*args)
-        client.get(*args)
+    def self.get(url, opts={})
+        client.get(url, opts)
     end
 
-    def self.post(*args)
-        client.post(*args)
+    def self.post(url, opts={})
+        client.post(url, opts)
     end
 
-    def self.request(*args)
-        client.request(*args)
+    def self.request(url, opts={})
+        client.request(url, opts)
     end
 
 end

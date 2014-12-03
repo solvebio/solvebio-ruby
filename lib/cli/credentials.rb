@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
-# Deals with reading SolveBio's netrc-style credentials file
-require_relative 'main'
+# Deals with reading a SolveBio's netrc-style credentials file
+require_relative '../main'
 require 'netrc'
+require 'fileutils'
 require 'addressable/uri'
 
 #
-#    Raised if the credentials are not found.
+#  Exception which can br raised if the credentials are not found.
 #
 class CredentialsError < RuntimeError
 end
@@ -21,15 +22,18 @@ module SolveBio::Credentials
     end
 
     def netrc_path
-        path =
-            if ENV['NETRC_PATH']
-                File.join(ENV['NETRC_PATH'], ".netrc")
-            else
-                Netrc.default_path
-            end
-        if not File.exist?(path)
-            raise IOError, "netrc file #{path} not found"
-        end
+
+        raise IOError, "$HOME is not set and is needed for SolveBio credentials" unless
+            ENV['HOME']
+
+        path = File.join(ENV['HOME'], '.solvebio', 'credentials')
+
+        dirname = File.dirname(path)
+        FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
+
+        # create an empty credentials file if it doesn't exist
+        FileUtils.touch path unless File.exist? path
+        FileUtils.chmod 0600, path
         path
     end
 
@@ -41,7 +45,7 @@ module SolveBio::Credentials
         n = Netrc.read(netrc_path)
         return n[api_host]
     rescue Netrc::Error => e
-        raise CredentialsError, "Could not read .netrc file: #{e}"
+        raise CredentialsError, "Could not read credentials file: #{e}"
     end
     module_function :get_credentials
 

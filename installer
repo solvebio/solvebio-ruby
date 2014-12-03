@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+#
+# This is the guided installer for the SolveBio Ruby Client:
+#
+#    curl -kL install.solve.bio/ruby | bash
+#
+
+echo
+echo "     ____        _           ____  _"
+echo "    / ___|  ___ | |_   _____| __ )(_) ___"
+echo "    \___ \ / _ \| \ \ / / _ \  _ \| |/ _ \\"
+echo "     ___) | (_) | |\ V /  __/ |_) | | (_) |"
+echo "    |____/ \___/|_| \_/ \___|____/|_|\___/"
+echo
+echo "    Copyright © 2014 Solve, Inc. <https://www.solvebio.com>. All rights reserved."
+echo
+
+shopt -s extglob
+
+function fail_exit() {
+    echo
+    echo "    #####################################"
+    echo
+    echo "    Failed to install SolveBio."
+    echo "    Contact us at support@solvebio.com"
+    echo
+    echo "    #####################################"
+    echo
+    exit
+}
+
+trap ctrl_c INT
+
+function ctrl_c() {
+    echo
+    echo
+    echo "    Installation was aborted..."
+    fail_exit
+}
+
+echo "    Installing SolveBio for Ruby..."
+echo
+echo "    IMPORTANT: Your computer's password may be required. It will NOT be sent to SolveBio."
+
+# Are we installing or upgrading?
+if [ $(gem list | grep solvebio -c) -ne 0 ]; then
+    sudo gem update -q solvebio 2>&1 > /dev/null
+else
+    sudo gem install -q solvebio 2>&1 > /dev/null
+fi
+
+if [ $? -eq 0 ]; then
+    echo
+    echo "    ##############################################"
+    echo
+    echo "    Success! SolveBio for Ruby is now installed."
+    echo
+    echo "    Please run 'solvebio.rb login' to finish the setup."
+    echo
+    echo "    ##############################################"
+    echo
+else
+    fail_exit
+fi
