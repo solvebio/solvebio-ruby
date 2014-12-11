@@ -19,7 +19,7 @@ module SolveBio
             when Array
                 resp.map { |i| to_solve_object(i) }
             when Hash
-                object_classes.fetch(resp[:class_name], SolveObject).construct_from(resp)
+                object_classes.fetch(resp['class_name'], SolveObject).construct_from(resp)
             else
                 resp
             end

@@ -18,8 +18,7 @@ module SolveBio
             return Dataset.retrieve(datasets_url(name)) if name
 
             response = Client.request('get', datasets_url, {:params => params})
-            results = response.to_solvebio
-
+            results = Util.to_solve_object(response)
             unless results.respond_to?(:tabulate)
                 results.define_singleton_method(:tabulate) do |results|
                     ary = results.to_a.map do |fields|

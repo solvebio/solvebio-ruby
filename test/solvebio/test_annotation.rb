@@ -35,13 +35,11 @@ module SolveBio
             end
 
             all = SolveBio::Annotation.all()
-            assert(all.total > 1,
+            assert(all['total'] > 1,
                    "Annotation.all() returns more than one value")
 
-            response = my_sample.annotate
-            # FIXME: test annotate() more.
-
             my_sample.delete
+            assert my_sample.deleted
         end
     end
 end

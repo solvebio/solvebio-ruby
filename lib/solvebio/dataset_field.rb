@@ -7,8 +7,8 @@ module SolveBio
         include SolveBio::APIOperations::Update
 
         def facets(params={})
-            response = Client.request 'get', self[:facets_url], {:params => params}
-            response.to_solvebio(SolveObject)
+            response = Client.get(self[:facets_url], {:params => params})
+            Util.to_solve_object(response)
         end
     end
 end

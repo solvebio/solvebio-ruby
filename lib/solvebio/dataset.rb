@@ -31,8 +31,8 @@ module SolveBio
                 return DatasetField.retrieve("#{self['full_name']}/#{name}")
             end
 
-            result = Client.client.request('get', self['fields_url'])
-            results = result.to_solvebio
+            result = Client.request('get', self['fields_url'])
+            results = Util.to_solve_object(result)
             unless results.respond_to?(:tabulate)
                 results.define_singleton_method(:tabulate) do |results_hash|
                     ary = results_hash.to_a.map do |fields|

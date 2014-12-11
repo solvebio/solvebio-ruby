@@ -142,12 +142,12 @@ module SolveBio
             client.get(url, opts)
         end
 
-        def self.post(url, opts={})
-            client.post(url, opts)
+        def self.post(url, data, opts={})
+            client.post(url, data, opts)
         end
 
-        def self.request(url, opts={})
-            client.request(url, opts)
+        def self.request(method, url, opts={})
+            client.request(method, url, opts)
         end
     end
 end

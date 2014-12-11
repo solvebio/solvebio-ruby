@@ -22,7 +22,7 @@ module SolveBio
                 retrieve("#{self['full_name']}/#{name}") if name
 
             response = Client.request('get', versions_url, {:params => params})
-            results = response.to_solvebio
+            results = Util.to_solve_object(response)
             unless results.respond_to?(:tabulate)
                 results.define_singleton_method(:tabulate) do |results|
                     ary = results.to_a.map do |fields|

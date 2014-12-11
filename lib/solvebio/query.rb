@@ -42,17 +42,10 @@ module SolveBio
             @filters      = params[:filters] || []
             @genome_build = params[:genome_build]
             @total        = nil
-
-            begin
-                @dataset_id = Integer(dataset_id)
-            rescue
-                raise TypeError, "'dataset_id' parameter must an Integer"
-            end
-
-            @response  = nil
-            @count     = nil
-            @cursor    = Cursor.new(0 , -1, 0)
-            @page_size = params[:page_size] || DEFAULT_PAGE_SIZE
+            @response     = nil
+            @count        = nil
+            @cursor       = Cursor.new(0 , -1, 0)
+            @page_size    = params[:page_size] || DEFAULT_PAGE_SIZE
 
             begin
                 @limit = Integer(params[:limit])
@@ -67,6 +60,7 @@ module SolveBio
             if @limit < 0
                 raise RangeError, "'limit' parameter must be >= 0"
             end
+
             self
         end
 

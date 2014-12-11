@@ -21,7 +21,7 @@ module SolveBio
                 'name' => 'HGNC',
                 'title' => 'HGNC'
             }
-            so = resp.to_solvebio
+            so = Util.to_solve_object(resp)
             assert_equal SolveBio::Dataset, so.class, 'Hash -> SolveObject'
             resp.keys.each {|k| assert_equal resp[k], so[k]}
         end

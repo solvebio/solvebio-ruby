@@ -1,7 +1,7 @@
 module SolveBio
     class APIResource < SolveObject
-        def self.retrieve(id, params={})
-            instance = self.new(id, params)
+        def self.retrieve(id)
+            instance = self.new(id)
             instance.refresh()
             instance
         end
@@ -17,8 +17,8 @@ module SolveBio
         end
 
         def refresh
-            refresh_from request('get', instance_url)
-            self
+            response = Client.get(instance_url)
+            refresh_from(response)
         end
 
         # Get instance URL by ID or full name (if available)

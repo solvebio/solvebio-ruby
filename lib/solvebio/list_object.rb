@@ -29,7 +29,7 @@ module SolveBio
         end
 
         def to_a
-            return to_solve_object(self['data'])
+            return Util.to_solve_object(self['data'])
         end
 
         def each(*pass)
