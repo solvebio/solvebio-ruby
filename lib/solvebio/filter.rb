@@ -21,7 +21,6 @@ module SolveBio
         #     * `<field>='value` matches if the field is term filter (exact term)
         #     * `<field>__in=[<item1>, ...]` matches any of the terms <item1> and so on
         #     * `<field>__range=[<start>, <end>]` matches anything from <start> to <end>
-        #     * `<field>__between=[<start>, <end>]` matches anything between <start> to <end> not include either <start> or <end>
         #
         # String terms are not analyzed and are always assumed to be exact matches.
         #
@@ -75,7 +74,6 @@ module SolveBio
         #   objects combined with the connector `conn`.
         # FIXME: should we allow a default conn parameter?
         def combine(other, conn=:and)
-
             return other.clone if self.empty?
 
             if other.empty?
@@ -132,12 +130,12 @@ module SolveBio
                 end
                 unless tuple.size == 2
                     raise(TypeError,
-                          "filter element size must be 2; is #{tuple.size}")
+                          "Filter element size must be 2; is #{tuple.size}")
                 end
                 key, value = tuple
                 if key.to_s =~ /.+__(.+)$/
                     op = $1
-                    unless %w(gt gte lt lte in range between).member?(op)
+                    unless %w(gt gte lt lte in range contains prefix regexp).member?(op)
                         raise(TypeError,
                               "Invalid field operation #{op} in #{key}")
                     end
@@ -148,36 +146,45 @@ module SolveBio
                         rescue
                             raise(TypeError,
                                   "Invalid field value #{value} for #{key}; " +
-                                  "should be a number")
+                                  "Should be a number")
                         end
                         tuple = [key, value]
-                    when 'range', 'between'
+                    when 'range'
                         if value.kind_of?(Range)
                             value = [value.min, value.max]
                         end
+
                         unless value.kind_of?(Array)
                             raise(TypeError,
                                   "Invalid field value #{value} for #{key}; " +
-                                  "should be an array")
+                                  "Should be an array")
                         end
                         unless value.size == 2
                             raise(TypeError,
                                   "Invalid field value #{value} for #{key}; " +
-                                  "array should have exactly two values")
+                                  "Array should have exactly two values")
                         end
                         if value.first > value.last
                             raise(IndexError,
                                   "Invalid field value #{value} for #{key}; " +
-                                  "start value not greater than end value")
+                                  "Start value not greater than end value")
+                        end
+                        
+                        begin
+                            Float(value.first)
+                            Float(value.last)
+                        rescue
+                            raise(TypeError,
+                                  "Invalid field values for #{key}; " +
+                                  "Both should be numbers")
                         end
 
-                        # FIXME: Should we check that value contains only numbers?
                         tuple = [key, value]
                     when 'in'
                         unless value.kind_of?(Array)
                             raise(TypeError,
                                   "Invalid field value #{value} for #{key}; " +
-                                  "should be an array")
+                                  "Should be an array")
                         end
 
                     end
@@ -245,7 +252,7 @@ module SolveBio
         FIELD_STOP = 'genomic_coordinates.stop'
         FIELD_CHR = 'genomic_coordinates.chromosome'
 
-        #   Handles UCSC-style range queries (chr1:100-200)
+        # Handles UCSC-style range queries (chr1:100-200)
         def self.from_string(string, exact=false)
             begin
                 chromosome, pos = string.split(':')
@@ -270,13 +277,16 @@ module SolveBio
         # specified using the `exact` parameter.
         def initialize(chromosome, start, stop=nil, exact=false)
             begin
-                start = Integer(start)
+                if not start.nil?
+                    start = Integer(start)
+                end
+
                 stop = stop ? Integer(stop) : start
             rescue ValueError
-                raise ValueError('Start and stop positions must be integers')
+                raise ValueError('Start and stop positions must be integers or nil')
             end
 
-            if exact
+            if exact or start.nil?
                 f = SolveBio::Filter.new({FIELD_START => start, FIELD_STOP  => stop})
             else
                 f = SolveBio::Filter.new({"#{FIELD_START}__lte" => start,
@@ -289,7 +299,12 @@ module SolveBio
                 end
             end
 
-            f &= SolveBio::Filter.new({"chromosome" => chromosome.sub('chr', '')})
+            if chromosome.nil?
+                f &= SolveBio::Filter.new({"chromosome" => nil})
+            else
+                f &= SolveBio::Filter.new({"chromosome" => chromosome.sub('chr', '')})
+            end
+
             @filters = f.filters
         end
 

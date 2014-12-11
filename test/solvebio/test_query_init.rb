@@ -16,7 +16,7 @@ module SolveBio
                 end
 
                 assert klass.new(5, :limit => 10)
-                assert_raises RangeError do
+                assert_raises TypeError do
                     # limit should be > 0
                     assert klass.new(5, :limit => -1)
                 end

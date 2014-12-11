@@ -35,7 +35,6 @@ module SolveBio
 
             @dataset_id   = dataset_id
             @data_url     = params[:data_url] || "/v1/datasets/#{dataset_id}/data"
-            @limit        = INT_MAX
             @result_class = params[:result_class]
             @filters      = params[:filters] || []
             @genome_build = params[:genome_build]
@@ -44,19 +43,22 @@ module SolveBio
             @count        = nil
             @cursor       = Cursor.new(0 , -1, 0)
             @page_size    = params[:page_size] || DEFAULT_PAGE_SIZE
-
-            begin
-                @limit = Integer(params[:limit])
-            rescue
-                raise TypeError, "'limit' parameter must an Integer >= 0"
-            end if params.member?(:limit)
-
+            @limit        = params[:limit] || INT_MAX
             @result_class = params[:result_class] || Hash
             @fields = params[:fields]
 
-            # parameter error checking
-            if @limit < 0
-                raise RangeError, "'limit' parameter must be >= 0"
+            begin
+                @limit = Integer(@limit)
+                raise RangeError if @limit < 0
+            rescue
+                raise TypeError, "'limit' parameter must an Integer >= 0"
+            end
+
+            begin
+                @page_size = Integer(@page_size)
+                raise RangeError if @page_size <= 0
+            rescue
+                raise TypeError, "'page_size' parameter must an Integer > 0"
             end
 
             self
@@ -72,7 +74,8 @@ module SolveBio
                 :data_url => @data_url,
                 :genome_build => @genome_build,
                 :limit => @limit,
-                :total => total,  # This causes an HTTP request
+                :page_size => @page_size,
+                # :total => total,  # This causes an HTTP request
                 :result_class => @result_class,
                 :fields => @fields
             })
@@ -103,18 +106,12 @@ module SolveBio
 
         # Shortcut to do range queries on supported datasets.
         def range(chromosome, start, stop, exact=false)
-            # TODO: ensure dataset supports range queries?
-            return self.clone(GenomicFilter
-                                 .new(chromosome, start, stop, exact))
+            return self.clone([GenomicFilter.new(chromosome, start, stop, exact)])
         end
 
         # Shortcut to do a single position filter on genomic datasets.
         def position(chromosome, position, exact=false)
-            return self.clone(GenomicFilter
-                                 .new(:filters =>
-                                      [GenomicFilter
-                                          .new(chromosome, position, position,
-                                               exact)]))
+            return self.clone([GenomicFilter.new(chromosome, position, position, exact)])
         end
 
         #
@@ -125,14 +122,14 @@ module SolveBio
         # See also size() a function that is dependent on limit.
         def count
             unless @count
-                limit_save = @limit
-                response_save = @response
-                @limit = INT_MAX
+                _limit = @limit
+                _response = @response
+                @limit = 0
                 @response = nil
                 warmup('Query count')
                 @count = @response[:total]
-                @limit = limit_save
-                @response = response_save
+                @limit = _limit
+                @response = _response
             end
             @count
         end
@@ -147,7 +144,8 @@ module SolveBio
         #     SELECT * FROM <table> [WHERE condition] [LIMIT number]
         # )
         def size
-            [@limit, count].min
+            warmup('Query size')
+            [@total, @limit].min
         end
         alias_method :length, :size
 
@@ -235,14 +233,9 @@ module SolveBio
                 raise IndexError, 'Index beyond end of results'
             end
 
-            # if Range.new(@cursor.first, @cursor.last).include?(key)
-            #     adjusted_key = key - @cursor.first
-            #     return @results[adjusted_key]
-            # else
-                @cursor.reset(key, key)
-                execute
-                return @results[0]
-            # end
+            @cursor.reset(key, key)
+            execute
+            return @results[0]
         end
 
         # range operations
@@ -300,12 +293,6 @@ module SolveBio
         def offset
             @cursor.offset_absolute
         end
-
-        def size
-            warmup('Query size')
-            [@total, @limit].min
-        end
-        alias_method :length, :size
 
         # "each" must be defined in an Enumerator. Allows the Query object
         # to be an iterable. Iterates through the internal cache using a

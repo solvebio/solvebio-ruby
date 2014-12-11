@@ -7,10 +7,10 @@ module SolveBio
                 SolveBio::Filter.new(:style__gtt => 5)
             end
             assert_raises TypeError do
-                SolveBio::Filter.new(:style__between => 'a')
+                SolveBio::Filter.new(:style__range => 'a')
             end
             assert_raises TypeError do
-                SolveBio::Filter.new(:style__between => [5,10,15])
+                SolveBio::Filter.new(:style__range => [5,10,15])
             end
             assert_raises IndexError do
                 SolveBio::Filter.new(:style__range => [10,5])
@@ -40,10 +40,10 @@ module SolveBio
                          filters3.inspect,
                          'combining more than one of a connector (|)')
 
-            assert_equal('<SolveBio::Filter [[:style__between, [5, 10]]]>',
-                         SolveBio::Filter.new(:style__between => (5...11)).inspect)
-            assert_equal('<SolveBio::Filter [[:style__between, [5, 10]]]>',
-                         SolveBio::Filter.new(:style__between => (5..10)).inspect)
+            assert_equal('<SolveBio::Filter [[:style__range, [5, 10]]]>',
+                         SolveBio::Filter.new(:style__range => (5...11)).inspect)
+            assert_equal('<SolveBio::Filter [[:style__range, [5, 10]]]>',
+                         SolveBio::Filter.new(:style__range => (5..10)).inspect)
 
         end
 

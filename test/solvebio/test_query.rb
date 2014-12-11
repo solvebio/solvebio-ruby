@@ -6,23 +6,33 @@ module SolveBio
             @dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
         end
 
-        # When paging is off, results.length should return the number of
-        # results retrieved.
         def test_basic
-            results = @dataset.query()
+            results = @dataset.query.filter(:omim_ids__in => [123631, 123670, 123690, 306250])
             assert_equal(results.total, results.size)
             assert_equal(results.total, results.length)
+            
+            _results = []
+            results.each_with_index.each do |r, i|
+                _results << r
+            end
+            assert_equal(_results.length, results.length)
         end
 
         # results.size should return the number of
         # results retrieved.
         def test_basic_with_limit
-            limit = 100
-            results = @dataset.query(:limit=>limit)
+            limit = 10
+            results = @dataset.query(:limit => limit)
             assert_equal(results.size, limit)
             assert_raise IndexError do
                 results[results.total + 1]
             end
+            
+            _results = []
+            results.each_with_index.each do |r, i|
+                _results << r
+            end
+            assert_equal(_results.length, limit)
         end
 
         def test_count
@@ -73,8 +83,8 @@ module SolveBio
         def test_len_with_limit
             q = @dataset.query
             total = q.count
-            assert_operator total, :>, 0
-            assert_equal total, q.size
+            assert_operator(total, :>, 0)
+            assert_equal(total, q.size)
 
             [0, 10, 1000].each do |limit|
                 # with a filter
@@ -106,7 +116,7 @@ module SolveBio
             # bogus filter
             results = @dataset.query(:limit => limit)
                         .filter(:omim_ids => 999999)
-            assert_equal 0, results.size
+            assert_equal(0, results.size)
             assert_equal(results[0...results.size], [])
             assert_raise IndexError do
                 results[0]
@@ -140,7 +150,7 @@ module SolveBio
                 SolveBio::Filter.new(:omim_ids => 123690) |
                 SolveBio::Filter.new(:omim_ids => 306250)
             results = @dataset.query :limit => limit, :filters => filters
-            assert_equal num_filters, results.size
+            assert_equal(num_filters, results.size)
             assert_raise IndexError do
                 results[num_filters]
             end

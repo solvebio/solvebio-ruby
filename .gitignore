@@ -5,3 +5,4 @@ pkg
 solvebio-*.gem
 test/data/.netrc
 Gemfile.lock
+*.swp
