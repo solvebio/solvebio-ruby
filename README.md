@@ -1,35 +1,49 @@
 [![Build Status](https://travis-ci.org/solvebio/solvebio-ruby.svg)](https://travis-ci.org/solvebio/solvebio-ruby)
 
-# SolveBio Ruby Client
+SolveBio Ruby Client
+====================
+
+This is the SolveBio Ruby module and command-line interface (CLI).
+
+For more information about SolveBio, see [solvebio.com](https://www.solvebio.com).
 
 
-This packages provides a command-line interface (CLI) and Ruby API interface to SolveBio.
+Guided Installation
+-------------------
 
-For more information about the SolveBio API, https://www.solvebio.com/docs/api/
-For more information about SolveBio, see https://www.solvebio.com
+To use the guided installer, open up your terminal and paste this:
 
-# Installation
+    curl -kL install.solvebio.com/ruby | bash
 
-    gem install solvebio # may need sudo
 
-Installing from git:
+Manual Installation
+-------------------
+
+    sudo gem install solvebio
+
+
+Installing from Git
+-------------------
+
+First, install dependencies:
+	
+    gem install rest_client
+    gem install addressable
+    gem install netrc
+
+Install from source:
 
     git clone https://github.com/solvebio/solvebio-ruby.git
 	cd solvebio-ruby
-	gem install netrc  # install gem dependencies, may need sudo
-	rake test          # or "make test"
-    sudo rake install  # or "make install"
+    rake test
+    sudo rake install
 
-This also builds a *solvebio* gem which you can use elsewhere.
 
-But note, you can also run right inside the git repository without installing anything. For example, running:
+This will install the `solvebio` gem and the `solvebio.rb` CLI.
 
-    git clone https://github.com/solvebio/solvebio-ruby.git
-	solvebio-ruby/bin/solvebio.rb
 
-will get you into a solvebio irb shell. Just about any Ruby file in the project can be run standalone, and when done so, it demos that Ruby code.
-
-# Optional Gem dependencies
+Optional Dependencies
+---------------------
 
 The following optional gems can make your shell experience better
 
@@ -45,22 +59,8 @@ The following optional gems can make your shell experience better
 
     Localization for number formatting
 
-# Demo code and Documentation
 
-See the [demo folder](https://github.com/solvebio/solvebio-ruby/tree/master/demo) for ready-to-run examples.
+Documentation
+-------------
 
-The online [SolveBio Python API documentation](https://www.solvebio.com/docs/api/?python) has additional examples. To use these with the Ruby client,  change `import solvebio` to `require 'solvebio'` and change `solvebio.` to `SolveBio::` everywhere it occurs.
-
-e.g., a Python example:
-
-    solvebio.Depository.retrieve("ClinVar").versions()
-
-the same Python example ported to Ruby:
-
-    SolveBio::Depository.retrieve("ClinVar").versions()
-
-As with any other Ruby method call, you can drop the final parenthesis if you like.
-
-# To Do
-
-This hasn't been extensively field tested yet.
+See the [SolveBio API Reference](https://www.solvebio.com/docs/api/?ruby) for more information about using the API.
