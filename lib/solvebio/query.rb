@@ -156,35 +156,16 @@ module SolveBio
         # Convert SolveBio::QueryPaging object to a String type
         def to_s
             if total == 0 or @limit == 0
-                return 'query returned 0 results'
+                return 'Query returned 0 results'
             end
 
-            sorted_items = Tabulate.
-                tabulate(self[0], ['Fields', 'Data'], ['right', 'left'], true)
-            msg =
-                "\n%s\n\n... %s more results." %
-                [sorted_items,
-                 (@total - 1).pretty_int]
-            return msg
-        end
-
-        def to_pp
-            if total == 0 or @limit == 0
-                return 'query returned 0 results'
-            end
-            msg = "\n#{self[0].pretty_inspect}\n" +
-                "\n... #{(@total-1).pretty_int} more results."
-            return msg
+            result = Tabulate.tabulate(self[0], ['Fields', 'Data'], ['right', 'left'], true)
+            return "\n#{result}\n\n... #{(@total - 1).pretty_int} more results."
         end
 
         # Convert SolveBio::QueryPaging object to a Hash type
         def to_h
             self[0]
-        end
-
-        def inspect
-            return '<%s: @dataset_id=%s, @total=%s, @limit=%s>' %
-                [self.class, @dataset_id, @total ? @total : '?', @limit]
         end
 
         def warmup(what)
