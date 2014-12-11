@@ -1,0 +1,153 @@
+module SolveBio
+    class Client
+        attr_reader :headers, :api_host
+        attr_accessor :api_key
+
+        # Add our own kind of Authorization tokens. This has to be
+        # done this way, late, because the rest-client gem looks for
+        # .netrc and will set basic authentication if it finds a match.
+        RestClient.add_before_execution_proc do | req, args |
+            if args[:authorization]
+                req.instance_variable_get('@header')['authorization'] = [args[:authorization]]
+            end
+        end
+
+        def initialize(api_key=nil, api_host=nil)
+            @api_key = api_key || SolveBio::api_key
+            SolveBio::api_key  ||= api_key
+            @api_host = api_host || SolveBio::api_host
+
+            # Mirroring comments from:
+            # http://ruby-doc.org/stdlib-2.1.2/libdoc/net/http/rdoc/Net/HTTP.html
+            # gzip compression is used in preference to deflate
+            # compression, which is used in preference to no compression.
+            @headers  = {
+                :content_type     => :json,
+                :accept           => :json,
+                'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                'User-Agent'      => 'SolveBio Ruby Client %s' % [
+                    SolveBio::VERSION,
+                ]
+            }
+        end
+
+        DEFAULT_REQUEST_OPTS = {
+            :raw             => false,
+            :default_headers => true
+        }
+
+        # Issues an HTTP GET across the wire via the Ruby 'rest-client'
+        # library. See *request()* for information on opts.
+        def get(url, opts={})
+            request('get', url, opts)
+        end
+
+        # Issues an HTTP POST across the wire via the Ruby 'rest-client'
+        # library. See *request* for information on opts.
+        def post(url, data, opts={})
+            opts[:payload] =
+                if opts.member?(:no_json)
+                    data
+                else
+                    data.to_json
+                end
+            request('post', url, opts)
+        end
+
+        # Issues an HTTP Request across the wire via the Ruby 'rest-client'
+        # library.
+        def request(method, url, opts={})
+            opts = DEFAULT_REQUEST_OPTS.merge(opts)
+
+            # Expand URL with API host if none was given
+            api_host = @api_host or SolveBio::api_host
+
+            if not api_host
+                raise SolveError.new('No SolveBio API host is set')
+            elsif not url.start_with?(api_host)
+                url = Addressable::URI.join(api_host, url).to_s
+            end
+
+            # Handle some default options and add authorization header
+            if opts[:default_headers] and @api_key
+                headers = @headers.merge(opts[:headers]||{})
+                authorization = "Token #{@api_key}"
+            else
+                headers = nil
+                authorization = nil
+            end
+
+            SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
+
+            response = nil
+            while true do
+                RestClient::Request.
+                    execute(:method        => method,
+                            :url           => url,
+                            :headers       => headers,
+                            :authorization => authorization,
+                            :timeout       => opts[:timeout] || 80,
+                            :payload       => opts[:payload]) do
+                    |resp, request, result, &block|
+                    response = resp
+                    if 429 == response.code
+                        begin
+                            delay = Integer(response.headers[:retry_after])
+                        rescue
+                            delay = 10
+                        end
+                        SolveBio::logger.info("Too many requests; sleeping for #{delay}")
+                        sleep(delay)
+                        next
+                    elsif response.code < 200 or response.code >= 400
+                        handle_api_error(result)
+                    end
+                end
+                break
+            end
+
+            response = JSON.parse(response) unless opts[:raw]
+            response
+        end
+
+        def self.handle_request_error(e)
+            # FIXME: go over this. It is still a rough translation
+            # from the python.
+            err = e.inspect
+            if e.kind_of?(requests.exceptions.RequestException)
+                msg = SolveError::Default_message
+            else
+                msg = "Unexpected error communicating with SolveBio.\n" +
+                    "It looks like there's probably a configuration " +
+                    'issue locally.\nIf this problem persists, let us ' +
+                    'know at contact@solvebio.com.'
+            end
+            msg = msg + "\n\n(Network error: #{err}"
+            raise SolveError.new(nil, msg)
+        end
+
+        # SolveBio's API error handler returns a SolveBio::Error.  The
+        # *response* parameter is a (subclass) of Net::HTTPResponse.
+        def handle_api_error(response)
+            SolveBio::logger.info("API Error: #{response.msg}") unless
+                [400, 401, 403, 404].member?(response.code.to_i)
+            raise SolveError.new(response)
+        end
+
+        def self.client
+            @@client ||= SolveBio::Client.new()
+        end
+
+        def self.get(url, opts={})
+            client.get(url, opts)
+        end
+
+        def self.post(url, opts={})
+            client.post(url, opts)
+        end
+
+        def self.request(url, opts={})
+            client.request(url, opts)
+        end
+    end
+end
