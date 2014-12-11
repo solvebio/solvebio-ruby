@@ -3,6 +3,8 @@ require File.expand_path('../../helper', __FILE__)
 
 module SolveBio
     class TestTabulate < Test::Unit::TestCase
+        include SolveBio::Tabulate
+
         def test_classify
             assert_equal true,  '123.45'.number?
             assert_equal true,  '123'.number?

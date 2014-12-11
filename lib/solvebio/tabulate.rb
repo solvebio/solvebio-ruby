@@ -86,7 +86,6 @@ module SolveBio
         }
 
         module_function
-
         # Simulate Python's multi-parameter zip function. Ruby's zip
         # function, like Perl's, expects each arg to have dimension 2.
         def python_zip(args)
@@ -479,112 +478,112 @@ module SolveBio
         end
     end
 
-    class Object
-
-        # "123.45".number? => true
-        # "123".number?    => true
-        # "spam".number?   => false
-        def number?
-            begin
-                Float(self)
-                return true
-            rescue
-                return false
-            end
-        end
-
-        # "123".int?    => true
-        # "123.45".int? => false
-        def int?
-            begin
-                Integer(self)
-                return true
-            rescue
-                return false
-            end
+end
+    
+# Monkey patching
+class Object
+    # "123.45".number? => true
+    # "123".number?    => true
+    # "spam".number?   => false
+    def number?
+        begin
+            Float(self)
+            return true
+        rescue
+            return false
         end
     end
 
-    class String
+    # "123".int?    => true
+    # "123.45".int? => false
+    def int?
+        begin
+            Integer(self)
+            return true
+        rescue
+            return false
+        end
+    end
+end
 
-        # Symbols after a decimal point, -1 if the string lacks the decimal point.
-        #
-        #  "123.45".afterpoint =>  2
-        #  "1001".afterpoint   => -1
-        #  "eggs".afterpoint   => -1
-        #  "123e45".afterpoint =>  2
-        def afterpoint
-            if self.number?
-                if self.int?
-                    return -1
-                else
-                    pos = self.rindex('.') || -1
-                    pos = self.downcase().rindex('e') if pos < 0
-                    if pos >= 0
-                        return self.size - pos - 1
-                    else
-                        return -1  # no point
-                    end
-                end
+class String
+    # Symbols after a decimal point, -1 if the string lacks the decimal point.
+    #
+    #  "123.45".afterpoint =>  2
+    #  "1001".afterpoint   => -1
+    #  "eggs".afterpoint   => -1
+    #  "123e45".afterpoint =>  2
+    def afterpoint
+        if self.number?
+            if self.int?
+                return -1
             else
-                return -1  # not a number
+                pos = self.rindex('.') || -1
+                pos = self.downcase().rindex('e') if pos < 0
+                if pos >= 0
+                    return self.size - pos - 1
+                else
+                    return -1  # no point
+                end
             end
+        else
+            return -1  # not a number
         end
+    end
 
-        def adjusted_size(has_invisible)
-            return has_invisible ? self.strip_invisible.size : self.size
-        end
+    def adjusted_size(has_invisible)
+        return has_invisible ? self.strip_invisible.size : self.size
+    end
 
-        # Visible width of a printed string. ANSI color codes are removed.
-        #
-        #  ['\x1b[31mhello\x1b[0m' "world"].map{|s| s.visible_width} =>
-        #  [5, 5]
-        def visible_width
-            # if self.kind_of?(_text_type) or self.kind_of?(_binary_type)
-                return self.strip_invisible.size
-            # else
-            #    return _text_type(s).size
-            # end
-        end
-
-
-        # Flush right.
-        #
-        #    '\u044f\u0439\u0446\u0430'.padleft(6) =>
-        #    '  \u044f\u0439\u0446\u0430'
-        #    'abc'.padleft(2) => 'abc'
-        def padleft(width, has_invisible=true)
-            s_width = self.adjusted_size(has_invisible)
-            s_width < width ? (' ' * (width - s_width)) + self : self
-        end
-
-        # Flush left.
-        #
-        #   padright(6, '\u044f\u0439\u0446\u0430') => '\u044f\u0439\u0446\u0430  '
-        #   padright(2, 'abc') => 'abc'
-        def padright(width, has_invisible=true)
-            s_width = self.adjusted_size(has_invisible)
-            s_width < width ? self + (' ' * (width - s_width)) : self
-        end
+    # Visible width of a printed string. ANSI color codes are removed.
+    #
+    #  ['\x1b[31mhello\x1b[0m' "world"].map{|s| s.visible_width} =>
+    #  [5, 5]
+    def visible_width
+        # if self.kind_of?(_text_type) or self.kind_of?(_binary_type)
+        return self.strip_invisible.size
+        # else
+        #    return _text_type(s).size
+        # end
+    end
 
 
-        # Center string with uneven space on the right
-        #
-        #  '\u044f\u0439\u0446\u0430'.padboth(6) => ' \u044f\u0439\u0446\u0430 '
-        #  'abc'.padboth(2) => 'abc'
-        #  'abc'.padboth(6) => ' abc  '
-        def padboth(width, has_invisible=true)
-            s_width = self.adjusted_size(has_invisible)
-            return self if s_width >= width
-            pad_size   = width - s_width
-            pad_left   = ' ' * (pad_size/2)
-            pad_right  = ' ' * ((pad_size + 1)/ 2)
-            pad_left + self + pad_right
-        end
+    # Flush right.
+    #
+    #    '\u044f\u0439\u0446\u0430'.padleft(6) =>
+    #    '  \u044f\u0439\u0446\u0430'
+    #    'abc'.padleft(2) => 'abc'
+    def padleft(width, has_invisible=true)
+        s_width = self.adjusted_size(has_invisible)
+        s_width < width ? (' ' * (width - s_width)) + self : self
+    end
 
-        # Remove invisible ANSI color codes.
-        def strip_invisible
-            return self.gsub(SolveBio::Tabulate::INVISIBILE_CODES, '')
-        end
+    # Flush left.
+    #
+    #   padright(6, '\u044f\u0439\u0446\u0430') => '\u044f\u0439\u0446\u0430  '
+    #   padright(2, 'abc') => 'abc'
+    def padright(width, has_invisible=true)
+        s_width = self.adjusted_size(has_invisible)
+        s_width < width ? self + (' ' * (width - s_width)) : self
+    end
+
+
+    # Center string with uneven space on the right
+    #
+    #  '\u044f\u0439\u0446\u0430'.padboth(6) => ' \u044f\u0439\u0446\u0430 '
+    #  'abc'.padboth(2) => 'abc'
+    #  'abc'.padboth(6) => ' abc  '
+    def padboth(width, has_invisible=true)
+        s_width = self.adjusted_size(has_invisible)
+        return self if s_width >= width
+        pad_size   = width - s_width
+        pad_left   = ' ' * (pad_size/2)
+        pad_right  = ' ' * ((pad_size + 1)/ 2)
+        pad_left + self + pad_right
+    end
+
+    # Remove invisible ANSI color codes.
+    def strip_invisible
+        return self.gsub(SolveBio::Tabulate::INVISIBILE_CODES, '')
     end
 end

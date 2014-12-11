@@ -30,12 +30,12 @@ module SolveBio
                            "'Annotation.create(:sample_id=>{#sample_id}")
 
             ['status', 'user_id', 'created_at', 'updated_at'].each do |field|
-                assert(response.member?(field) ,
+                assert(response.respond_to?(field) ,
                        "response has field #{field}")
             end
 
             all = SolveBio::Annotation.all()
-            assert(all['total'] > 1,
+            assert(all.total > 1,
                    "Annotation.all() returns more than one value")
 
             my_sample.delete

@@ -5,18 +5,18 @@ module SolveBio
         def test_depositories
             depos = SolveBio::Depository.all
 
-            depo = depos[:data][0]
-            assert(depo.member?('id'),
+            depo = depos.data[0]
+            assert(depo.id,
                    'Should be able to get id in depository')
 
             depo2 = SolveBio::Depository.retrieve(depo.id)
-            assert_equal(depo, depo2,
-                             "Retrieving dataset id #{depo.id} found by all()")
+            assert_equal(depo.id, depo2.id,
+                         "Retrieving dataset id #{depo.id} found by all()")
             %w(class_name created_at description external_resources
                full_name id is_private is_restricted latest_version
                latest_version_id name title updated_at url versions_count
                versions_url).each do |field|
-                assert(depo.member?(field),
+                assert(depo.respond_to?(field),
                        "Should find field #{field} in depo #{depo.id}")
             end
         end

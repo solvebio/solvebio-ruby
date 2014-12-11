@@ -80,7 +80,7 @@ module SolveBio
             SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
 
             response = nil
-            while true do
+            begin
                 RestClient::Request.
                     execute(:method        => method,
                             :url           => url,
@@ -91,45 +91,42 @@ module SolveBio
                     |resp, request, result, &block|
                     response = resp
                     if 429 == response.code
-                        begin
-                            delay = Integer(response.headers[:retry_after])
-                        rescue
-                            delay = 10
-                        end
-                        SolveBio::logger.info("Too many requests; sleeping for #{delay}")
+                        delay = Integer(response.headers[:retry_after])
+                        SolveBio::logger.warn("Too many requests, sleeping for #{delay}s.")
                         sleep(delay)
-                        next
+                        return request(method, url, opts)
                     elsif response.code < 200 or response.code >= 400
-                        handle_api_error(result)
+                        handle_api_error(response)
                     end
                 end
-                break
+            rescue RestClient::Exception => e
+                handle_request_error(e)
             end
 
-            response = JSON.parse(response) unless opts[:raw]
-            response
+            if opts[:raw]
+                return response
+            end
+
+            begin
+                response = JSON.parse(response)
+            rescue JSON::ParserError => e
+                handle_request_error(e)
+            end
+
+            Util.symbolize_names(response)
         end
 
-        def self.handle_request_error(e)
-            # FIXME: go over this. It is still a rough translation
-            # from the python.
+        def handle_request_error(e)
             err = e.inspect
-            if e.kind_of?(requests.exceptions.RequestException)
-                msg = SolveError::Default_message
-            else
-                msg = "Unexpected error communicating with SolveBio.\n" +
-                    "It looks like there's probably a configuration " +
-                    'issue locally.\nIf this problem persists, let us ' +
-                    'know at contact@solvebio.com.'
-            end
-            msg = msg + "\n\n(Network error: #{err}"
+            SolveBio::logger.error("API Error: #{err}")
+            msg = "Unexpected error communicating with SolveBio.\n" +
+                  "If this problem persists, let us " +
+                  "know at contact@solvebio.com."
             raise SolveError.new(nil, msg)
         end
 
-        # SolveBio's API error handler returns a SolveBio::Error.  The
-        # *response* parameter is a (subclass) of Net::HTTPResponse.
         def handle_api_error(response)
-            SolveBio::logger.info("API Error: #{response.msg}") unless
+            SolveBio::logger.error("API Error: #{response.msg}") unless
                 [400, 401, 403, 404].member?(response.code.to_i)
             raise SolveError.new(response)
         end

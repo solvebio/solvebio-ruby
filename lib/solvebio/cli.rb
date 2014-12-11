@@ -9,6 +9,7 @@ require 'readline'
 require 'io/console'
 
 require 'solvebio/cli/auth'
+require 'solvebio/cli/credentials'
 require 'solvebio/cli/irb'
 require 'solvebio/cli/tutorial'
 

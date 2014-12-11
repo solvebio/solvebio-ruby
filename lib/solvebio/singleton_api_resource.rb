@@ -1,12 +1,12 @@
 module SolveBio
     class SingletonAPIResource < APIResource
-        def self.class_to_api_name(cls)
-            cls_name = cls.to_s.sub('SolveBio::', '')
-            Util.camelcase_to_underscore(cls_name)
-        end
+        # def self.class_to_api_name(cls)
+        #     cls_name = cls.to_s.sub('SolveBio::', '')
+        #     Util.camelcase_to_underscore(cls_name)
+        # end
 
         def self.retrieve
-            instance = self.new(nil, api_key)
+            instance = self.new(nil)
             instance.refresh
             instance
         end

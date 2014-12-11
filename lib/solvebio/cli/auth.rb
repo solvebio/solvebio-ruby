@@ -68,7 +68,7 @@ module SolveBio
                     begin
                         response = SolveBio::Client.client
                             .request 'post', '/v1/auth/token', {:payload => data}
-                    rescue SolveBio::Error => e
+                    rescue SolveBio::SolveError => e
                         puts "Login failed: #{e.to_s}"
                         return false
                     else

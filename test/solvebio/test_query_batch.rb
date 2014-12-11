@@ -7,7 +7,7 @@ module SolveBio
         end
 
         def test_invalid_batch_query
-            assert_raise SolveBio::Error do
+            assert_raise SolveBio::SolveError do
                 SolveBio::BatchQuery
                     .new([
                           @dataset.query(:limit => 1, :fields => [:bogus_field]),
@@ -31,8 +31,8 @@ module SolveBio
                       ]
             results = SolveBio::BatchQuery.new(queries).execute
             assert_equal(2, results.size)
-            assert_equal(1, results[0]['results'].length)
-            assert_equal(10, results[1]['results'].size)
+            assert_equal(1, results[0][:results].length)
+            assert_equal(10, results[1][:results].size)
         end
     end
 end

@@ -18,7 +18,7 @@ module SolveBio
                 {:body => '{"id": 5}', :status => 200},
             ]
             depo = SolveBio::Depository.new('HGNC')
-            stub_request(:get, SolveBio::api_host + depo.instance_url).
+            stub_request(:get, SolveBio::api_host + depo.url).
                 to_return(responses).then.to_raise(Exception)
             start_time = Time.now()
             SolveBio::Depository.retrieve('HGNC')

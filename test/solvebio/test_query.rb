@@ -122,8 +122,8 @@ module SolveBio
                 SolveBio::Filter.new(:omim_ids => 123670) |
                 SolveBio::Filter.new(:omim_ids => 123690) |
                 SolveBio::Filter.new(:omim_ids => 306250)
-            results = @dataset.query :filters => filters
-            assert_equal num_filters, results.size
+            results = @dataset.query(:filters => filters)
+            assert_equal(num_filters, results.size)
             assert_raise IndexError do
                 results[num_filters]
             end

@@ -19,9 +19,25 @@ module SolveBio
             when Array
                 resp.map { |i| to_solve_object(i) }
             when Hash
-                object_classes.fetch(resp['class_name'], SolveObject).construct_from(resp)
+                object_classes.fetch(resp[:class_name], SolveObject).construct_from(resp)
             else
                 resp
+            end
+        end
+        
+        def self.symbolize_names(object)
+            case object
+            when Hash
+                new_hash = {}
+                object.each do |key, value|
+                    key = (key.to_sym rescue key) || key
+                    new_hash[key] = symbolize_names(value)
+                end
+                new_hash
+            when Array
+                object.map { |value| symbolize_names(value) }
+            else
+                object
             end
         end
 
@@ -33,9 +49,8 @@ module SolveBio
             return name + "s"
         end
 
-        # Add underscore before internal uppercase letters. Also, lowercase
-        # all letters.
         def camelcase_to_underscore(name)
+            # Add underscore before internal uppercase letters.
             # Using [[:upper:]] and [[:lower]] should help with Unicode.
             s1 = name.gsub(/(.)([[:upper:]])([[:lower:]]+)/){"#{$1}_#{$2}#{$3}"}
             return (s1.gsub(/([a-z0-9])([[:upper:]])/){"#{$1}_#{$2}"}).downcase

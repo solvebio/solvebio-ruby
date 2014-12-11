@@ -13,6 +13,8 @@ end
 
 module SolveBio
     class TestNetrc < Test::Unit::TestCase
+        include SolveBio::CLI::Credentials
+
         def setup
             @home_path_save = ENV['HOME']
             home_path = ENV['HOME'] = File.join(File.dirname(__FILE__), 'data')
@@ -63,7 +65,7 @@ module SolveBio
             # credentials
             SolveBio.api_key = nil
             silence_output {
-                self.assert(SolveBio::Auth::login_if_needed, "Should find credentials")
+                self.assert(SolveBio::CLI::Auth::login_if_needed, "Should find credentials")
             }
             self.assert(SolveBio::api_key, "API key should be set when login_if_needed succeeds")
         end

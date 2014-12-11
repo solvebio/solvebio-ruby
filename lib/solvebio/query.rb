@@ -36,7 +36,12 @@ module SolveBio
         #   - `limit` (optional): Maximum number of query results to return.
         #   - `page_size` (optional): Number of results to fetch per query page.
         def initialize(dataset_id, params={})
-            @data_url     = "/v1/datasets/#{dataset_id}/data"
+            unless dataset_id.is_a?(Fixnum) or dataset_id.respond_to?(:to_str)
+                raise TypeError, "'dataset_id' parameter must an Integer or String"
+            end
+
+            @dataset_id   = dataset_id
+            @data_url     = params[:data_url] || "/v1/datasets/#{dataset_id}/data"
             @limit        = INT_MAX
             @result_class = params[:result_class]
             @filters      = params[:filters] || []
@@ -70,15 +75,14 @@ module SolveBio
         end
 
         def clone(filters=[])
-            result =
-                initialize(@dataset_id,
-                           {
-                               :genome_build => @genome_build,
-                               :limit => @limit,
-                               :total => total,  # This causes an HTTP request
-                               :result_class => @result_class,
-                               :fields => @fields
-                           })
+            result = initialize(@dataset_id, {
+                :data_url => @data_url,
+                :genome_build => @genome_build,
+                :limit => @limit,
+                :total => total,  # This causes an HTTP request
+                :result_class => @result_class,
+                :fields => @fields
+            })
 
             result.filters += @filters unless @filters.empty?
             result.filters += filters unless filters.empty?
@@ -133,7 +137,7 @@ module SolveBio
                 @limit = INT_MAX
                 @response = nil
                 warmup('Query count')
-                @count = @response['total']
+                @count = @response[:total]
                 @limit = limit_save
                 @response = response_save
             end
@@ -192,33 +196,12 @@ module SolveBio
                 [self.class, @dataset_id, @total ? @total : '?', @limit]
         end
 
-        # warmup result set...
         def warmup(what)
             unless @response
                 SolveBio::logger.debug("warmup #{what}")
                 execute
             end
         end
-
-
-        # FIXME: consider creating instance variables from
-        # a response object and then using attr_reader to make that
-        # visible. This is instead of:
-        # # One hacky way to define attributes (methods) on an object.
-        # # Replaces Python's __getattr__
-        # def method_missing(meth, *args, &block)
-        #     if @response.nil?
-        #         logger.debug('warmup ([]): %s' % key)
-        #         execute
-        #     end
-
-        #     if @response.member?(meth)
-        #         return @response[meth]
-        #     end
-
-        #     msg = "'%s' object has no attribute '%s'" % [self.class, meth]
-        #     raise NoMethodError, msg
-        # end
 
         # Retrieve an item or range from the set of results
         def [](key)
@@ -310,12 +293,12 @@ module SolveBio
             SolveBio::logger.debug("execution query. from/limit: #{offset}, #{limit}")
 
             @response = Client.post(@data_url, _params)
-            @total    = @response['total']
+            @total    = @response[:total]
             SolveBio::logger.
-                debug("query response took: #{@response['took']} ms, " +
+                debug("query response took: #{@response[:took]} ms, " +
                       "total: #{@total}")
 
-            @results = @response['results']
+            @results = @response[:results]
             @cursor.reset(offset, offset + limit, 0)
 
             return _params, @response

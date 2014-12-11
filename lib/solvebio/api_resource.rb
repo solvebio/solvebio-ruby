@@ -6,33 +6,27 @@ module SolveBio
             instance
         end
 
-        def self.class_to_api_name(cls)
-            cls_name = cls.to_s.sub('SolveBio::', '')
-            Util.camelcase_to_underscore(Util.pluralize(cls_name))
+        def self.class_name
+            self.name.split('::')[-1]
         end
 
-        def self.class_url(cls)
-            cls_name = cls.to_s.sub('SolveBio::', '')
-            "/v1/#{class_to_api_name(cls_name)}"
+        def self.url
+            if self == APIResource
+                raise NotImplementedError.new('APIResource is an abstract class and has no url.')
+            end
+            "/v1/#{Util.pluralize(Util.camelcase_to_underscore(class_name))}"
+        end
+
+        def url
+            unless id = self.id
+                raise InvalidRequestError.new("Could not determine which URL to request: #{self.class} instance has invalid ID: #{id.inspect}", 'id')
+            end
+            "#{self.class.url}/#{id}"
         end
 
         def refresh
-            response = Client.get(instance_url)
+            response = Client.get(url)
             refresh_from(response)
-        end
-
-        # Get instance URL by ID or full name (if available)
-        def instance_url
-            id = self[:id]
-            base = APIResource.class_url(self.class)
-
-            if id
-                return "#{base}/#{id}"
-            else
-                msg = 'Could not determine which URL to request: %s instance ' +
-                    'has invalid ID: %s' % [self.class, id]
-                raise Exception, msg
-            end
         end
     end
 end

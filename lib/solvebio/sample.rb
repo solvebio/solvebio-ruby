@@ -31,15 +31,12 @@ module SolveBio
         # Creates from the specified file.  The data of the should be in
         # VCF format.
         def self.create_from_file(genome_build, vcf_file)
-            fh = File.open(vcf_file, 'rb')
             data = {
                 :genome_build  => genome_build,
-                :vcf_file => fh
+                :vcf_file => File.open(vcf_file, 'rb')
             }
-            response = Client.post(class_url(self), data, :no_json => true)
-            x = Util.to_solve_object(response)
-            puts x
-            x
+            response = Client.post(url, data, :no_json => true)
+            Util.to_solve_object(response)
         end
 
         # Creates from the specified URL.  The data of the should be in
@@ -48,7 +45,7 @@ module SolveBio
             params = {:genome_build  => genome_build,
                       :vcf_url       => vcf_url}
             begin
-                response = Client.post(class_url(self), params)
+                response = Client.post(url, params)
             rescue SolveError => response
             end
             Util.to_solve_object(response)

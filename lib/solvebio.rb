@@ -9,6 +9,7 @@ require 'openssl'
 require 'rest_client'
 require 'uri'
 require 'addressable/uri'
+require 'set'
 
 require 'solvebio/version'
 require 'solvebio/util'

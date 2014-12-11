@@ -3,10 +3,8 @@ module SolveBio
         module Create
             module ClassMethods
                 def create(params={})
-                    url = SolveBio::APIResource.class_url(self)
-                    response = SolveBio::Client.client
-                        .request('post', url, {:payload => params} )
-                    SolveBio::Util.to_solve_object(response)
+                    response = Client.request('post', url, {:payload => params} )
+                    Util.to_solve_object(response)
                 end
             end
 
@@ -17,14 +15,14 @@ module SolveBio
 
         module Delete
             def delete(params={})
-                response = SolveBio::Client.request('delete', url, params)
+                response = Client.request('delete', url, params)
                 refresh_from(response)
             end
         end
         
         module Update
             def save
-                refresh_from(request('patch', instance_url(),
+                refresh_from(request('patch', url,
                                      {:payload => serialize(self)}))
                 return self
             end
@@ -43,8 +41,8 @@ module SolveBio
         
         module Download
             def download(path=nil)
-                download_url = instance_url + '/download'
-                response = SolveBio::Client.get(download_url, :raw => true)
+                download_url = url + '/download'
+                response = Client.get(download_url, :raw => true)
 
                 if response.code != 302
                     # Some kind of error. We expect a redirect
@@ -59,7 +57,7 @@ module SolveBio
                 filename = File.join(path, filename)
                 response = nil
 
-                response = SolveBio::Client.get(download_url, :raw => true,
+                response = Client.get(download_url, :raw => true,
                                                 :default_headers => false)
 
                 File.open(filename, 'wb') do |fh|
@@ -105,9 +103,8 @@ module SolveBio
         module List
             module ClassMethods
                 def all(params={})
-                    url = SolveBio::APIResource.class_url(self)
-                    response = SolveBio::Client.get(url, {:params => params})
-                    SolveBio::Util.to_solve_object(response)
+                    response = Client.get(url, {:params => params})
+                    Util.to_solve_object(response)
                 end
             end
 
@@ -123,7 +120,7 @@ module SolveBio
                 else
                     items = self
                 end
-                return SolveBio::Tabulate.tabulate(items, ['Fields', 'Data'],
+                return Tabulate.tabulate(items, ['Fields', 'Data'],
                                                    ['right', 'left'], true)
             end
 
@@ -137,9 +134,8 @@ module SolveBio
             module ClassMethods
                 def search(query='', params={})
                     params['q'] = query
-                    url = SolveBio::APIResource.class_url(self)
-                    response = SolveBio::Client.get(url, {:params => params})
-                    SolveBio::Util.to_solve_object(response)
+                    response = Client.get(url, {:params => params})
+                    Util.to_solve_object(response)
                 end
             end
 

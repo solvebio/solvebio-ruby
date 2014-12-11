@@ -4,22 +4,22 @@ module SolveBio
     class TestResource < Test::Unit::TestCase
         def test_SolveObject_inspect
             str = SolveBio::SolveObject.new.inspect
-            assert(str =~ /^<SolveBio::SolveObject:[[:xdigit:]]+> JSON: {}/,
+            assert(str =~ /^#<SolveBio::SolveObject:0x[[:xdigit:]]+>/,
                    'empty SolveObject inspect')
             str = SolveBio::SolveObject.new(62).inspect
-            assert(str =~ /^<SolveBio::SolveObject id=62:[[:xdigit:]]+> JSON: {"id":62}/,
+            assert(str =~ /^#<SolveBio::SolveObject:0x[[:xdigit:]]+ id=62>/,
                    "SolveObject inspect with id #{str}")
 
         end
 
         def test_Dataset_from_response
             resp = {
-                'class_name' => 'Dataset',
-                'depository' => 'HGNC',
-                'depository_version' => 'HGNC/1.0.0-1',
-                'full_name' => 'HGNC/1.0.0-1/HGNC',
-                'name' => 'HGNC',
-                'title' => 'HGNC'
+                :class_name => 'Dataset',
+                :depository => 'HGNC',
+                :depository_version => 'HGNC/1.0.0-1',
+                :full_name => 'HGNC/1.0.0-1/HGNC',
+                :name => 'HGNC',
+                :title => 'HGNC'
             }
             so = Util.to_solve_object(resp)
             assert_equal SolveBio::Dataset, so.class, 'Hash -> SolveObject'
