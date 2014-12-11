@@ -9,7 +9,7 @@ module SolveBio
         module Credentials
             module_function
             def api_host
-                Addressable::URI.parse(SolveBio::api_host).host
+                Addressable::URI.parse(SolveBio.api_host).host
             end
 
             def netrc_path
@@ -28,10 +28,12 @@ module SolveBio
             end
 
             def get_credentials
-                n = Netrc.read(netrc_path)
-                return n[api_host]
-            rescue Netrc::Error => e
-                raise CredentialsError, "Could not read credentials file: #{e}"
+                begin
+                    n = Netrc.read(netrc_path)
+                    return n[api_host]
+                rescue Netrc::Error => e
+                    raise CredentialsError, "Could not read credentials file: #{e}"
+                end
             end
             module_function :get_credentials
 

@@ -1,7 +1,3 @@
-# require_relative 'apiresource'
-# require_relative '../query'
-# require_relative '../tabulate'
-
 module SolveBio
     class Dataset < APIResource
         include SolveBio::APIOperations::Create
@@ -66,9 +62,6 @@ module SolveBio
                         'object with an ID or full_name.'
                 end
                 # automatically construct the data_url from the ID
-                puts "AUTOMATICALLY CALC DATA URL"
-                puts url
-                puts url + '/data'
                 return url + '/data'
             end
 

@@ -3,7 +3,7 @@ require File.expand_path('../../helper', __FILE__)
 module SolveBio
     class TestSampleDownload < Test::Unit::TestCase
         def test_sample_download
-            if SolveBio::api_host == 'https://api.solvebio.com'
+            if SolveBio.api_host == 'https://api.solvebio.com'
                 skip "Testing only on local/dev environments"
             end
 

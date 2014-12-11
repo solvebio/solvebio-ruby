@@ -8,44 +8,43 @@ require 'optparse'
 require 'readline'
 require 'io/console'
 
-require 'solvebio/cli/auth'
 require 'solvebio/cli/credentials'
+require 'solvebio/cli/auth'
 require 'solvebio/cli/irb'
 require 'solvebio/cli/tutorial'
 
 module SolveBio
     module CLI
-        PROGRAM = 'solvebio.rb'
-
-        def show_version
-            "#{PROGRAM}, version #{SolveBio::VERSION}"
-        end
-
         def process_options(argv)
             options = {}
-            args  = setup_options(options)
-            rest  = args.parse argv
+            opts = setup_options(options)
 
-            SolveBio::Client.client.api_host =  options[:api_host] if
-                options[:api_host]
-            SolveBio::Client.client.api_key =  options[:api_key] if
-                options[:api_key]
-            return options, rest, args
+            begin
+                opts.parse!(argv)
+            rescue OptionParser::ParseError => error
+                $stderr.puts error
+                $stderr.puts "(-h or --help will show valid options)"
+                exit 1
+            end
+
+            SolveBio.api_host = options[:api_host] if options[:api_host]
+            SolveBio.api_key = options[:api_key] if options[:api_key]
+            
+            return options, argv
         end
 
         # Main parser for the SolveBio command line client
         def setup_options(options, stdout=$stdout, stderr=$stderr)
-
             OptionParser.new do |opts|
                 opts.banner = "Usage: solvebio.rb [options] <command> [<args>]"
                 opts.on_tail('-v', '--version',
                              'print the version') do
                     options[:version] = true
-                    stdout.puts "#{PROGRAM}, version #{SolveBio::VERSION}"
+                    stdout.puts "solvebio-ruby #{SolveBio::VERSION}"
                     exit 0
                 end
 
-                opts.on('--api-host NAME', String,
+                opts.on('--api-host STRING', String,
                         'Override the default SolveBio API host') do
                     |api_host|
                     options[:api_host] = api_host

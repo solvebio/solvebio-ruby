@@ -9,7 +9,7 @@ module SolveBio
         end
 
         def test_annotation
-            if SolveBio::api_host == 'https://api.solvebio.com'
+            if SolveBio.api_host == 'https://api.solvebio.com'
                 skip "Annotation testing only on local/dev environments"
             end
 

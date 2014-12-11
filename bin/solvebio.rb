@@ -1,18 +1,21 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
-require 'solvebio/cli/main'
+require 'solvebio'
+require 'solvebio/cli'
 
 DIR = File.dirname(__FILE__)
 
+include SolveBio
 include SolveBio::CLI
 include SolveBio::CLI::Auth
+include SolveBio::CLI::Credentials
 include SolveBio::CLI::Tutorial
 
-options, args, parser = process_options(ARGV)
-args = ['shell'] if args.empty?
+options, argv = process_options(ARGV)
+argv = ['shell'] if argv.empty?
 
-cmd = args.shift
+cmd = argv.shift
 case cmd
 when 'shell'
     IRB::shell

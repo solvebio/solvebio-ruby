@@ -1,12 +1,10 @@
-# require_relative 'apiresource'
-
-#  A depository (or data repository) is like a source code
-#  repository, but for datasets. Depositories have one or more
-#  versions, which in turn contain one or more datasets. Typically,
-#  depositories contain a series of datasets that are compatible with
-#  each other (i.e. they come from the same data source or project).
 module SolveBio
     class Depository < APIResource
+        #  A depository (or data repository) is like a source code
+        #  repository, but for datasets. Depositories have one or more
+        #  versions, which in turn contain one or more datasets. Typically,
+        #  depositories contain a series of datasets that are compatible with
+        #  each other (i.e. they come from the same data source or project).
         include SolveBio::APIOperations::Create
         include SolveBio::APIOperations::List
         include SolveBio::APIOperations::Search

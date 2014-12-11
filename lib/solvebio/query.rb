@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
-# require 'pp'
-# require_relative 'client'
-# require_relative 'cursor'
-# require_relative 'filter'
-# require_relative 'locale'
-# require_relative 'tabulate'
-
-# A Query API request wrapper that generates a request from Filter
-# objects, and can iterate through streaming result sets.
 module SolveBio
     class Query
+        # A Query API request wrapper that generates a request from Filter
+        # objects, and can iterate through streaming result sets.
         include Enumerable
 
         # 2**62 - 1 fits Rubywise into a 64-bit Fixnum
@@ -17,7 +10,7 @@ module SolveBio
 
         # The maximum number of results fetched in one go. Note however
         # that iterating over a query can cause more fetches.
-        DEFAULT_PAGE_SIZE ||= 1000
+        DEFAULT_PAGE_SIZE ||= 100
 
         attr_reader   :dataset_id
         attr_accessor :filters

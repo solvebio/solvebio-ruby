@@ -1,24 +1,24 @@
 module SolveBio
     module CLI
         module Auth
-            def ask_for_credentials(email=nil)
-                while true
-                    email ||= Readline.readline('Email address: ', true)
-                    print 'Password (typing will be hidden): '
-                    password = STDIN.noecho(&:gets).chomp
-                    puts
-                    # FIXME: validate email address?
-                    if email and password
-                        return email, password
-                    else
-                        # FIXME: could say which one is needed.
-                        print 'Email and password are both required.'
-                        return nil, nil
-                    end
-                end
-            end
+            include SolveBio::CLI::Credentials
 
             module_function
+            def print_message(msg)
+                if SolveBio.api_host != 'https://api.solvebio.com'
+                    msg += " (#{SolveBio.api_host})"
+                end
+                puts msg + '.'
+            end
+
+            def ask_for_credentials()
+                print_message('Enter your SolveBio credentials')
+                email = Readline.readline('Email: ', true)
+                puts 'Password (typing will be hidden): '
+                password = STDIN.noecho(&:gets).chomp
+                puts
+                return email, password
+            end
 
             def send_install_report
                 require 'rbconfig';
@@ -32,92 +32,75 @@ module SolveBio
                 Client.request('post', '/v1/reports/install', {:payload => data}) rescue nil
             end
 
-            def login_msg(email)
-                msg = "\nYou are logged in as %s" % email
-                if SolveBio::api_host != 'https://api.solvebio.com'
-                    msg += ' on %s' % SolveBio::api_host
+            def login
+                email, password = ask_for_credentials
+        
+                if not email or not password
+                    puts "Email and password are both required."
+                    return false
                 end
-                puts msg
-            end
+                    
+                data = {
+                    :email    => email,
+                    :password => password
+                }
 
-            # Prompt user for login information (email/password).
-            # Email and password are used to get the user's auth_token key.
-            def login(email=nil, api_key=nil)
-                if api_key
-                    old_api_key = SolveBio.api_key
-                    begin
-                        SolveBio.api_key = api_key
-                        response = SolveBio::Client.get('/v1/user', {})
-                    rescue SolveError => e
-                        puts 'Login failed: %s' % e.message
-                        SolveBio.api_key = old_api_key
-                        return false
-                    end
-                    email = response['email']
-                    save_credentials email, api_key
-                    send_install_report
-                    login_msg(email)
-                    return true
-                else
-                    email, password = ask_for_credentials email
-                    data = {
-                        :email    => email,
-                        :password => password
-                    }
-
-                    begin
-                        response = SolveBio::Client.client
-                            .request 'post', '/v1/auth/token', {:payload => data}
-                    rescue SolveBio::SolveError => e
-                        puts "Login failed: #{e.to_s}"
-                        return false
-                    else
-                        save_credentials(email.downcase, response['token'])
-                        # reset the default client's auth token
-                        SolveBio.api_key = response['token']
-                        send_install_report
-                        puts 'You are now logged-in.'
-                        return true
-                    end
+                begin
+                    response = Client.post('/v1/auth/token', {:payload => data})
+                rescue SolveBio::SolveError => e
+                    puts "Login failed: #{e.to_s}"
+                    return false
                 end
-            end
 
-            # If the credentials file has our api host key use that. Otherwise,
-            # ask for credentials.
-            def login_if_needed
-                creds = get_credentials
-                if creds
-                    SolveBio.api_key = creds[1]
-                    login_msg()
-                    return true
-                else
-                    return login(nil, SolveBio.api_key)
-                end
+                delete_credentials
+                save_credentials(email.downcase, response[:token])
+                SolveBio.api_key = response[:token]
+                send_install_report
+                print_message("You are now logged-in as #{email}")
+                return true
             end
 
             def logout
                 if get_credentials
                     delete_credentials
-                    SolveBio.api_key = nil
-                    puts 'You have been logged out.'
+                    print_message('You have been logged out')
                     return true
-                else
-                    puts 'You are not logged-in.'
-                    return false
                 end
+
+                print_message('You are not logged-in')
+                return false
             end
 
             def whoami
-                creds = get_credentials
-                if creds
-                    puts creds[0]
-                    return creds[0]
+                email = nil
+                api_key = SolveBio.api_key
+                
+                # Override local credentials with existing key
+                if SolveBio.api_key
+                    begin
+                        user = Client.get('/v1/user')
+                        email = user[:email]
+                    rescue SolveBio::SolveError => e
+                        SolveBio.api_key = nil
+                        api_key = nil
+                        print_message("Error: #{e.to_s}")
+                    end
                 else
-                    puts 'You are not logged-in.'
-                    return nil
+                    begin
+                        email, api_key = get_credentials
+                    rescue
+                        nil
+                    end
                 end
-            end
 
+                if not email.nil?
+                    print_message("You are logged-in as #{email}")
+                else
+                    print_message("You are not logged-in")
+                end
+
+                return email, api_key
+            end
         end
     end
 end

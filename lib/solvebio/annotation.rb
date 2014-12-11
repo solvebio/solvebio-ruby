@@ -1,8 +1,3 @@
-# Solvebio API Resource for Samples
-# require_relative 'apiresource'
-# require_relative 'solveobject'
-# require_relative '../errors'
-
 #  Annotations are genomic samples that have been annotated.
 #   See https://www.solvebio.com/docs/api/?ruby#annotations
 module SolveBio

@@ -9,7 +9,7 @@ module SolveBio
         end
 
         def test_insert_delete
-            if SolveBio::api_host == 'https://api.solvebio.com'
+            if SolveBio.api_host == 'https://api.solvebio.com'
                 skip "Testing only on local/dev environments"
             end
 

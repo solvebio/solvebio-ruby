@@ -1,5 +1,3 @@
-# require_relative 'main'
-
 module SolveBio
     class Filter
         # SolveBio::Filter objects.
@@ -10,11 +8,8 @@ module SolveBio
         # == Example
         #
         #     require 'solvebio'
-
         #     f =  SolveBio::Filter.new                       #=> <Filter []>
-
         #     f &= SolveBio::Filter.new :price => 'Free'      #=> <Filter [[:price, "Free"]]>
-
         #     f |= SolveBio::Filter.new :style => 'Mexican'   #=> <Filter [{:or=>[[:price, "Free"], [:style, "Mexican"]]}]>
         #
         # The final result is a filter that can be used in a query which match es

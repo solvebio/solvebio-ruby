@@ -35,6 +35,10 @@ require 'solvebio/user'
 require 'solvebio/errors'
 
 module SolveBio
+    class << self
+        attr_accessor :api_key, :api_host, :logger
+    end
+
     @api_key     = ENV['SOLVEBIO_API_KEY']
     @api_host    = ENV['SOLVEBIO_API_HOST'] || 'https://api.solvebio.com'
 
@@ -47,8 +51,4 @@ module SolveBio
             File::expand_path File.join(dir, 'solvebio.log')
         end
     @logger = Logger.new(logfile)
-
-    class << self
-        attr_accessor :api_key, :api_host, :logger
-    end
 end

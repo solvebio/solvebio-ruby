@@ -14,6 +14,7 @@ end
 module SolveBio
     class TestNetrc < Test::Unit::TestCase
         include SolveBio::CLI::Credentials
+        include SolveBio::CLI::Auth
 
         def setup
             @home_path_save = ENV['HOME']
@@ -22,16 +23,16 @@ module SolveBio
             FileUtils.cp(File.join(home_path, 'netrc-save'), credentials_file)
             File.chmod(0600, credentials_file)
             @old_warn_level = $VERBOSE
-            @old_api_host = SolveBio::api_host
+            @old_api_host = SolveBio.api_host
             $VERBOSE = nil
-            SolveBio::api_host = 'https://api.solvebio.com'
+            SolveBio.api_host = 'https://api.solvebio.com'
             $VERBOSE = @old_warn_level
         end
 
         def teardown
             ENV["HOME"] = @home_path_save
             $VERBOSE = nil
-            SolveBio::api_host = @old_api_host 
+            SolveBio.api_host = @old_api_host 
             $VERBOSE = @old_warn_level
         end
 
@@ -59,15 +60,7 @@ module SolveBio
             save_credentials(*pair)
             auths = get_credentials()
             assert_equal(pair, auths,
-                         "Should get newly set credentials for host #{SolveBio::api_host}")
-
-            # Make sure login_if_needed is setting the api key when it finds
-            # credentials
-            SolveBio.api_key = nil
-            silence_output {
-                self.assert(SolveBio::CLI::Auth::login_if_needed, "Should find credentials")
-            }
-            self.assert(SolveBio::api_key, "API key should be set when login_if_needed succeeds")
+                         "Should get newly set credentials for host #{SolveBio.api_host}")
         end
 
     end

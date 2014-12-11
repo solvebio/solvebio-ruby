@@ -1,5 +1,3 @@
-# require_relative 'apiresource'
-
 module SolveBio
     class DatasetField < APIResource
         include SolveBio::APIOperations::Create

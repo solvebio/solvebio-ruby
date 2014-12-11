@@ -13,9 +13,8 @@ module SolveBio
         end
 
         def initialize(api_key=nil, api_host=nil)
-            @api_key = api_key || SolveBio::api_key
-            SolveBio::api_key  ||= api_key
-            @api_host = api_host || SolveBio::api_host
+            @api_key = api_key || SolveBio.api_key
+            @api_host = api_host || SolveBio.api_host
 
             # Mirroring comments from:
             # http://ruby-doc.org/stdlib-2.1.2/libdoc/net/http/rdoc/Net/HTTP.html
@@ -60,7 +59,7 @@ module SolveBio
             opts = DEFAULT_REQUEST_OPTS.merge(opts)
 
             # Expand URL with API host if none was given
-            api_host = @api_host or SolveBio::api_host
+            api_host = @api_host or SolveBio.api_host
 
             if not api_host
                 raise SolveError.new('No SolveBio API host is set')

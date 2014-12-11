@@ -9,13 +9,8 @@ IRB.conf[:PROMPT][:SIMPLE] = {
   :RETURN   => "[SolveBio] Out : %s\n"
  }
 
-require_relative '../solvebio'
-require_relative '../resource/apiresource'
-include SolveBio
-
-puts <<-INTRO
-You are in a SolveBio Interactive Ruby (irb) session.
-INTRO
+require 'solvebio'
+require 'solvebio/cli'
 
 have_completion = nil
 begin
@@ -35,4 +30,21 @@ unless have_completion
     end
 end
 
-login_if_needed
+# If an API key is set in SolveBio.api_key, use that.
+# Otherwise, look for credentials in the local file,
+# Otherwise, ask the user to log in.
+# include SolveBio
+# include SolveBio::CLI
+
+if SolveBio.api_key or SolveBio::CLI::Credentials.get_credentials
+    email, SolveBio.api_key = SolveBio::CLI::Auth::whoami
+else
+    SolveBio::CLI::Auth.login
+end
+
+if not SolveBio.api_key
+    puts("SolveBio requires a valid account. To sign up, visit: https://www.solvebio.com/signup")
+    exit 1
+end
+
+include SolveBio
