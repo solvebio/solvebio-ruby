@@ -125,7 +125,7 @@ module SolveBio
         end
 
         def handle_api_error(response)
-            SolveBio::logger.error("API Error: #{response.msg}") unless
+            SolveBio::logger.error("API Error: #{response}") unless
                 [400, 401, 403, 404].member?(response.code.to_i)
             raise SolveError.new(response)
         end

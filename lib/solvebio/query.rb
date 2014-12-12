@@ -41,11 +41,11 @@ module SolveBio
             @total        = nil
             @response     = nil
             @count        = nil
-            @cursor       = Cursor.new(0 , -1, 0)
             @page_size    = params[:page_size] || DEFAULT_PAGE_SIZE
             @limit        = params[:limit] || INT_MAX
             @result_class = params[:result_class] || Hash
-            @fields = params[:fields]
+            @fields       = params[:fields]
+            @cursor       = Cursor.new(0 , -1, 0, @limit)
 
             begin
                 @limit = Integer(@limit)
@@ -122,13 +122,13 @@ module SolveBio
         # See also size() a function that is dependent on limit.
         def count
             unless @count
-                _limit = @limit
+                _cursor = @cursor.dup
                 _response = @response
-                @limit = 0
+                @cursor.limit = 0
                 @response = nil
                 warmup('Query count')
                 @count = @response[:total]
-                @limit = _limit
+                @cursor = _cursor
                 @response = _response
             end
             @count
@@ -145,7 +145,7 @@ module SolveBio
         # )
         def size
             warmup('Query size')
-            [@total, @limit].min
+            [@total, @cursor.limit].min
         end
         alias_method :length, :size
 
@@ -155,7 +155,7 @@ module SolveBio
 
         # Convert SolveBio::QueryPaging object to a String type
         def to_s
-            if total == 0 or @limit == 0
+            if total == 0 or @cursor.limit == 0
                 return 'Query returned 0 results'
             end
 
@@ -183,30 +183,39 @@ module SolveBio
             unless [Range, Fixnum].member?(key.class)
                 raise TypeError, "Expecting index value to be a Range or Fixnum; is #{key.class}"
             end
-            if @limit < 0
+
+            if @cursor.limit < 0
                 raise IndexError, 'Indexing not supporting when limit < 0.'
             end
+
             if key.kind_of?(Range)
                 return [] if key.first.nil? and key.max.nil?
+
+                first = key.min || key.first
                 last = (key.max || key.last)
                 last = last < 0 ? size+last : last
-                first = key.min || key.first
+
                 if first < 0 or last < 0
                     raise IndexError, 'Negative indexing is not supported'
                 end
+
                 if first > last
                     return []
                 end
+
                 if @cursor.first <= first and @cursor.last >= last
                     adjusted_first = first - @cursor.first
                     adjusted_last  = last - @cursor.first
                     return @results[adjusted_first..adjusted_last]
                 end
-                results = []
+
                 @cursor.reset(key.min, last, 0)
+
+                results = []
                 self.each do |r|
                     results << r
                 end
+
                 return results
             elsif key < 0
                 raise IndexError, 'Negative indexing is not supported'
@@ -249,14 +258,10 @@ module SolveBio
         def execute
             _params = build_query()
 
-            limit =
-                if @limit == INT_MAX
-                    @page_size
-                else
-                    [@page_size, @limit - offset].min
-                end
-
+            offset = @cursor.offset_absolute
+            limit = [@page_size, @cursor.limit - offset].min
             _params.merge!(:offset => offset, :limit => limit)
+
             SolveBio::logger.debug("execution query. from/limit: #{offset}, #{limit}")
 
             @response = Client.post(@data_url, _params)
@@ -266,7 +271,7 @@ module SolveBio
                       "total: #{@total}")
 
             @results = @response[:results]
-            @cursor.reset(offset, offset + limit, 0)
+            @cursor.reset(offset, offset + limit, 0, self.size)
 
             return _params, @response
         end
@@ -280,24 +285,25 @@ module SolveBio
         # cursor.
         def each(*pass)
             return self unless block_given?
-            @cursor.last = size if @cursor.last == -1
+
+            # If cursor.last is unset, it should be the page size
+            @cursor.last = @page_size if @cursor.last == -1
             @cursor.offset = @cursor.first
-            0.upto(size-1).each do |i|
+
+            while @cursor.can_advance?
                 result_start = @cursor.offset
-                if @cursor.has_next?
-                    SolveBio::logger.debug('  Query window range: [%s...%s]' %
-                                           [result_start, result_start + 1])
-                else
+
+                # If the cursor
+                if not @cursor.has_next?
                     SolveBio::logger.debug('executing query. offset/limit: %6d/%d' %
-                                           [i, @limit])
+                                           [@cursor.offset_absolute, @cursor.limit])
                     execute()
-                    # ?? Should we doublecheck execute status?
                     result_start = @cursor.offset
                 end
-                @cursor.advance
+
                 yield @results[result_start]
+                @cursor.advance
             end
-            return self
         end
     end
 
