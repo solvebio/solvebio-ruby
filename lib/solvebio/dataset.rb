@@ -54,13 +54,7 @@ module SolveBio
             end
 
             params.merge!(:data_url => self.data_url)
-            q = Query.new(self.id, params)
-
-            if params[:filters]
-                return q.filter(params[:filters])
-            end
-
-            q
+            Query.new(self.id, params)
         end
     end
 end

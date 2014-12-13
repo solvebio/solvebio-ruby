@@ -24,9 +24,7 @@ module SolveBio
             limit = 10
             results = @dataset.query(:limit => limit)
             assert_equal(results.size, limit)
-            assert_raise IndexError do
-                results[results.total + 1]
-            end
+            assert_equal(results[results.total + 1], nil)
             
             _results = []
             results.each_with_index.each do |r, i|
@@ -104,9 +102,7 @@ module SolveBio
             results = @dataset.query.filter(:omim_ids => 999999)
             assert_equal(0, results.size)
             assert_equal(results[0...results.size], [])
-            assert_raise IndexError do
-                results[0]
-            end
+            assert_equal(results[0], nil)
         end
 
         # test Query when limit is specified and is GREATER THAN total available
@@ -118,9 +114,7 @@ module SolveBio
                         .filter(:omim_ids => 999999)
             assert_equal(0, results.size)
             assert_equal(results[0...results.size], [])
-            assert_raise IndexError do
-                results[0]
-            end
+            assert_equal(results[0], nil)
         end
 
         # test Filtered Query in which limit is specified but is GREATER THAN
@@ -134,9 +128,7 @@ module SolveBio
                 SolveBio::Filter.new(:omim_ids => 306250)
             results = @dataset.query(:filters => filters)
             assert_equal(num_filters, results.size)
-            assert_raise IndexError do
-                results[num_filters]
-            end
+            assert_equal(results[num_filters], nil)
         end
 
         #   test SolveBio::Filtered Query in which limit is specified but is GREATER THAN
@@ -151,9 +143,7 @@ module SolveBio
                 SolveBio::Filter.new(:omim_ids => 306250)
             results = @dataset.query :limit => limit, :filters => filters
             assert_equal(num_filters, results.size)
-            assert_raise IndexError do
-                results[num_filters]
-            end
+            assert_equal(results[num_filters], nil)
         end
 
         def test_paging
@@ -190,14 +180,14 @@ module SolveBio
         def test_slice_ranges
             limit = 50
 
-            results = @dataset.query :limit => limit
+            results = @dataset.query(:limit => limit)
             assert_equal limit, results[0..limit].size
             assert_equal 0, results[limit..limit].size
             assert_equal 0, results[limit..-1].size
 
             r0 = @dataset.query(:limit => limit)[0..limit][-1]
-            r1 = @dataset.query(:limit => limit)[limit-1..-1][0]
-            assert_equal(r0['hgnc_id'], r1['hgnc_id'])
+            r1 = @dataset.query(:limit => limit)[limit-1..limit][0]
+            assert_equal(r0[:hgnc_id], r1[:hgnc_id])
         end
 
         def test_slice_ranges_with_paging
@@ -211,8 +201,8 @@ module SolveBio
             assert_equal 0, results.length, 0
 
             r0 = @dataset.query(:limit => limit)[0..limit][-1]
-            r1 = @dataset.query(:limit => limit)[limit-1..-1][0]
-            assert_equal(r0['hgnc_id'], r1['hgnc_id'])
+            r1 = @dataset.query(:limit => limit)[limit-1..limit][0]
+            assert_equal(r0[:hgnc_id], r1[:hgnc_id])
         end
 
         def test_slice_ranges_with_small_limit
