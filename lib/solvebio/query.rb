@@ -113,21 +113,11 @@ module SolveBio
             return clone([GenomicFilter.new(chromosome, position, position, exact)])
         end
 
-        # # Returns the total number of results of the Query.
-        # # The count is dependent on the filters, but independent of any limit.
-        # # It is like SQL:
-        # # SELECT COUNT(*) FROM <depository> [WHERE condition].
-        # # See also size() a function that is dependent on limit.
-        # def count
-        #     if @count.nil?
-        #         q = clone
-        #         q.limit = 0
-        #         @count = q.total
-        #     end
-        #     @count
-        # end
-        
         # Returns the total number of results in the result-set.
+        # The count is dependent on the filters, but independent of any limit.
+        # It is like SQL:
+        # SELECT COUNT(*) FROM <depository> [WHERE condition].
+        # See also size() a function that is dependent on limit.
         # Requires at least one request.
         def count 
             execute unless @response
