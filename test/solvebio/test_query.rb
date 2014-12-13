@@ -204,11 +204,11 @@ module SolveBio
             limit = 5
             page_size = 2
 
-            results = @dataset.query(:limit => limit, :page_size => page_size)
-            assert_equal results[0..limit].size, limit
+            results = @dataset.query(:limit => limit, :page_size => page_size)[0..limit]
+            assert_equal results.length, limit
 
-            results = @dataset.query(:limit => limit, :page_size => page_size)
-            assert_equal 0, results[limit..limit-1].size, 0
+            results = @dataset.query(:limit => limit, :page_size => page_size)[limit..limit-1]
+            assert_equal 0, results.length, 0
 
             r0 = @dataset.query(:limit => limit)[0..limit][-1]
             r1 = @dataset.query(:limit => limit)[limit-1..-1][0]

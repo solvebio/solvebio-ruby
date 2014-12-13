@@ -7,6 +7,7 @@ module SolveBio
 
         # 2**62 - 1 fits Rubywise into a 64-bit Fixnum
         INT_MAX ||= 4_611_686_018_427_387_903
+        DEFAULT_LIMIT ||= INT_MAX
 
         # The maximum number of results fetched in one go. Note however
         # that iterating over a query can cause more fetches.
@@ -15,7 +16,7 @@ module SolveBio
         attr_reader   :dataset_id
         attr_accessor :filters
         attr_accessor :limit
-        attr_reader   :page_size
+        attr_accessor :page_size
         attr_reader   :response
 
         # Creates a new Query object.
@@ -23,7 +24,6 @@ module SolveBio
         # Parameters:
         #   - `dataset_id`: Unique ID of dataset to query.
         #   - `genome_build`: The genome build to use for the query.
-        #   - `result_class` (optional): Class of object returned by query.
         #   - `fields` (optional): List of specific fields to retrieve.
         #   - `filters` (optional): List of filter objects.
         #   - `limit` (optional): Maximum number of query results to return.
@@ -35,17 +35,16 @@ module SolveBio
 
             @dataset_id   = dataset_id
             @data_url     = params[:data_url] || "/v1/datasets/#{dataset_id}/data"
-            @result_class = params[:result_class]
             @filters      = params[:filters] || []
             @genome_build = params[:genome_build]
-            @total        = nil
+
             @response     = nil
             @count        = nil
             @page_size    = params[:page_size] || DEFAULT_PAGE_SIZE
-            @limit        = params[:limit] || INT_MAX
-            @result_class = params[:result_class] || Hash
+            @limit        = params[:limit] || DEFAULT_LIMIT
             @fields       = params[:fields]
-            @cursor       = Cursor.new(0 , -1, 0, @limit)
+
+            @cursor       = Cursor.new()
 
             begin
                 @limit = Integer(@limit)
@@ -64,26 +63,18 @@ module SolveBio
             self
         end
 
-        def total
-            warmup('Query total') unless @total
-            @total
-        end
-
         def clone(filters=[])
-            result = initialize(@dataset_id, {
+            q = initialize(@dataset_id, {
                 :data_url => @data_url,
                 :genome_build => @genome_build,
                 :limit => @limit,
                 :page_size => @page_size,
-                # :total => total,  # This causes an HTTP request
-                :result_class => @result_class,
                 :fields => @fields
             })
 
-            result.filters += @filters unless @filters.empty?
-            result.filters += filters unless filters.empty?
-
-            return result
+            q.filters += @filters unless @filters.empty?
+            q.filters += filters unless filters.empty?
+            q
         end
 
         # Returns this Query instance with the query args combined with
@@ -114,40 +105,44 @@ module SolveBio
             return self.clone([GenomicFilter.new(chromosome, position, position, exact)])
         end
 
-        #
-        # Returns the total number of results returned by a query.
+        # Returns the total number of results of the Query.
         # The count is dependent on the filters, but independent of any limit.
         # It is like SQL:
         # SELECT COUNT(*) FROM <depository> [WHERE condition].
         # See also size() a function that is dependent on limit.
         def count
-            unless @count
-                _cursor = @cursor.dup
-                _response = @response
-                @cursor.limit = 0
-                @response = nil
-                warmup('Query count')
-                @count = @response[:total]
-                @cursor = _cursor
-                @response = _response
+            if @count.nil?
+                q = clone
+                q.limit = 0
+                @count = q.total
             end
             @count
         end
+        
+        # Returns the total number of results in the result-set.
+        # Requires at least one request.
+        def total
+            warmup
+            @response[:total]
+        end
 
-        # Returns the total number of results returned in a query. It is the
-        # number of items you can iterate over.
+        # Returns the total number of results that will be retrieved
+        # given @limit set by the user.
+        # Requires at least one API request to retrieve the total count.
         #
-        # In contrast to count(), the result does take into account any limit
-        # given. In SQL it is like:
-        #
+        # In SQL it is like:
         # SELECT COUNT(*) FROM (
         #     SELECT * FROM <table> [WHERE condition] [LIMIT number]
         # )
         def size
-            warmup('Query size')
-            [@total, @cursor.limit].min
+            warmup
+            [@limit, total].min
         end
         alias_method :length, :size
+
+        def offset
+            @cursor.query_offset
+        end
 
         def empty?
             return size == 0
@@ -155,12 +150,13 @@ module SolveBio
 
         # Convert SolveBio::QueryPaging object to a String type
         def to_s
-            if total == 0 or @cursor.limit == 0
+            if total == 0 or @limit == 0
                 return 'Query returned 0 results'
             end
 
-            result = Tabulate.tabulate(self[0], ['Fields', 'Data'], ['right', 'left'], true)
-            return "\n#{result}\n\n... #{(@total - 1).pretty_int} more results."
+            # By now there should be data in the cursor buffer
+            result = Tabulate.tabulate(@cursor.first, ['Fields', 'Data'], ['right', 'left'], true)
+            return "\n#{result}\n\n... #{(total - 1).pretty_int} more results."
         end
 
         # Convert SolveBio::QueryPaging object to a Hash type
@@ -168,64 +164,63 @@ module SolveBio
             self[0]
         end
 
-        def warmup(what)
-            unless @response
-                SolveBio::logger.debug("warmup #{what}")
-                execute
-            end
-        end
-
         # Retrieve an item or range from the set of results
         def [](key)
-            # warmup result set...
-            warmup("[#{key}]")
-
             unless [Range, Fixnum].member?(key.class)
                 raise TypeError, "Expecting index value to be a Range or Fixnum; is #{key.class}"
             end
 
-            if @cursor.limit < 0
-                raise IndexError, 'Indexing not supporting when limit < 0.'
-            end
-
             if key.kind_of?(Range)
-                return [] if key.first.nil? and key.max.nil?
+                # Reverse ranges aren't supported
+                return [] if (key.begin > key.end)
 
-                first = key.min || key.first
-                last = (key.max || key.last)
-                last = last < 0 ? size+last : last
+                # Handle negative values for begin and end.
+                # Negative values are relative to the length (see size) of the result-set.
+                start = (key.begin < 0) ? (size + key.begin) : key.begin
+                stop = (key.end < 0) ? (size + key.end) : key.end
 
-                if first < 0 or last < 0
-                    raise IndexError, 'Negative indexing is not supported'
+                if @cursor.has_range?(start, stop)
+                    # Cursor's buffer has the items already
+                    # Avoid a query and just return the buffered items.
+                    # Calculate the offsets relative to the cursor buffer.
+                    start = start - @cursor.query_offset
+                    stop = stop - @cursor.query_offset - 1
+                    return @cursor.buffer[start..stop]
                 end
 
-                if first > last
-                    return []
-                end
-
-                if @cursor.first <= first and @cursor.last >= last
-                    adjusted_first = first - @cursor.first
-                    adjusted_last  = last - @cursor.first
-                    return @results[adjusted_first..adjusted_last]
-                end
-
-                @cursor.reset(key.min, last, 0)
+                # Reset the Cursor's offset so that it is internally referencing
+                # the start of the requested key. If the offset is out of bounds
+                # (i.e. less than 0 or greater than cursor stop) the query will
+                # request a new result page in each().
+                # @cursor.reset_absolute(first)
+                
+                # Reset the cursor completely and set the desired offset
+                @cursor.reset(start)
+                @limit = stop - start
 
                 results = []
                 self.each do |r|
                     results << r
                 end
-
                 return results
-            elsif key < 0
-                raise IndexError, 'Negative indexing is not supported'
-            elsif key >= size
-                raise IndexError, 'Index beyond end of results'
             end
 
-            @cursor.reset(key, key)
+            if key < 0
+                raise IndexError, 'Negative indexing is not supported'
+            end
+
+            if @cursor.has_key?(key)
+                return @cursor.buffer[key - @cursor.query_offset]
+            end
+
+            # if key >= size
+            #     raise IndexError, 'Index beyond end of results'
+            # end
+
+            # Otherwise, use key as the new query_offset and fetch a new page of results
+            @cursor.reset(key)
             execute
-            return @results[0]
+            return @cursor.buffer[0]
         end
 
         # range operations
@@ -252,57 +247,43 @@ module SolveBio
             return q
         end
 
-        # Executes a query.
-        #
-        # Returns the request parameters and (Hash) response.
+        def warmup
+            execute unless @response
+        end
+
         def execute
             _params = build_query()
 
-            offset = @cursor.offset_absolute
-            limit = [@page_size, @cursor.limit - offset].min
-            _params.merge!(:offset => offset, :limit => limit)
+            # The API limit param is really the page size
+            _params.merge!(
+                :offset => @cursor.query_offset,
+                :limit => [@page_size, @limit].min
+            )
 
-            SolveBio::logger.debug("execution query. from/limit: #{offset}, #{limit}")
-
+            SolveBio::logger.debug("Executing query with offset: #{_params[:offset]} limit: #{_params[:limit]}")
             @response = Client.post(@data_url, _params)
-            @total    = @response[:total]
-            SolveBio::logger.
-                debug("query response took: #{@response[:took]} ms, " +
-                      "total: #{@total}")
-
-            @results = @response[:results]
-            @cursor.reset(offset, offset + limit, 0, self.size)
-
+            SolveBio::logger.debug("Query response took: #{@response[:took]}ms total: #{@response[:total]}")
+            @cursor.set_buffer(@response[:results])
             return _params, @response
         end
 
-        def offset
-            @cursor.offset_absolute
-        end
-
-        # "each" must be defined in an Enumerator. Allows the Query object
-        # to be an iterable. Iterates through the internal cache using a
-        # cursor.
         def each(*pass)
+            # "each" must be defined in an Enumerator. Allows the Query object
+            # to be an iterable.
+            # Returns a maximum of @limit results, using @cursor to track
+            # the iteration.
             return self unless block_given?
 
-            # If cursor.last is unset, it should be the page size
-            @cursor.last = @page_size if @cursor.last == -1
-            @cursor.offset = @cursor.first
-
-            while @cursor.can_advance?
-                result_start = @cursor.offset
-
-                # If the cursor
+            # From 0 to the minimum of @limit or @count)
+            # If the buffer has next, return next
+            # Otherwise execute.
+            0.upto(size - 1).each do |i|
                 if not @cursor.has_next?
-                    SolveBio::logger.debug('executing query. offset/limit: %6d/%d' %
-                                           [@cursor.offset_absolute, @cursor.limit])
-                    execute()
-                    result_start = @cursor.offset
+                    # Set the next query offset
+                    @cursor.query_offset += @cursor.buffer_offset || 0
+                    execute
                 end
-
-                yield @results[result_start]
-                @cursor.advance
+                yield @cursor.next
             end
         end
     end

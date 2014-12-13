@@ -33,8 +33,6 @@ end
 # If an API key is set in SolveBio.api_key, use that.
 # Otherwise, look for credentials in the local file,
 # Otherwise, ask the user to log in.
-# include SolveBio
-# include SolveBio::CLI
 
 if SolveBio.api_key or SolveBio::CLI::Credentials.get_credentials
     email, SolveBio.api_key = SolveBio::CLI::Auth::whoami

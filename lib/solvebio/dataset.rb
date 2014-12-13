@@ -42,7 +42,18 @@ module SolveBio
         end
 
         def query(params={})
-            params.merge!(:data_url => data_url)
+            unless self.respond_to?(:data_url)
+                unless self.respond_to?(:id)
+                    raise Exception,
+                    'No Dataset ID was provided. ' +
+                        'Please instantiate the Dataset ' +
+                        'object with an ID or full_name.'
+                end
+                # automatically construct the data_url from the ID
+                self.data_url = url + '/data'
+            end
+
+            params.merge!(:data_url => self.data_url)
             q = Query.new(self.id, params)
 
             if params[:filters]
@@ -51,22 +62,5 @@ module SolveBio
 
             q
         end
-
-        private
-        def data_url
-            unless self.data_url
-                unless self.id
-                    raise Exception,
-                    'No Dataset ID was provided. ' +
-                        'Please instantiate the Dataset ' +
-                        'object with an ID or full_name.'
-                end
-                # automatically construct the data_url from the ID
-                return url + '/data'
-            end
-
-            return self.data_url
-        end
-
     end
 end
