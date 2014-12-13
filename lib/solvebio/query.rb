@@ -219,7 +219,6 @@ module SolveBio
             # When calling each, we always reset the offset and buffer, unless called from
             # the slice function (def []).
             if @range
-                SolveBio.logger.debug("We are in a range: #{@range}")
                 execute(@range.begin)
             else
                 execute(0)
@@ -228,14 +227,11 @@ module SolveBio
             # Keep track when iterating through the buffer
             buffer_idx = 0
             # This will yield a max of @limit or count() results, whichever comes first.
-            SolveBio.logger.debug("Starting internal iterator...")
             0.upto(size - 1).each do |i|
-                SolveBio.logger.debug("#{buffer_idx} / #{i}")
                 # i is the current index within the result-set.
                 # @page_offset + i is the current absolute index within the result-set.
 
                 if buffer_idx == buffer.length
-                    SolveBio.logger.debug("buffer has run out, querying more")
                     # No more buffer! Get more results
                     execute(@page_offset + buffer_idx)
                     # Reset the buffer index.
@@ -245,7 +241,6 @@ module SolveBio
                 yield buffer[buffer_idx]
                 buffer_idx += 1
             end
-            SolveBio.logger.debug("internal iterator done!")
         end
 
         def to_range(range_or_idx)
