@@ -101,7 +101,7 @@ module SolveBio
             # bogus filter
             results = @dataset.query.filter(:omim_ids => 999999)
             assert_equal(0, results.size)
-            assert_equal(results[0...results.size], [])
+            assert_equal(results[0...results.size].to_a, [])
             assert_equal(results[0], nil)
         end
 
@@ -113,7 +113,7 @@ module SolveBio
             results = @dataset.query(:limit => limit)
                         .filter(:omim_ids => 999999)
             assert_equal(0, results.size)
-            assert_equal(results[0...results.size], [])
+            assert_equal(results[0...results.size].to_a, [])
             assert_equal(results[0], nil)
         end
 
@@ -185,7 +185,7 @@ module SolveBio
             assert_equal 0, results[limit..limit].size
             assert_equal 0, results[limit..-1].size
 
-            r0 = @dataset.query(:limit => limit)[0..limit][-1]
+            r0 = @dataset.query(:limit => limit)[0..limit][limit-1]
             r1 = @dataset.query(:limit => limit)[limit-1..limit][0]
             assert_equal(r0[:hgnc_id], r1[:hgnc_id])
         end
@@ -200,7 +200,7 @@ module SolveBio
             results = @dataset.query(:limit => limit, :page_size => page_size)[limit..limit-1]
             assert_equal 0, results.length, 0
 
-            r0 = @dataset.query(:limit => limit)[0..limit][-1]
+            r0 = @dataset.query(:limit => limit)[0..limit][limit-1]
             r1 = @dataset.query(:limit => limit)[limit-1..limit][0]
             assert_equal(r0[:hgnc_id], r1[:hgnc_id])
         end

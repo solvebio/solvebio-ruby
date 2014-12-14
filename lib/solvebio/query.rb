@@ -16,7 +16,7 @@ module SolveBio
         attr_accessor :filters
         attr_accessor :limit
         attr_accessor :page_size
-        attr_accessor :range
+        attr_accessor :slice
         attr_reader   :response
         attr_reader   :page_offset
 
@@ -50,9 +50,9 @@ module SolveBio
             # Page offset can only be set by execute()
             # It always contains the current absolute offset contained in the buffer.
             @page_offset  = nil
-            # @range is set to tell the Query object that is being sliced and "def each" should not
+            # @slice is set to tell the Query object that is being sliced and "def each" should not
             # reset the page_offset to 0 before iterating.
-            @range        = nil
+            @slice        = nil
 
             begin
                 @limit = Integer(@limit)
@@ -149,7 +149,7 @@ module SolveBio
             end
 
             result = Tabulate.tabulate(buffer[0], ['Fields', 'Data'], ['right', 'left'], true)
-            return "\n#{result}\n\n... #{(count - 1).pretty_int} more results."
+            return "\n#{result}\n\n... #{(size - 1).pretty_int} more results."
         end
 
         # Convert SolveBio::QueryPaging object to a Hash type
@@ -164,13 +164,22 @@ module SolveBio
             end
 
             if key.kind_of?(Range)
-                # Reverse ranges aren't supported
-                return [] if (key.begin > key.end)
+                start, stop = key.begin, key.end
 
-                # Handle negative values for begin and end.
-                # Negative values are relative to the length (see size) of the result-set.
-                start = (key.begin < 0) ? (count + key.begin) : key.begin
-                stop = (key.end < 0) ? (count + key.end) : key.end
+                # Reverse ranges aren't supported
+                return [] if (start > stop)
+
+                if start < 0 or stop < 0
+                    raise IndexError, 'Negative indexing is not supported'
+                end
+
+                # If a slice is already set, the new slice should be relative to it
+                if @slice
+                    start += @slice.begin
+                    stop = [@slice.begin + stop, @slice.end].min
+                    # Return nil if the user requests something outside the current slice
+                    return nil if start >= @slice.end
+                end
 
                 # Does the current buffer contain the desired range?
                 if buffer && start >= @page_offset && stop < (@page_offset + buffer.length)
@@ -188,22 +197,24 @@ module SolveBio
                 q = clone()
                 q.limit = [stop-start, @limit].min
                 # Setting range will signal to "each" which page_offset to start at.
-                q.range = Range.new(start, stop)
-                
-                results = []
-                q.each do |r|
-                    results << r
-                end
-                return results
+                q.slice = Range.new(start, stop)
+                return q
+            end
+
+            if key < 0
+                raise IndexError, 'Negative indexing is not supported'
+            end
+
+            # If a slice already exists, the key is relative to that slice
+            if @slice
+                key = key + @slice.begin
+                # Return nil if the user requests something outside the slice
+                return nil if key >= @slice.end
             end
 
             # If the value at key is already in the buffer, return it.
             if buffer && key >= @page_offset && key < (@page_offset + buffer.length)
                 return buffer[key - @page_offset]
-            end
-
-            if key < 0
-                raise IndexError, 'Negative indexing is not supported'
             end
             
             # Otherwise, use key as the new page_offset and fetch a new page of results
@@ -218,8 +229,8 @@ module SolveBio
 
             # When calling each, we always reset the offset and buffer, unless called from
             # the slice function (def []).
-            if @range
-                execute(@range.begin)
+            if @slice
+                execute(@slice.begin)
             else
                 execute(0)
             end
@@ -285,6 +296,7 @@ module SolveBio
             )
 
             SolveBio::logger.debug("Executing query with offset: #{params[:offset]} limit: #{params[:limit]}")
+            # TODO: handle request errors and reset page_offset
             @response = Client.post(@data_url, params)
             SolveBio::logger.debug("Query response took #{@response[:took]}ms, buffer size: #{buffer.length}, total: #{@response[:total]}")
             return params, @response
