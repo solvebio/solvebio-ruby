@@ -43,19 +43,35 @@ function ctrl_c() {
 
 echo "    Installing SolveBio for Ruby..."
 echo
-echo "    IMPORTANT: Your computer's password may be required. It will NOT be sent to SolveBio."
 
 # Setup the log
 LOG=/tmp/solvebio-ruby.log
 echo "SolveBio Ruby Guided Installer log" > $LOG
 echo `date` >> $LOG
 
-# Are we installing or upgrading?
-if [ $(gem list | grep solvebio -c) -ne 0 ]; then
-    sudo gem update solvebio 2>&1 >> $LOG
-else
-    sudo gem install -q solvebio 2>&1 >> $LOG
+RUBY=`which ruby`
+
+if [ "$RUBY" == "" ]; then
+    echo "    Ruby is not installed. Please install Ruby before installing SolveBio for Ruby."
+    fail_exit
 fi
+
+GEM=`which gem`
+
+if [ "$RUBY" == "" ]; then
+    echo "    Ruby is not installed. Please install Ruby before installing SolveBio for Ruby."
+    fail_exit
+fi
+
+# TODO: check ruby and gem versions
+GEM_OWNER=`ls -l $GEM | awk '{ print $3 }'`
+
+if [ "$GEM_OWNER" == "root" ]; then
+    GEM="sudo ${GEM}"
+    echo "    IMPORTANT: Your computer's password may be required. It will NOT be sent to SolveBio."
+fi
+
+$GEM install solvebio 2>&1 >> $LOG
 
 if [ $? -eq 0 ]; then
     VERSION=`ruby -e "require 'solvebio'; print SolveBio::VERSION"`
