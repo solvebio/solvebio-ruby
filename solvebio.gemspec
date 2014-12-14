@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
   ## Make sure your summary is short. The description may be as long
   ## as you like.
   s.summary     = "Ruby bindings for the SolveBio API"
-
   s.description = <<-EOD
 SolveBio is a platform for biomedical datasets. With SolveBio you can
 forget about parsing complex flat files and sifting through cryptic
@@ -33,6 +32,7 @@ EOD
   s.authors  = ['SolveBio']
   s.email    = 'contact@solvebio.com'
   s.homepage = 'https://www.solvebio.com'
+  s.licence = 'MIT'
 
   ## This gets added to the $LOAD_PATH so that 'lib/NAME.rb' can be required as
   ## require 'NAME.rb' or'/lib/NAME/file.rb' can be as require 'NAME/file.rb'
