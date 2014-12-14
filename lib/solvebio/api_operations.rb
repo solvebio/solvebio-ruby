@@ -3,7 +3,7 @@ module SolveBio
         module Create
             module ClassMethods
                 def create(params={})
-                    response = Client.request('post', url, {:payload => params} )
+                    response = Client.post(url, params)
                     Util.to_solve_object(response)
                 end
             end
