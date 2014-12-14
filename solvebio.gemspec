@@ -32,7 +32,7 @@ EOD
   s.authors  = ['SolveBio']
   s.email    = 'contact@solvebio.com'
   s.homepage = 'https://www.solvebio.com'
-  s.licence = 'MIT'
+  s.license = 'MIT'
 
   ## This gets added to the $LOAD_PATH so that 'lib/NAME.rb' can be required as
   ## require 'NAME.rb' or'/lib/NAME/file.rb' can be as require 'NAME/file.rb'
