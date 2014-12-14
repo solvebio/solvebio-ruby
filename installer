@@ -22,7 +22,10 @@ function fail_exit() {
     echo "    #####################################"
     echo
     echo "    Failed to install SolveBio."
-    echo "    Contact us at support@solvebio.com"
+    echo "    Contact us at support@solvebio.com for help."
+    echo
+    echo "    In your email, please copy/paste the output of:"
+    echo "        cat ${LOG}"
     echo
     echo "    #####################################"
     echo
@@ -42,18 +45,24 @@ echo "    Installing SolveBio for Ruby..."
 echo
 echo "    IMPORTANT: Your computer's password may be required. It will NOT be sent to SolveBio."
 
+# Setup the log
+LOG=/tmp/solvebio-ruby.log
+echo "SolveBio Ruby Guided Installer log" > $LOG
+echo `date` >> $LOG
+
 # Are we installing or upgrading?
 if [ $(gem list | grep solvebio -c) -ne 0 ]; then
-    sudo gem update -q solvebio 2>&1 > /dev/null
+    sudo gem update solvebio 2>&1 >> $LOG
 else
-    sudo gem install -q solvebio 2>&1 > /dev/null
+    sudo gem install -q solvebio 2>&1 >> $LOG
 fi
 
 if [ $? -eq 0 ]; then
+    VERSION=`ruby -e "require 'solvebio'; print SolveBio::VERSION"`
     echo
     echo "    ##############################################"
     echo
-    echo "    Success! SolveBio for Ruby is now installed."
+    echo "    Success! SolveBio for Ruby ${VERSION} is now installed."
     echo
     echo "    Please run 'solvebio.rb login' to finish the setup."
     echo
