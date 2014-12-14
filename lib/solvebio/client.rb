@@ -1,7 +1,7 @@
 module SolveBio
     class Client
-        attr_reader :headers, :api_host
-        attr_accessor :api_key
+        attr_reader :headers
+        attr_accessor :api_host, :api_key
 
         # Add our own kind of Authorization tokens. This has to be
         # done this way, late, because the rest-client gem looks for
@@ -13,8 +13,8 @@ module SolveBio
         end
 
         def initialize(api_key=nil, api_host=nil)
-            @api_key = api_key || SolveBio.api_key
-            @api_host = api_host || SolveBio.api_host
+            @api_key = api_key
+            @api_host = api_host
 
             # Mirroring comments from:
             # http://ruby-doc.org/stdlib-2.1.2/libdoc/net/http/rdoc/Net/HTTP.html
@@ -32,7 +32,9 @@ module SolveBio
 
         DEFAULT_REQUEST_OPTS = {
             :raw             => false,
-            :default_headers => true
+            :default_headers => true,
+            :auth            => true,
+            :json            => true
         }
 
         # Issues an HTTP GET across the wire via the Ruby 'rest-client'
@@ -44,13 +46,13 @@ module SolveBio
         # Issues an HTTP POST across the wire via the Ruby 'rest-client'
         # library. See *request* for information on opts.
         def post(url, data, opts={})
-            opts[:payload] =
-                if opts.member?(:no_json)
-                    data
-                else
-                    data.to_json
-                end
+            opts[:payload] = data
             request('post', url, opts)
+        end
+        
+        def put(url, data, opts={})
+            opts[:payload] = data
+            request('put', url, opts)
         end
 
         # Issues an HTTP Request across the wire via the Ruby 'rest-client'
@@ -59,7 +61,8 @@ module SolveBio
             opts = DEFAULT_REQUEST_OPTS.merge(opts)
 
             # Expand URL with API host if none was given
-            api_host = @api_host or SolveBio.api_host
+            api_host = @api_host || SolveBio.api_host
+            api_key = opts[:auth] ? (@api_key || SolveBio.api_key) : nil
 
             if not api_host
                 raise SolveError.new('No SolveBio API host is set')
@@ -68,12 +71,12 @@ module SolveBio
             end
 
             # Handle some default options and add authorization header
-            if opts[:default_headers] and @api_key
-                headers = @headers.merge(opts[:headers]||{})
-                authorization = "Token #{@api_key}"
-            else
-                headers = nil
-                authorization = nil
+            headers = opts[:default_headers] ? @headers.merge(opts[:headers] || {}) : nil
+            authorization = api_key ? "Token #{api_key}" : nil
+
+            # By default, encode payload as JSON
+            if ['post', 'put', 'patch'].include?(method.downcase) and opts[:json]
+                opts[:payload] = opts[:payload].to_json
             end
 
             SolveBio::logger.debug('API %s Request: %s' % [method.upcase, url])
@@ -140,6 +143,10 @@ module SolveBio
 
         def self.post(url, data, opts={})
             client.post(url, data, opts)
+        end
+        
+        def self.put(url, data, opts={})
+            client.put(url, data, opts)
         end
 
         def self.request(method, url, opts={})

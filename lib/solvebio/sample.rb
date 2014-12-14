@@ -35,7 +35,7 @@ module SolveBio
                 :genome_build  => genome_build,
                 :vcf_file => File.open(vcf_file, 'rb')
             }
-            response = Client.post(url, data, :no_json => true)
+            response = Client.post(url, data, :json => false)
             Util.to_solve_object(response)
         end
 
