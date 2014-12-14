@@ -105,12 +105,12 @@ module SolveBio
 
         # Shortcut to do range queries on supported datasets.
         def range(chromosome, start, stop, exact=false)
-            return clone([GenomicFilter.new(chromosome, start, stop, exact)])
+            return clone(GenomicFilter.new(chromosome, start, stop, exact).filters)
         end
 
         # Shortcut to do a single position filter on genomic datasets.
         def position(chromosome, position, exact=false)
-            return clone([GenomicFilter.new(chromosome, position, position, exact)])
+            return clone(GenomicFilter.new(chromosome, position, position, exact).filters)
         end
 
         # Returns the total number of results in the result-set.
