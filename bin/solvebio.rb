@@ -1,36 +1,34 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
-# SolveBio Ruby command-line program
-
-require_relative '../lib/solvebio'
-require_relative '../lib/cli/options'
-require_relative '../lib/cli/irb'
+require 'solvebio'
+require 'solvebio/cli'
 
 DIR = File.dirname(__FILE__)
-TEST_PROGRAM = File.join(DIR, %w(.. demo test-api.rb))
 
-include SolveBio::CLIOptions
-options, rest, parser = process_options(ARGV)
+include SolveBio
+include SolveBio::CLI
+include SolveBio::CLI::Auth
+include SolveBio::CLI::Credentials
+include SolveBio::CLI::Tutorial
 
-rest = ['shell'] if rest.empty?
+options, argv = process_options(ARGV)
+argv = ['shell'] if argv.empty?
 
-include SolveBio::Auth
-
-cmd = rest.shift
+cmd = argv.shift
 case cmd
 when 'shell'
     IRB::shell
 when 'login'
-    login *rest
+    login
 when 'logout'
     logout
 when 'whoami'
     whoami
-when 'test'
-    system(TEST_PROGRAM)
+when 'tutorial'
+    tutorial
 else
-    $stderr.puts "Unknown solvbio.rb command: #{cmd}"
+    $stderr.puts "Unknown subcommand command: #{cmd}"
     $stderr.puts parser
     exit 1
 end
