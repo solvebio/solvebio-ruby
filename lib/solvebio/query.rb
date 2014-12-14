@@ -10,7 +10,7 @@ module SolveBio
 
         # The maximum number of results fetched in one go. Note however
         # that iterating over a query can cause more fetches.
-        DEFAULT_PAGE_LIMIT ||= 100
+        DEFAULT_PAGE_SIZE ||= 100
 
         attr_reader   :dataset_id
         attr_accessor :filters
@@ -46,7 +46,7 @@ module SolveBio
             @limit        = params[:limit] || INT_MAX
             # Page limit and page offset are the low level API limit and offset params.
             # page_offset may be changed periodically during sequential pagination requests.
-            @page_size   = params[:page_size] || DEFAULT_PAGE_LIMIT
+            @page_size   = params[:page_size] || DEFAULT_PAGE_SIZE
             # Page offset can only be set by execute()
             # It always contains the current absolute offset contained in the buffer.
             @page_offset  = nil
