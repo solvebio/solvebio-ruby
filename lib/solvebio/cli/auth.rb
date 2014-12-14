@@ -14,9 +14,8 @@ module SolveBio
             def ask_for_credentials()
                 print_message('Enter your SolveBio credentials')
                 email = Readline.readline('Email: ', true)
-                puts 'Password (typing will be hidden): '
+                print 'Password (typing will be hidden): '
                 password = STDIN.noecho(&:gets).chomp
-                puts
                 return email, password
             end
 
@@ -29,7 +28,7 @@ module SolveBio
                     :ruby_implementation   => RbConfig::CONFIG['RUBY_SO_NAME'],
                     :architecture          => RbConfig::CONFIG['arch'],
                 }
-                Client.request('post', '/v1/reports/install', {:payload => data}) rescue nil
+                Client.request('post', '/v1/reports/install', data) rescue nil
             end
 
             def login
@@ -46,7 +45,7 @@ module SolveBio
                 }
 
                 begin
-                    response = Client.post('/v1/auth/token', {:payload => data})
+                    response = Client.post('/v1/auth/token', data)
                 rescue SolveBio::SolveError => e
                     puts "Login failed: #{e.to_s}"
                     return false

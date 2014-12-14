@@ -55,10 +55,7 @@ module SolveBio
 
                 path = Dir.tmpdir unless path
                 filename = File.join(path, filename)
-                response = nil
-
-                response = Client.get(download_url, :raw => true,
-                                                :default_headers => false)
+                response = Client.get(download_url, :raw => true, :auth => false, :default_headers => false)
 
                 File.open(filename, 'wb') do |fh|
                     fh.write(response.body)
