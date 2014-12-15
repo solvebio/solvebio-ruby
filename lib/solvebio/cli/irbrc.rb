@@ -12,21 +12,14 @@ IRB.conf[:PROMPT][:SIMPLE] = {
 require 'solvebio'
 require 'solvebio/cli'
 
-have_completion = nil
 begin
-    require 'bond' and require 'bond/completion'
-    have_completion = 'bond'
+    require 'bond'
+    Bond.start
 rescue LoadError
     begin
-        have_completion = require 'irb/completion'
+        require 'irb/completion'
     rescue LoadError
-        have_completion = false
-    end
-end
-
-unless have_completion
-    if have_completion != 'bond'
-        puts "Please install the 'bond' getm for better autocompletion"
+        puts "To enable tab-completion, please install the 'bond' gem (gem install bond)."
     end
 end
 
