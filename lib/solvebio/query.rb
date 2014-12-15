@@ -151,6 +151,9 @@ module SolveBio
             result = Tabulate.tabulate(buffer[0], ['Fields', 'Data'], ['right', 'left'], true)
             return "\n#{result}\n\n... #{(size - 1).pretty_int} more results."
         end
+        # Force inspect to always call to_s.
+        # This happens automatically in Ruby < 2.0.0
+        alias_method(:inspect, :to_s)
 
         # Convert SolveBio::QueryPaging object to a Hash type
         def to_h

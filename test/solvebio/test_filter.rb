@@ -49,7 +49,7 @@ module SolveBio
 
         def test_genomic_filter
             assert_equal(
-                '<GenomicFilter [{:and=>[["genomic_coordinates.start", 13], ["genomic_coordinates.stop", 32200000], ["chromosome", "hg38"]]}]>',
+                '<GenomicFilter [{:and=>[["genomic_coordinates.start", 13], ["genomic_coordinates.stop", 32200000], ["genomic_coordinates.chromosome", "hg38"]]}]>',
                          SolveBio::GenomicFilter.
                          new("hg38", "13", 32200000, 32500000).inspect)
         end
@@ -65,21 +65,21 @@ module SolveBio
         def test_genomic_single_position
             f = SolveBio::GenomicFilter.new('chr1', 100)
             assert_equal(
-                '<GenomicFilter [{:and=>[["genomic_coordinates.start__gte", 100.0], ["genomic_coordinates.start__lte", 100.0], ["chromosome", "1"]]}]>',
+                '<GenomicFilter [{:and=>[["genomic_coordinates.start__gte", 100.0], ["genomic_coordinates.start__lte", 100.0], ["genomic_coordinates.chromosome", "1"]]}]>',
                 f.inspect)
 
             f = SolveBio::GenomicFilter.new('chr1', 100, 100, true)
             assert_equal(
-                '<GenomicFilter [{:and=>[["genomic_coordinates.start", 100], ["genomic_coordinates.stop", 100], ["chromosome", "1"]]}]>',
+                '<GenomicFilter [{:and=>[["genomic_coordinates.start", 100], ["genomic_coordinates.stop", 100], ["genomic_coordinates.chromosome", "1"]]}]>',
                 f.inspect)
         end
 
         def test_range
             f = SolveBio::GenomicFilter.new('chr1', 100, 200)
-            assert_equal('<GenomicFilter [{:and=>[{:or=>[{:and=>[["genomic_coordinates.start__gte", 200.0], ["genomic_coordinates.start__lte", 100.0]]}, ["genomic_coordinates.start__range", [100, 201]], ["genomic_coordinates.stop__range", [100, 201]]]}, ["chromosome", "1"]]}]>',
+            assert_equal('<GenomicFilter [{:and=>[{:or=>[{:and=>[["genomic_coordinates.start__gte", 200.0], ["genomic_coordinates.start__lte", 100.0]]}, ["genomic_coordinates.start__range", [100, 201]], ["genomic_coordinates.stop__range", [100, 201]]]}, ["genomic_coordinates.chromosome", "1"]]}]>',
                          f.inspect)
             f = SolveBio::GenomicFilter.new('chr1', 100, 200, true)
-            assert_equal('<GenomicFilter [{:and=>[["genomic_coordinates.start", 100], ["genomic_coordinates.stop", 200], ["chromosome", "1"]]}]>',
+            assert_equal('<GenomicFilter [{:and=>[["genomic_coordinates.start", 100], ["genomic_coordinates.stop", 200], ["genomic_coordinates.chromosome", "1"]]}]>',
                          f.inspect)
         end
     end

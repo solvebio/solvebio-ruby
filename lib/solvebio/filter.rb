@@ -144,9 +144,11 @@ module SolveBio
                         begin
                             value = Float(value)
                         rescue
-                            raise(TypeError,
-                                  "Invalid field value #{value} for #{key}; " +
-                                  "Should be a number")
+                            if /\d{4}-\d{2}-\d{2}/ !~ value
+                                raise(TypeError,
+                                      "Invalid field value #{value} for #{key}; " +
+                                      "Should be a number or a date in the format 'YYYY-MM-DD'.")
+                            end
                         end
                         tuple = [key, value]
                     when 'range'
@@ -230,10 +232,8 @@ module SolveBio
                         else
                             rv << {key => process_filters(val)}
                         end
-                    elsif f.kind_of?(Array)
-                        rv << f
                     else
-                        raise TypeError, "Invalid filter class #{f.class}"
+                        rv << f
                     end
                 end
             end
@@ -300,9 +300,9 @@ module SolveBio
             end
 
             if chromosome.nil?
-                f &= SolveBio::Filter.new({"chromosome" => nil})
+                f &= SolveBio::Filter.new({"#{FIELD_CHR}" => nil})
             else
-                f &= SolveBio::Filter.new({"chromosome" => chromosome.sub('chr', '')})
+                f &= SolveBio::Filter.new({"#{FIELD_CHR}" => chromosome.sub('chr', '')})
             end
 
             @filters = f.filters

@@ -27,9 +27,7 @@ Installing from Git
 
 First, install dependencies:
 	
-    gem install rest_client
-    gem install addressable
-    gem install netrc
+    gem install rest_client addressable netrc
 
 Install from source:
 

@@ -25,7 +25,7 @@ end
 
 task :install => :gem do
   Dir.chdir(ROOT_DIR) do
-    sh %{gem install --both pkg/#{gemspec.file_name}}
+    sh %{gem install --dev --both pkg/#{gemspec.file_name}}
   end
 end
 
