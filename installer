@@ -84,6 +84,15 @@ if [ $? -eq 0 ]; then
     echo
     echo "    ##############################################"
     echo
+
+    # Detect old credentials in ~/.netrc (they will interfere with Ruby's Rest Client)
+    NETRC_WARN=`grep -c "solvebio" ~/.netrc`
+    if [ "$NETRC_WARN" -gt "0" ]; then
+        echo
+        echo "Warning: SolveBio credentials were found in ~/.netrc"
+        echo "Please delete the lines in ~/.netrc with SolveBio credentials."
+        echo
+    fi
 else
     fail_exit
 fi
