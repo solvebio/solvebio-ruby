@@ -3,6 +3,12 @@ module SolveBio
         TYPES = {NilClass => 0, Fixnum => 1, Float => 2, String => 4}
 
         INVISIBILE_CODES = %r{\\x1b\[\d*m}  # ANSI color codes
+        
+        def self.tty_cols
+            cols = (ENV['COLUMNS'].to_i || 80 rescue 80)
+            return cols > 0 ? cols : 80
+        end
+        TTY_COLS = Tabulate.tty_cols
 
         Line = Struct.new(:start, :hline, :sep, :last)
 
@@ -288,10 +294,8 @@ module SolveBio
             return rows, headers
         end
 
-        TTY_COLS = ENV['COLUMNS'].to_i || 80 rescue 80
         # Return a string which represents a row of data cells.
         def build_row(cells, padding, first, sep, last)
-
             pad = ' ' * padding
             padded_cells = cells.map{|cell| pad + cell + pad }
             rendered_cells = (first + padded_cells.join(sep) + last).rstrip
@@ -426,8 +430,11 @@ module SolveBio
             end
 
             # format rows and columns, convert numeric values to strings
-            cols = list_of_lists[0].zip(*list_of_lists[1..-1]) if
-                list_of_lists.size > 1
+            if list_of_lists.size == 1
+                cols = [[list_of_lists[0][0]], [list_of_lists[0][1]]]
+            else
+                cols = list_of_lists[0].zip(*list_of_lists[1..-1])
+            end
 
             coltypes = cols.map{|c| column_type(c)}
 
