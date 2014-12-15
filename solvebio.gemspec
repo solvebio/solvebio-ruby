@@ -52,13 +52,12 @@ EOD
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
 
-  s.add_dependency('netrc',   '>=0.7.7')      # handling .netrc
-  s.add_dependency('rest_client', '>=1.8.1')  # better URI handler
-  s.add_dependency('addressable', '>=2.3.6')  # better URI parsing
+  s.add_dependency('netrc', '~> 0.7')
+  s.add_dependency('rest_client', '~> 1.8', '>= 1.8.1')
+  s.add_dependency('addressable', '~> 2.3', '>= 2.3.6')
 
   ## List your development dependencies here. Development dependencies are
   ## those that are only needed during development
-  # s.add_development_dependency('DEVDEPNAME', [">= 1.1.0", "< 2.0.0"])
   s.add_development_dependency('rake')
   s.add_development_dependency('rdoc')
   s.add_development_dependency('webmock')
