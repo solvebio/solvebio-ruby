@@ -41,16 +41,15 @@ module SolveBio
             @filters      = params[:filters].kind_of?(SolveBio::Filter) ? params[:filters].filters : (params[:filters] || [])
 
             @response     = nil
-            # Limit defines the total number of results that will be returned
+            # limit defines the total number of results that will be returned
             # from a query involving 1 or more pagination requests.
             @limit        = params[:limit] || INT_MAX
-            # Page limit and page offset are the low level API limit and offset params.
-            # page_offset may be changed periodically during sequential pagination requests.
+            # page_size/page_offset are the low level API limit and offset params.
             @page_size   = params[:page_size] || DEFAULT_PAGE_SIZE
-            # Page offset can only be set by execute()
+            # page_offset can only be set by execute()
             # It always contains the current absolute offset contained in the buffer.
             @page_offset  = nil
-            # @slice is set to tell the Query object that is being sliced and "def each" should not
+            # slice is set to tell the Query object that is being sliced and "def each" should not
             # reset the page_offset to 0 before iterating.
             @slice        = nil
 
