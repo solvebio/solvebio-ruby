@@ -466,7 +466,7 @@ module SolveBio
             else
                 # align headers and add headers
                 minwidths =
-                    minwidths.zip(cols).map{|minw, c| [minw, c[0].send(width_fn)].max}
+                    minwidths.zip(cols).map{|minw, c| [minw, c ? c[0].send(width_fn) : 0].max}
                 headers   =
                     headers.zip(aligns, minwidths).map{|h, a, minw| align_header(h, a, minw)}
             end
