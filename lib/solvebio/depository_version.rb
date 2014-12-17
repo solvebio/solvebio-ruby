@@ -6,8 +6,8 @@ module SolveBio
         include SolveBio::APIOperations::Help
 
         # Fields that get shown by tabulate
-        TAB_FIELDS = %w(datasets_url depository description full_name
-                       latest url)
+        LIST_FIELDS = [%w(full_name title description),
+                       %w(Name Title Description)]
 
         def datasets_url(name=nil)
             name ||= self['name']

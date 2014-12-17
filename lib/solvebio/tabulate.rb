@@ -8,7 +8,6 @@ module SolveBio
             cols = (ENV['COLUMNS'].to_i || 80 rescue 80)
             return cols > 0 ? cols : 80
         end
-        TTY_COLS = Tabulate.tty_cols
 
         Line = Struct.new(:start, :hline, :sep, :last)
 
@@ -302,13 +301,13 @@ module SolveBio
 
             # Enforce that we don't wrap lines by setting a max
             # limit on row width which is equal to TTY_COLS (see printing)
-            if rendered_cells.size > TTY_COLS
+            if rendered_cells.size > Tabulate.tty_cols
                 if not cells[-1].end_with?(' ') and not cells[-1].end_with?('-')
                     terminating_str = ' ... '
                 else
                     terminating_str = ''
                 end
-                prefix = rendered_cells[0..TTY_COLS - terminating_str.size - 2]
+                prefix = rendered_cells[0..Tabulate.tty_cols - terminating_str.size - 2]
                 rendered_cells = "%s%s%s" % [prefix, terminating_str, last]
             end
 
@@ -399,6 +398,7 @@ module SolveBio
                     end
                 end
             end
+
             return lines.join("\n")
         end
 
@@ -478,9 +478,10 @@ module SolveBio
             # make sure values don't have newlines or tabs in them
             rows.each do |r|
                 r.each_with_index do |c, i|
-                    r[i] = c.gsub("\n", '').gsub("\t", '')
+                    r[i] = c.gsub("\n", '').gsub("\t", '').gsub("\r", '')
                 end
             end
+
             return format_table(tablefmt, headers, rows, minwidths, aligns)
         end
     end

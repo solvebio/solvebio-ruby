@@ -74,6 +74,11 @@ module SolveBio
             headers = opts[:default_headers] ? @headers.merge(opts[:headers] || {}) : nil
             authorization = api_key ? "Token #{api_key}" : nil
 
+            # In Rest-Client, GET params are parsed from headers[:params]
+            if opts[:params]
+                headers.merge!({:params => opts[:params]})
+            end
+
             # By default, encode payload as JSON
             if ['post', 'put', 'patch'].include?(method.downcase) and opts[:json]
                 opts[:payload] = opts[:payload].to_json

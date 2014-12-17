@@ -1,6 +1,5 @@
 module SolveBio
     class ListObject < SolveObject
-
         def [](k)
             case k
             when String, Symbol
@@ -45,9 +44,29 @@ module SolveBio
             self.to_a[i]
         end
 
+        def size
+            self[:total]
+        end
+        alias :total :size
+
         def to_a
             return Util.to_solve_object(self.data)
         end
+
+        def to_s
+            if self.data[0] and self.data[0].class.constants.member?(:LIST_FIELDS)
+                puts self.data.size
+                puts self.data
+                puts self.data[0]
+                puts self.data.class
+                # Tabulate the result list
+                fields, headers = self.data[0].class::LIST_FIELDS
+                items = self.data.map { |item| fields.map{ |field| item[field] } }
+                return "\n" + Tabulate.tabulate(items, headers)
+            end
+            super
+        end
+        alias :inspect :to_s
 
         def each(*pass)
             return self unless block_given?

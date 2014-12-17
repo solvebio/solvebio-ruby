@@ -108,23 +108,6 @@ module SolveBio
             def self.included base
                 base.extend ClassMethods
             end
-
-            def to_s
-                if self.class.constants.member?(:TAB_FIELDS)
-                    items = self.class.const_get(:TAB_FIELDS).map{
-                        |name| [name, self[name]]
-                    }
-                else
-                    items = self
-                end
-                return Tabulate.tabulate(items, ['Fields', 'Data'],
-                                                   ['right', 'left'], true)
-            end
-
-            def size
-                self[:total]
-            end
-            alias :total :size
         end
         
         module Search

@@ -6,6 +6,9 @@ module SolveBio
         include SolveBio::APIOperations::Delete
         include SolveBio::APIOperations::Help
 
+        LIST_FIELDS = [%w(full_name title description),
+                       %w(Name Title Description)]
+
         def depository
             return Depository.retrieve(self.depository)
         end
