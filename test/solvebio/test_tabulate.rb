@@ -61,7 +61,7 @@ module SolveBio
         def test_tabulate
             old_verbose = $VERBOSE
             $VERBOSE=nil
-            SolveBio::Tabulate.const_set(:TTY_COLS, 80)
+            ENV['COLUMNS'] = "80"
             $VERBOSE=old_verbose
             tsv = simple_separated_format("\t")
             expected = <<-EOS

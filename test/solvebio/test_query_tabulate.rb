@@ -16,7 +16,7 @@ module SolveBio
         def test_query_tabulate
             old_verbose = $VERBOSE
             $VERBOSE=nil
-            SolveBio::Tabulate.const_set(:TTY_COLS, 66)
+            ENV['COLUMNS'] = "66"
             $VERBOSE=old_verbose
             dataset = SolveBio::Dataset.retrieve(TEST_DATASET_NAME)
             results = dataset.query().filter(:hgnc_id => 2396)

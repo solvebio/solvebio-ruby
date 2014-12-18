@@ -11,8 +11,11 @@ module SolveBio
         include SolveBio::APIOperations::Update
         include SolveBio::APIOperations::Help
 
+        @@permanent_attributes = Set.new([:id, :latest_version])
+
         # Fields that get shown by tabulate
-        TAB_FIELDS = %w(description full_name latest_version name title url)
+        LIST_FIELDS = [%w(full_name title description),
+                       %w(Name Title Description)]
 
         def versions(name=nil, params={})
             # construct the depo version full name
@@ -32,6 +35,10 @@ module SolveBio
                 end
             end
             results
+        end
+
+        def latest_version
+            return versions(self[:latest_version].split('/')[-1])
         end
 
     end
