@@ -45,8 +45,7 @@ module SolveBio
             facets = dataset_field.facets()
 
             # We can get small or large numbers like 0 or 4902851621.0
-            assert(facets['total'] >= 0,
-                   'facets should have a numeric total field >= 0')
+            assert(facets['values'].length >= 0)
         end
     end
 end
