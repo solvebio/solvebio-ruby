@@ -67,11 +67,13 @@ fi
 GEM_OWNER=`ls -l $GEM | awk '{ print $3 }'`
 
 if [ "$GEM_OWNER" == "root" ]; then
-    GEM="sudo ${GEM}"
+    GEM_SUDO="sudo ${GEM}"
     echo "    IMPORTANT: Your computer's password may be required. It will NOT be sent to SolveBio."
+else
+    GEM_SUDO=$GEM
 fi
 
-$GEM install solvebio 2>&1 >> $LOG
+$GEM_SUDO install solvebio 2>&1 >> $LOG
 
 if [ $? -eq 0 ]; then
     VERSION=`ruby -e "require 'solvebio'; print SolveBio::VERSION"`
