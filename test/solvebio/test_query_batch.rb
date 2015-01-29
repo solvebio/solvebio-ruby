@@ -7,19 +7,11 @@ module SolveBio
         end
 
         def test_invalid_batch_query
-            assert_raise SolveBio::SolveError do
-                SolveBio::BatchQuery
-                    .new([
-                          @dataset.query(:limit => 1, :fields => [:bogus_field]),
-                          @dataset.query(:limit => 10).filter(:bogus_id__gt => 100000)
-                         ]).execute
-            end
-
-            results = SolveBio::BatchQuery
-                .new([
-                      @dataset.query(:limit => 10).filter(:hgnc_id__lt => 100),
-                      @dataset.query(:limit => 10).filter(:hgnc_id__gt => 100)
-                     ]).execute
+            queries = [
+                @dataset.query(:limit => 1, :fields => [:bogus_field]),
+                @dataset.query(:limit => 10).filter(:bogus_id__gt => 100000)
+            ]
+            results = SolveBio::BatchQuery.new(queries).execute
             assert_equal(2, results.length)
 
         end
