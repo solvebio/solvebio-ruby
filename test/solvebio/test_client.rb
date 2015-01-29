@@ -3,7 +3,7 @@ require File.expand_path('../../helper', __FILE__)
 module SolveBio
     class TestClient < Test::Unit::TestCase
         def test_get
-            client = Client.new(nil, 'http://google.com')
+            client = Client.new('http://google.com')
             assert client, 'Should be able to create a client'
 
             # Can we get something from google?

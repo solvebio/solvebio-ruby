@@ -35,13 +35,14 @@ require 'solvebio/errors'
 
 module SolveBio
     class << self
-        attr_accessor :api_key, :api_host, :logger
+        attr_accessor :access_token, :api_key, :api_host, :logger
     end
 
-    @api_key     = ENV['SOLVEBIO_API_KEY']
-    @api_host    = ENV['SOLVEBIO_API_HOST'] || 'https://api.solvebio.com'
+    @api_key       = ENV['SOLVEBIO_API_KEY']
+    @access_token  = ENV['SOLVEBIO_ACCESS_TOKEN']
+    @api_host      = ENV['SOLVEBIO_API_HOST'] || 'https://api.solvebio.com'
 
-    logfile      =
+    logfile =
         if ENV['SOLVEBIO_LOGFILE']
             ENV['SOLVEBIO_LOGFILE']
         else

@@ -1,7 +1,7 @@
 module SolveBio
     class Client
         attr_reader :headers
-        attr_accessor :api_host, :api_key
+        attr_accessor :api_host, :token
 
         # Add our own kind of Authorization tokens. This has to be
         # done this way, late, because the rest-client gem looks for
@@ -12,8 +12,9 @@ module SolveBio
             end
         end
 
-        def initialize(api_key=nil, api_host=nil)
-            @api_key = api_key
+        def initialize(api_host=nil, token=nil, token_type='Token')
+            @token = token
+            @token_type = token_type
             @api_host = api_host
 
             # Mirroring comments from:
@@ -62,7 +63,6 @@ module SolveBio
 
             # Expand URL with API host if none was given
             api_host = @api_host || SolveBio.api_host
-            api_key = opts[:auth] ? (@api_key || SolveBio.api_key) : nil
 
             if not api_host
                 raise SolveError.new('No SolveBio API host is set')
@@ -72,7 +72,19 @@ module SolveBio
 
             # Handle some default options and add authorization header
             headers = opts[:default_headers] ? @headers.merge(opts[:headers] || {}) : nil
-            authorization = api_key ? "Token #{api_key}" : nil
+
+            if opts[:auth]
+                if token.nil?
+                    if SolveBio.access_token
+                        token = SolveBio.access_token
+                        token_type = 'Bearer'
+                    elsif SolveBio.api_key
+                        token = SolveBio.api_key
+                        token_type = 'Token'
+                    end
+                end
+                authorization = token ? "#{token_type} #{token}" : nil
+            end
 
             # In Rest-Client, GET params are parsed from headers[:params]
             if opts[:params]
