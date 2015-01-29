@@ -13,7 +13,7 @@ Guided Installation
 
 To use the guided installer, open up your terminal and paste this:
 
-    curl -kL install.solvebio.com/ruby | bash
+    curl -skL install.solvebio.com/ruby | bash
 
 
 Manual Installation
