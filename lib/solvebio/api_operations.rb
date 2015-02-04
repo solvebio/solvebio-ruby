@@ -82,7 +82,7 @@ module SolveBio
 
             module InstanceMethods
                 def help
-                    open_help(self['full_name'])
+                    open_help('/library/' + self['full_name'])
                 end
             end
 
