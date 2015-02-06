@@ -51,4 +51,28 @@ module SolveBio
             File::expand_path File.join(dir, 'solvebio.log')
         end
     @logger = Logger.new(logfile)
+
+    def self.login(opts={})
+        # Clear any existing auth keys
+        @access_token = nil
+        @api_key = nil
+
+        # Helper method to load credentials from local file in Ruby scripts.
+        if opts[:access_token]
+            @access_token = opts[:access_token]
+        elsif opts[:api_key]
+            @api_key = opts[:api_key]
+        else
+            # creds
+            require 'solvebio/cli/credentials'
+            _, @api_key = SolveBio::CLI::Credentials.get_credentials
+        end
+
+        if @api_key.nil? and @access_token.nil?
+            puts "No credentials found. Requests to SolveBio may fail. Use 'solvebio.rb login' to save your API key."
+            return false
+        end
+
+        return true
+    end
 end
