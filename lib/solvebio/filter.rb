@@ -287,15 +287,17 @@ module SolveBio
             end
 
             if exact or start.nil?
-                f = SolveBio::Filter.new({FIELD_START => start, FIELD_STOP  => stop})
+                # Handle the case where start is None because sometimes
+                # a record will have only the chromosome set (no positions).
+                f = SolveBio::Filter.new({FIELD_START => start, FIELD_STOP => stop})
             else
                 f = SolveBio::Filter.new({"#{FIELD_START}__lte" => start,
-                                          "#{FIELD_START}__gte" => stop})
+                                          "#{FIELD_STOP}__gte" => stop})
                 if start != stop
                     f |= SolveBio::Filter.new({"#{FIELD_START}__range" =>
-                                               [start, stop + 1]})
+                                               [start, stop]})
                     f |= SolveBio::Filter.new({"#{FIELD_STOP}__range" =>
-                                               [start, stop + 1]})
+                                               [start, stop]})
                 end
             end
 
