@@ -2,7 +2,7 @@ language: ruby
 sudo: false
 before_script:
 - gem install netrc --version=0.7.7
-- gem install rest_client addressable webmock
+- gem install rest-client addressable webmock
 - touch ~/.netrc
 - chmod 0600 ~/.netrc
 env:

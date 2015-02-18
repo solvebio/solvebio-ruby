@@ -53,7 +53,7 @@ EOD
   ## that are needed for an end user to actually USE your code.
 
   s.add_dependency('netrc', '~> 0.7')
-  s.add_dependency('rest_client', '~> 1.8', '>= 1.8.1')
+  s.add_dependency('rest-client', '~> 1.8', '>= 1.8.1')
   s.add_dependency('addressable', '~> 2.3', '>= 2.3.6')
 
   ## List your development dependencies here. Development dependencies are
