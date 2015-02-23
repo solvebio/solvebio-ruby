@@ -2,5 +2,6 @@
 .rvmrc
 pkg
 solvebio-*.gem
+Gemfile.lock
 test/data/.netrc
 *.swp
