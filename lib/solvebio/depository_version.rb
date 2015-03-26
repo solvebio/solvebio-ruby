@@ -37,7 +37,7 @@ module SolveBio
             self[:full_name] <=> other[:full_name]
         end
 
-        def changelog(params={})
+        def changelog(version=nil, params={})
             unless self.respond_to?(:changelog_url)
                 unless self.respond_to?(:id)
                     raise Exception,
@@ -46,7 +46,11 @@ module SolveBio
                         'object with an ID or full_name.'
                 end
                 # automatically construct the data_url from the ID
-                self.changelog_url = url + '/changelog'
+                if version
+                  self.changelog_url = url + '/changelog/' + version
+                else
+                  self.changelog_url = url + '/changelog'
+                end
             end
 
             params.merge!(:changelog_url => self.changelog_url)
