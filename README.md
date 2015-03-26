@@ -61,4 +61,4 @@ The following optional gems can make your shell experience better
 Documentation
 -------------
 
-See the [SolveBio API Reference](https://www.solvebio.com/v1.0/docs/) for more information about using the API.
+See the [SolveBio API Reference](https://docs.solvebio.com/) for more information about using the API.
