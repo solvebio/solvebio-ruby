@@ -36,5 +36,25 @@ module SolveBio
         def <=>(other)
             self[:full_name] <=> other[:full_name]
         end
+
+        def changelog(version=nil, params={})
+            unless self.respond_to?(:changelog_url)
+                unless self.respond_to?(:id)
+                    raise Exception,
+                    'No Dataset ID was provided. ' +
+                        'Please instantiate the Dataset ' +
+                        'object with an ID or full_name.'
+                end
+                # automatically construct the data_url from the ID
+                if version
+                  self.changelog_url = url + '/changelog/' + version
+                else
+                  self.changelog_url = url + '/changelog'
+                end
+            end
+
+            params.merge!(:changelog_url => self.changelog_url)
+            return Client.request('get', self.changelog_url, params)
+        end
     end
 end

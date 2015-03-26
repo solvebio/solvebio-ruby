@@ -47,5 +47,17 @@ module SolveBio
             # We can get small or large numbers like 0 or 4902851621.0
             assert(facets['facets'].length >= 0)
         end
+
+# TODO support a Genomic test dataset (grab clinvar one from API build)
+#        def test_dataset_beacon
+#            beacon = @dataset.beacon(234, '6', allele => 'G')
+#            assert(beacon['exist'])
+#        end
+
+# TODO add another version of TEST_DATASET so we can test changelog
+#        def test_dataset_changelog
+#            changelog = @dataset.changelog
+#            assert(changelog['to_version'])
+#        end
     end
 end
