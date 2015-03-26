@@ -79,7 +79,6 @@ module SolveBio
                        :allele => allele
                       }
                     }
-            puts opts
             return Client.request('get', self.beacon_url, opts=opts)
         end
 
