@@ -60,7 +60,7 @@ module SolveBio
             Query.new(self.id, params)
         end
 
-        def beacon(genome_build, coordinate, chromosome, allele=nil)
+        def beacon(coordinate, chromosome, genome_build=nil, allele=nil)
             unless self.respond_to?(:beacon_url)
                 unless self.respond_to?(:id)
                     raise Exception,
@@ -73,9 +73,9 @@ module SolveBio
             end
 
             opts = { :params => {
-                       :genome_build => genome_build,
                        :coordinate => coordinate,
                        :chromosome => chromosome,
+                       :genome_build => genome_build,
                        :allele => allele
                       }
                     }

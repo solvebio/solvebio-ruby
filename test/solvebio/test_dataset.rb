@@ -50,7 +50,7 @@ module SolveBio
 
 # TODO support a Genomic test dataset (grab clinvar one from API build)
 #        def test_dataset_beacon
-#            beacon = @dataset.beacon('GRCh37', 234, '6', allele => 'G')
+#            beacon = @dataset.beacon(234, '6', allele => 'G')
 #            assert(beacon['exist'])
 #        end
 
