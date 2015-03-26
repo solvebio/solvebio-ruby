@@ -59,5 +59,44 @@ module SolveBio
             params.merge!(:data_url => self.data_url)
             Query.new(self.id, params)
         end
+
+        def beacon(genome_build, coordinate, chromosome, allele=nil)
+            unless self.respond_to?(:beacon_url)
+                unless self.respond_to?(:id)
+                    raise Exception,
+                    'No Dataset ID was provided. ' +
+                        'Please instantiate the Dataset ' +
+                        'object with an ID or full_name.'
+                end
+                # automatically construct the data_url from the ID
+                self.beacon_url = url + '/beacon'
+            end
+
+            opts = { :params => {
+                       :genome_build => genome_build,
+                       :coordinate => coordinate,
+                       :chromosome => chromosome,
+                       :allele => allele
+                      }
+                    }
+            puts opts
+            return Client.request('get', self.beacon_url, opts=opts)
+        end
+
+        def changelog(params={})
+            unless self.respond_to?(:changelog_url)
+                unless self.respond_to?(:id)
+                    raise Exception,
+                    'No Dataset ID was provided. ' +
+                        'Please instantiate the Dataset ' +
+                        'object with an ID or full_name.'
+                end
+                # automatically construct the data_url from the ID
+                self.changelog_url = url + '/changelog'
+            end
+
+            params.merge!(:changelog_url => self.changelog_url)
+            return Client.request('get', self.changelog_url, params)
+        end
     end
 end

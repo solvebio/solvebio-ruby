@@ -18,5 +18,16 @@ module SolveBio
                        "Should find field #{field} in depo version")
             end
         end
+
+# TODO add another version of TEST_DATASET so we can test changelog
+#        def test_depositoryversion_changelog
+#            dvs = SolveBio::DepositoryVersion.all
+#            dv = dvs.data[0]
+#            assert(dv.respond_to?('id'),
+#                   'Should be able to get id in depositoryversion')
+#
+#            changelog = SolveBio::DepositoryVersion.retrieve(dv.id).changelog
+#            assert(changelog['to_version'])
+#        end
     end
 end
