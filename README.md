@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/solvebio/solvebio-ruby.svg)](https://travis-ci.org/solvebio/solvebio-ruby)
+[ ![Codeship Status for
+solvebio/solvebio-ruby](https://codeship.com/projects/29665650-c42f-0132-1c4e-2229894e097b/status?branch=master)](https://codeship.com/projects/74058)
 
 SolveBio Ruby Client
 ====================
