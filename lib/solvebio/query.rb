@@ -25,6 +25,7 @@ module SolveBio
         # Parameters:
         #   - `dataset_id`: Unique ID of dataset to query.
         #   - `genome_build`: The genome build to use for the query.
+        #   - `query` (optional): Query string.
         #   - `fields` (optional): List of specific fields to retrieve.
         #   - `filters` (optional): List of filter objects.
         #   - `limit` (optional): Maximum number of query results to return.
@@ -39,6 +40,7 @@ module SolveBio
             @genome_build = params[:genome_build]
             @fields       = params[:fields]
             @filters      = params[:filters].kind_of?(SolveBio::Filter) ? params[:filters].filters : (params[:filters] || [])
+            @query        = params[:query]
 
             @response     = nil
             # limit defines the total number of results that will be returned
@@ -74,6 +76,7 @@ module SolveBio
             q = Query.new(@dataset_id, {
                 :data_url => @data_url,
                 :genome_build => @genome_build,
+                :query => @query,
                 :fields => @fields,
                 :limit => @limit,
                 :page_size => @page_size
@@ -280,6 +283,7 @@ module SolveBio
 
             q[:fields] = @fields if @fields
             q[:genome_build] = @genome_build if @genome_build
+            q[:query] = @query if @query
 
             return q
         end
