@@ -20,7 +20,7 @@ module SolveBio
         def fields(name=nil, params={})
             unless self.fields_url
                 raise Exception,
-                'Please use Dataset.retrieve({ID}) before doing looking ' +
+                'Please use Dataset.retrieve({ID}) before looking ' +
                     'up fields'
             end
 
@@ -44,7 +44,7 @@ module SolveBio
             results
         end
 
-        def query(params={})
+        def query(query=nil, params={})
             unless self.respond_to?(:data_url)
                 unless self.respond_to?(:id)
                     raise Exception,
@@ -53,7 +53,15 @@ module SolveBio
                         'object with an ID or full_name.'
                 end
                 # automatically construct the data_url from the ID
-                self.data_url = url + '/data'
+                self.data_url = self.id.to_s + '/data'
+            end
+
+            # If no query string is passed, assume it is params
+            if query.is_a?(Hash)
+                params = query
+                query = nil
+            else
+                params.merge!(:query => query)
             end
 
             params.merge!(:data_url => self.data_url)

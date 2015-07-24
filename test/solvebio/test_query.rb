@@ -116,6 +116,14 @@ module SolveBio
             assert_equal(results[0...results.size].to_a, [])
             assert_equal(results[0], nil)
         end
+        
+        def test_query_string
+            results = @dataset.query('omim_ids:123631')
+            assert_equal(results.size, 1)
+
+            results = @dataset.query(:query => 'omim_ids:123631')
+            assert_equal(results.size, 1)
+        end
 
         # test Filtered Query in which limit is specified but is GREATER THAN
         #    the number of total available results
