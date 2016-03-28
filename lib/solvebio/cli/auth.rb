@@ -13,11 +13,12 @@ module SolveBio
 
             def ask_for_credentials()
                 print_message('Enter your SolveBio credentials')
+                domain = Readline.readline('Domain (e.g. <domain>.solvebio.com): ', true)
                 email = Readline.readline('Email: ', true)
                 print 'Password (typing will be hidden): '
                 password = STDIN.noecho(&:gets).chomp
                 puts
-                return email, password
+                return domain, email, password
             end
 
             def send_install_report
@@ -33,14 +34,15 @@ module SolveBio
             end
 
             def login
-                email, password = ask_for_credentials
+                domain, email, password = ask_for_credentials
         
-                if not email or not password
-                    puts "Email and password are both required."
+                if not domain or not email or not password
+                    puts "Domain, email, and password are all required."
                     return false
                 end
                     
                 data = {
+                    :domain   => domain.gsub('.solvebio.com', ''),
                     :email    => email,
                     :password => password
                 }
