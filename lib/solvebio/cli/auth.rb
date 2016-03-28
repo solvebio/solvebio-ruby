@@ -42,7 +42,7 @@ module SolveBio
                 end
                     
                 data = {
-                    :domain   => domain,
+                    :domain   => domain.gsub('.solvebio.com', ''),
                     :email    => email,
                     :password => password
                 }
