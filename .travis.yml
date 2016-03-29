@@ -1,0 +1,16 @@
+sudo: false
+before_script:
+  - gem install netrc --version=0.7.7
+  - gem install rest_client addressable webmock
+env:
+  global:
+    - COLUMNS=80
+language: ruby
+rvm:
+  - 1.9.3
+  - 2.0.0
+  - 2.1.2
+script: rake
+notifications:
+  slack:
+    secure: aIpZOAZwIk/3ZToZqAPEdM4yKyD6UuDmR+KyH2eL+24mTxU+Jp8hum02LlRsdeOXweup9Ov/h7SuDQXfEt506oLmkhfDwk+v2j2RkHmFco4l4M+rI1QAtJw1xhzrscwgnJqkW8n81U5Se84KzU+x7N6EvDcki8G1KlbuU2A9f74=
