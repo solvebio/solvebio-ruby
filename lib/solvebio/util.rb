@@ -6,8 +6,6 @@ module SolveBio
             'DepositoryVersion' => DepositoryVersion,
             'Dataset'           => Dataset,
             'DatasetField'      => DatasetField,
-            'Sample'            => Sample,
-            'Annotation'        => Annotation,
             'User'              => User,
             'Account'           => Account,
             'list'              => ListObject
