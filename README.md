@@ -1,8 +1,16 @@
 [![Build Status](https://travis-ci.org/solvebio/solvebio-ruby.svg?branch=master)](http://travis-ci.org/solvebio/solvebio-ruby)
 
-
 SolveBio Ruby Client
 ====================
+
+Deprecation Notice
+-------------------
+
+As of July 28th, 2017 the SolveBio Ruby client will officially be unsupported. Many of the endpoints in use have been deprecated. Please contact SolveBio with any questions.
+
+
+About
+-------
 
 This is the SolveBio Ruby module and command-line interface (CLI).
 
